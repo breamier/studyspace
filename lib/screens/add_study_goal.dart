@@ -85,7 +85,7 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      prefixIcon: const Icon(Icons.calendar_today),
+                      prefixIcon: const Icon(Icons.calendar_month_outlined),
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -106,7 +106,7 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      prefixIcon: const Icon(Icons.calendar_today),
+                      prefixIcon: const Icon(Icons.calendar_month_outlined),
                     ),
                   ),
                   const SizedBox(height: 15),
