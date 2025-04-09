@@ -71,12 +71,12 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
           ),
           Spacer(),
           Text("Probing for life...",
-              style: GoogleFonts.arimo(
+              style: GoogleFonts.brunoAce(
                 color: Colors.white,
                 fontSize: 14,
               )),
           Text("Take a picture for this study session!",
-              style: GoogleFonts.arimo(
+              style: GoogleFonts.brunoAce(
                 color: Colors.white,
                 fontSize: 14,
               )),
@@ -98,17 +98,18 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
               )),
           Spacer(),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               TextButton(
                   onPressed: () {},
                   child: Text("Can't take a photo now. Skip",
-                      style: GoogleFonts.arimo(
+                      style: GoogleFonts.brunoAce(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 18,
                           decoration: TextDecoration.underline,
                           decorationColor: Colors.white))),
               Text("This will damage astronaut's health",
-                  style: GoogleFonts.arimo(
+                  style: GoogleFonts.brunoAce(
                     color: Colors.white,
                     fontSize: 14,
                   ))
