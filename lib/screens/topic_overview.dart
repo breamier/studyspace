@@ -6,13 +6,11 @@ import 'dart:ui';
 class TopicOverview extends StatefulWidget {
   final String topicTitle;
   final String targetDate;
-  // final String sessionDate;
 
   const TopicOverview({
     super.key,
     required this.topicTitle,
     required this.targetDate,
-    // required this.sessionDate
   });
 
   @override
@@ -39,95 +37,105 @@ class _TopicOverviewState extends State<TopicOverview> {
           canPop: false,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 350,
-                maxHeight: 315,
-                minWidth: 200,
-                minHeight: 200,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.05,
               ),
-              child: PopupCard(
-                elevation: 8,
-                color: const Color.fromARGB(255, 22, 22, 22),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: const BorderSide(
-                    color: Colors.white,
-                    width: 2.0,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    minWidth: 200,
                   ),
-                ),
-                child: Padding(
-                  // Main padding for entire card
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Delay your mission?",
-                        style: GoogleFonts.arimo(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      const SizedBox(height: 15), // Space between texts
-                      Text(
-                        "I'll move your mission to --/--/--",
-                        style: GoogleFonts.arimo(
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
-                      ),
-                      // Space before buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: PopupCard(
+                    elevation: 8,
+                    color: const Color.fromARGB(255, 22, 22, 22),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: const BorderSide(color: Colors.white, width: 2.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset("images/astro_notification.png",
-                              width: 180, height: 210),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Text(
+                            "Delay your mission?",
+                            style: GoogleFonts.arimo(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          Text(
+                            "I'll move your mission to --/--/--",
+                            style: GoogleFonts.arimo(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              ElevatedButton(
-                                // to edit laterr
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color.fromARGB(194, 109, 68, 221),
-                                    minimumSize: const Size(135, 60),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                      side: const BorderSide(
-                                          color: Colors.white, width: 1.5),
-                                    )),
-                                child: Text(
-                                  "Confirm",
-                                  style: GoogleFonts.arimo(
-                                      color: Colors.white, fontSize: 22),
+                              Flexible(
+                                child: Image.asset(
+                                  "images/astro_notification.png",
+                                  width: 180,
+                                  height: 210,
+                                  fit: BoxFit.contain,
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(
-                                        255, 106, 105, 105),
-                                    minimumSize: const Size(135, 60),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                      side: const BorderSide(
-                                          color: Colors.white, width: 1.5),
-                                    )),
-                                child: Text(
-                                  "Cancel",
-                                  style: GoogleFonts.arimo(
-                                      color: Colors.white, fontSize: 22),
-                                ),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromARGB(
+                                          194, 109, 68, 221),
+                                      minimumSize: const Size(135, 60),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        side: const BorderSide(
+                                            color: Colors.white, width: 1.5),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "Confirm",
+                                      style: GoogleFonts.arimo(
+                                          color: Colors.white, fontSize: 22),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromARGB(
+                                          255, 106, 105, 105),
+                                      minimumSize: const Size(135, 60),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        side: const BorderSide(
+                                            color: Colors.white, width: 1.5),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "Cancel",
+                                      style: GoogleFonts.arimo(
+                                          color: Colors.white, fontSize: 22),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -138,7 +146,6 @@ class _TopicOverviewState extends State<TopicOverview> {
     );
   }
 
-  // declared variables
   String nextSessionDate = '12/09/24';
   String totalStudyTime = '00:00';
 
@@ -149,15 +156,16 @@ class _TopicOverviewState extends State<TopicOverview> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+        backgroundColor: Colors.transparent,
         title: Text(
           "Goals",
-          style: GoogleFonts.arimo(
-            color: Colors.white,
-          ),
+          style: GoogleFonts.arimo(color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -165,213 +173,251 @@ class _TopicOverviewState extends State<TopicOverview> {
         ),
       ),
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("images/backGroundScreen.png"),
             fit: BoxFit.cover,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
               child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 75),
-              Text(
-                widget.topicTitle,
-                style: GoogleFonts.arimo(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30),
-              ),
-              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 15),
-                      Text(
-                        "target end date",
-                        style: GoogleFonts.brunoAce(
-                            color: Colors.white, fontSize: 15),
-                      ),
-                      Text(
-                        widget.targetDate,
-                        style: GoogleFonts.brunoAce(
-                            color: Colors.white, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 80),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 15),
-                      Text(
-                        "next session",
-                        style: GoogleFonts.brunoAce(
-                            color: Colors.white, fontSize: 15),
-                      ),
-                      Text(
-                        nextSessionDate,
-                        style: GoogleFonts.brunoAce(
-                            color: Colors.white, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 25),
-              Text(
-                "total study time",
-                style: GoogleFonts.brunoAce(color: Colors.white, fontSize: 15),
-              ),
-              Text(
-                totalStudyTime,
-                style: GoogleFonts.brunoAce(color: Colors.white, fontSize: 15),
-              ),
-              const SizedBox(height: 10),
-              const PhotoCard(),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  const SizedBox(width: 15),
+                  const SizedBox(height: 40),
                   Text(
-                    "Subtopics",
-                    style: GoogleFonts.arimo(color: Colors.white, fontSize: 25),
+                    widget.topicTitle,
+                    style: GoogleFonts.arimo(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 30,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(width: 220),
-                  IconButton(
-                    icon: const Icon(Icons.delete,
-                        color: Color.fromRGBO(176, 152, 228, 1), size: 30),
-                    // disregard muna | TO EDIT LATER
-                    onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            "target end date",
+                            style: GoogleFonts.brunoAce(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            widget.targetDate,
+                            style: GoogleFonts.brunoAce(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isSmallScreen) const SizedBox(width: 40),
+                      Column(
+                        children: [
+                          Text(
+                            "next session",
+                            style: GoogleFonts.brunoAce(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            nextSessionDate,
+                            style: GoogleFonts.brunoAce(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              ...subTopics.map((subTopic) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
+                  const SizedBox(height: 25),
+                  Text(
+                    "total study time",
+                    style: GoogleFonts.brunoAce(
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    totalStudyTime,
+                    style: GoogleFonts.brunoAce(
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const PhotoCard(),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const SizedBox(width: 12),
-                        Transform.scale(
-                          scale: 1.5,
-                          child: Checkbox(
-                            value: subTopic.completed,
-                            onChanged: (value) {
-                              setState(() {
-                                subTopic.completed = value ?? false;
-                              });
-                            },
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5)),
-                            side: const BorderSide(
-                                color: Colors.white, width: 1.5),
+                        Text(
+                          "Subtopics",
+                          style: GoogleFonts.arimo(
+                            color: Colors.white,
+                            fontSize: 25,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(subTopic.title,
-                            style: GoogleFonts.arimo(
-                                color: Colors.white, fontSize: 18)),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Color.fromRGBO(176, 152, 228, 1),
+                            size: 30,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       ],
                     ),
-                  )),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    // for edit later
-                    subTopics
-                        .add(SubTopic(title: "New Subtopic", completed: false));
-                  });
-                },
-                child: Row(
-                  children: [
-                    const SizedBox(width: 2),
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color.fromARGB(187, 187, 187, 187),
-                          width: 1.5,
+                  ),
+                  ...subTopics.map((subTopic) => Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
                         ),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        size: 20,
-                        color: Color.fromARGB(187, 187, 187, 187),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Text(
-                      "Add a subtopic",
-                      style: GoogleFonts.arimo(
-                        color: Colors.white,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-              Center(
-                child: Row(children: [
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                      onPressed: () {
-                        // start session
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(194, 109, 68, 221),
-                        minimumSize: const Size(180, 75),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          side: const BorderSide(
-                            color: Colors.white,
-                            width: 1.5,
+                        child: Row(
+                          children: [
+                            Transform.scale(
+                              scale: 1.5,
+                              child: Checkbox(
+                                value: subTopic.completed,
+                                onChanged: (value) {
+                                  setState(() {
+                                    subTopic.completed = value ?? false;
+                                  });
+                                },
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                side: const BorderSide(
+                                  color: Colors.white,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                subTopic.title,
+                                style: GoogleFonts.arimo(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 16.0, right: 16.0, top: 8.0),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 13),
+                        Transform.scale(
+                          scale: 1.5,
+                          child: Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: const Color.fromARGB(187, 187, 187, 187),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(
+                                Icons.add,
+                                size: 16,
+                                color: Color.fromARGB(187, 187, 187, 187),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  subTopics.add(SubTopic(
+                                      title: "New Subtopic", completed: false));
+                                });
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      child: Text(
-                        "Start Session",
-                        style: GoogleFonts.arimo(
+                        const SizedBox(width: 12),
+                        Text(
+                          "Add a subtopic",
+                          style: GoogleFonts.arimo(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
-                      )),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    // Postpone session
-                    onPressed: _postponeNotification,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(185, 195, 29, 32),
-                      minimumSize: const Size(180, 75),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        side: const BorderSide(
-                          color: Colors.white,
-                          width: 1.5,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
-                    ),
-                    child: Text(
-                      "Postpone Session",
-                      style: GoogleFonts.arimo(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
+                      ],
                     ),
                   ),
-                ]),
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        _buildActionButton(
+                          text: "Start Session",
+                          color: const Color.fromARGB(194, 109, 68, 221),
+                          onPressed: () {},
+                        ),
+                        const SizedBox(width: 30),
+                        _buildActionButton(
+                          text: "Postpone Session",
+                          color: const Color.fromARGB(185, 195, 29, 32),
+                          onPressed: _postponeNotification,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
-            ],
-          )),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String text,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: 160,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+            side: const BorderSide(color: Colors.white, width: 1.5),
+          ),
+        ),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.arimo(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
         ),
       ),
     );
@@ -380,63 +426,43 @@ class _TopicOverviewState extends State<TopicOverview> {
 
 class PhotoCard extends StatelessWidget {
   const PhotoCard({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 300,
-      width: 500,
-      child: Card(
-        color: const Color.fromRGBO(176, 152, 228, 1),
-        margin: const EdgeInsets.all(10.0),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Photos",
-                style: GoogleFonts.arimo(
-                    color: const Color.fromARGB(255, 68, 67, 67),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+    return Card(
+      color: const Color.fromRGBO(176, 152, 228, 1),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Photos",
+              style: GoogleFonts.arimo(
+                color: const Color.fromARGB(255, 68, 67, 67),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              Text("# photos, # videos",
-                  style: GoogleFonts.arimo(
-                      color: const Color.fromARGB(255, 68, 67, 67),
-                      fontSize: 15)),
-              const SizedBox(
-                height: 10,
+            ),
+            Text(
+              "# photos, # videos",
+              style: GoogleFonts.arimo(
+                color: const Color.fromARGB(255, 68, 67, 67),
+                fontSize: 15,
               ),
-              const Expanded(
-                child: SizedBox(
-                  height: 200,
-                  width: 450,
-                  child: Card(
-                    color: Color.fromARGB(255, 68, 67, 67),
-                  ),
-                ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 68, 67, 67),
+                borderRadius: BorderRadius.circular(4),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-}
-
-class NonDismissiblePopupCard extends StatelessWidget {
-  final Widget child;
-
-  const NonDismissiblePopupCard({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false, // Prevent back button dismissal
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque, // Absorb all taps
-        onTap: () {}, // Do nothing when tapping outside
-        child: child,
       ),
     );
   }

@@ -70,6 +70,12 @@ class _StudyOverviewState extends State<StudyOverview> {
                     color: Colors.white,
                   ),
                 ),
+                textStyle: WidgetStatePropertyAll<TextStyle>(
+                  TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Arimo',
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               Row(
