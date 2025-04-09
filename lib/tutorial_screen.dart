@@ -138,10 +138,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('WELCOME\nLEARNER,', style: _titleStyle.copyWith(fontSize: 38)),
+                  Text('WELCOME\nLEARNER,', style: _titleStyle.copyWith(fontSize: 28)),
                 ],
               ),
-              Image.asset('assets/mascot1.png', height: 130),
+              Image.asset('assets/mascot1.png', height: 120),
             ],
           ),
           Spacer(flex: 1),
@@ -218,9 +218,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Spacer(flex: 2),
-          Text('GAMIFIED LEARNING\nExperience', style: _titleStyle.copyWith(fontSize: 31)),
+          Text('GAMIFIED LEARNING\nExperience', style: _titleStyle.copyWith(fontSize: 29)),
           Align(
-            alignment: Alignment.centerRight,
+            alignment: Alignment.center,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -229,10 +229,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   style: TextStyle(
                     fontFamily: 'BrunoAceSC',
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 12,
                   ),
                 ),
-                Image.asset('assets/mascot4.png', height: 280),
+                Image.asset('assets/mascot4.png', height: 230),
               ],
             ),
           ),
