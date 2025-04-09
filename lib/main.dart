@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/splash_screen.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
@@ -71,6 +72,15 @@ class HomeScreen extends StatelessWidget {
                   );
                 },
                 child: const Text('Go to Splash Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddStudyGoal()),
+                  );
+                },
+                child: const Text('Add Study Goal'),
               )
             ])));
   }
