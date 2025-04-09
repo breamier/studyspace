@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/study-session/study_session_camera.dart';
 
 void main() {
   runApp(const MyApp());
@@ -112,6 +113,12 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            ElevatedButton(onPressed: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StudySessionCamera()),
+              );
+            }, child: const Text("StudySession")),
           ],
         ),
       ),
