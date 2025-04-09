@@ -32,6 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
               if (_showGetStarted)
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
