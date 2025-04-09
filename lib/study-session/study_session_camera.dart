@@ -81,7 +81,7 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
                 fontSize: 14,
               )),
           SizedBox(
-            height: MediaQuery.sizeOf(context).height *0.05,
+            height: MediaQuery.sizeOf(context).height * 0.05,
           ),
           SizedBox.square(
             dimension: MediaQuery.sizeOf(context).width * 0.8,
@@ -124,12 +124,12 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
   }
 
   Future<void> _SetupCameraController() async {
-    List<CameraDescription> _cameras = await availableCameras();
-    if (_cameras.isNotEmpty) {
+    List<CameraDescription> cameras = await availableCameras();
+    if (cameras.isNotEmpty) {
       setState(() {
-        cameras = _cameras;
+        cameras = cameras;
         cameraController =
-            CameraController(_cameras.first, ResolutionPreset.high);
+            CameraController(cameras.first, ResolutionPreset.high);
       });
       cameraController?.initialize().then((_) {
         setState(() {});

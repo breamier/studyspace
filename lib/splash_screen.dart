@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'tutorial_screen.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -34,11 +36,12 @@ class _SplashScreenState extends State<SplashScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                   ),
-                  onPressed: () => Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (_) => TutorialScreen())),
+                  onPressed: () => Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => TutorialScreen())),
                   child: Text('Get Started', style: TextStyle(fontSize: 16)),
                 ),
             ],
