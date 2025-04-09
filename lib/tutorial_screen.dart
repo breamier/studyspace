@@ -232,7 +232,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                     fontSize: 12,
                   ),
                 ),
-                Image.asset('assets/mascot4.png', height: 230),
+                Image.asset('assets/mascot4.png', height: 200),
               ],
             ),
           ),
