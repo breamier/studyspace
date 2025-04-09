@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import './topic_overview.dart';
+import './topic_overview_screen.dart';
 
 class StudyOverview extends StatefulWidget {
   const StudyOverview({super.key});
@@ -24,24 +24,31 @@ class StudyGoal {
 class _StudyOverviewState extends State<StudyOverview> {
   final List<StudyGoal> studyGoals = [
     StudyGoal(
-        title: 'Automata Theory', dueDate: '12/08/2024', completed: false),
+      title: 'Automata Theory',
+      dueDate: '12/08/2024',
+      completed: false,
+    ),
     StudyGoal(
-        title: 'Statistics and Probability',
-        dueDate: '12/08/2024',
-        completed: false),
+      title: 'Statistics and Probability',
+      dueDate: '12/08/2024',
+      completed: false,
+    ),
     StudyGoal(title: 'Other Topic', dueDate: '12/08/2024', completed: false),
     StudyGoal(
-        title: 'Other Topic Too', dueDate: '12/08/2024', completed: false),
+      title: 'Other Topic Too',
+      dueDate: '12/08/2024',
+      completed: false,
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/backGroundScreen.png"),
+            image: AssetImage("assets/backGroundScreen.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -64,17 +71,13 @@ class _StudyOverviewState extends State<StudyOverview> {
                 leading: Icon(Icons.search, color: Colors.white),
                 hintText: 'Search for a study goal',
                 backgroundColor: WidgetStatePropertyAll<Color>(
-                    Color.fromRGBO(50, 50, 50, 1)),
+                  Color.fromRGBO(50, 50, 50, 1),
+                ),
                 hintStyle: WidgetStatePropertyAll<TextStyle>(
-                  TextStyle(
-                    color: Colors.white,
-                  ),
+                  TextStyle(color: Colors.white),
                 ),
                 textStyle: WidgetStatePropertyAll<TextStyle>(
-                  TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'Arimo',
-                  ),
+                  TextStyle(color: Colors.white, fontFamily: 'Arimo'),
                 ),
               ),
               const SizedBox(height: 16),
@@ -85,10 +88,7 @@ class _StudyOverviewState extends State<StudyOverview> {
                   const SizedBox(width: 8),
                   Text(
                     'due date: ascending',
-                    style: GoogleFonts.arimo(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                    style: GoogleFonts.arimo(color: Colors.white, fontSize: 14),
                   ),
                 ],
               ),
@@ -129,11 +129,7 @@ class StudyGoalCard extends StatelessWidget {
   final StudyGoal goal;
   final VoidCallback onTap;
 
-  const StudyGoalCard({
-    super.key,
-    required this.goal,
-    required this.onTap,
-  });
+  const StudyGoalCard({super.key, required this.goal, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +146,7 @@ class StudyGoalCard extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Image.asset(
-                "images/asset-book.png",
-                width: 32,
-                height: 32,
-              ),
+              Image.asset("assets/asset-book.png", width: 32, height: 32),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
