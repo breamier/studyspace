@@ -81,8 +81,10 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
                 fontSize: 14,
               )),
           SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.50,
-            width: MediaQuery.sizeOf(context).width * 0.80,
+            height: MediaQuery.sizeOf(context).height *0.05,
+          ),
+          SizedBox.square(
+            dimension: MediaQuery.sizeOf(context).width * 0.8,
             child: CameraPreview(cameraController!),
           ),
           IconButton(
