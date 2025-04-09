@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   camera: ^0.11.1
   gal: ^2.3.1
+  flutter_popup_card: ^0.0.6
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +68,9 @@ flutter:
     - assets/mascot2.png
     - assets/mascot3.png
     - assets/mascot4.png
+    - assets/asset-book.png
+    - assets/backGroundScreen.png
+    - assets/astro_notification.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:studyspace/splash_screen.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/study_overview_screen.dart';
 
 void main() {
   runApp(const StudySpaceApp());
@@ -52,6 +53,15 @@ class HomeScreen extends StatelessWidget {
                   );
                 },
                 child: const Text('Go to Dashboard'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StudyOverview()),
+                  );
+                },
+                child: const Text('Go to Study Overview'),
               ),
               ElevatedButton(
                 onPressed: () {
