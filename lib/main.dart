@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart';
+import 'package:studyspace/splash_screen.dart';
+import 'package:studyspace/study-session/study_session_camera.dart';
+import 'screens/dashboard_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const StudySpaceApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class StudySpaceApp extends StatelessWidget {
+  const StudySpaceApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,20 +27,41 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Study Space'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SplashScreen()),
-            );
-          },
-          child: const Text('Go to Splash Screen'),
+        appBar: AppBar(
+          title: const Text('Study Space Home'),
         ),
-      ),
-    );
+        body: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const StudySessionCamera()),
+                    );
+                  },
+                  child: const Text("StudySession")),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const DashboardScreen()),
+                  );
+                },
+                child: const Text('Go to Dashboard'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SplashScreen()),
+                  );
+                },
+                child: const Text('Go to Splash Screen'),
+              )
+            ])));
   }
 }
