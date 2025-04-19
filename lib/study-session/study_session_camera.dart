@@ -1,40 +1,70 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class StudySessionCamera extends StatefulWidget {
   const StudySessionCamera({super.key});
 
   @override
-  State<StudySessionCamera> createState() {
-    return _StudySessionCameraState();
-  }
+  State<StudySessionCamera> createState() => _StudySessionCameraState();
 }
 
-class _StudySessionCameraState extends State<StudySessionCamera> {
-  List<CameraDescription> cameras = [];
+class _StudySessionCameraState extends State<StudySessionCamera> with SingleTickerProviderStateMixin {
   CameraController? cameraController;
-
+  bool showingTutorial = true;
+  bool isAnimating = false;
+  
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<Color?> _colorAnimation;
+  
   @override
   void initState() {
     super.initState();
-    _SetupCameraController();
+    _setupCameraController();
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.9, end: 0.6),
+        weight: 40,
+      ),
+    ]).animate(_animationController);
+    
+    _colorAnimation = ColorTween(
+      begin: Colors.deepPurple,
+      end: Colors.white,
+    ).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    cameraController?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _buildUI(),
+      body: Stack(
+        children: [
+          _buildUI(),
+          if (showingTutorial) _buildTutorialOverlay(), 
+        ],
+      ),
       appBar: AppBar(
         leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_circle_left_outlined,
-              color: Colors.white,
-            )),
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.arrow_circle_left_outlined,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
@@ -42,98 +72,255 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
   }
 
   Widget _buildUI() {
-    if (cameraController == null ||
-        cameraController?.value.isInitialized == false) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+    if (cameraController?.value.isInitialized != true) {
+      return const Center(child: CircularProgressIndicator());
     }
+    
     return SafeArea(
-        child: SizedBox.expand(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("session study goal",
+      child: SizedBox.expand(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Column(
+              children: [
+                Text(
+                  "session study goal",
                   style: GoogleFonts.arimo(
                     color: Colors.white,
                     fontSize: 14,
-                  )),
-              Text("Statistics and Probability",
+                  ),
+                ),
+                Text(
+                  "Statistics and Probability",
                   style: GoogleFonts.arimo(
                     color: Colors.white,
                     fontSize: 20,
-                  )),
-            ],
-          ),
-          Spacer(),
-          Text("Probing for life...",
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              "Probing for life...",
               style: GoogleFonts.brunoAce(
                 color: Colors.white,
                 fontSize: 14,
-              )),
-          Text("Take a picture for this study session!",
+              ),
+            ),
+            Text(
+              "Take a picture for this study session!",
               style: GoogleFonts.brunoAce(
                 color: Colors.white,
                 fontSize: 14,
-              )),
-          SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.05,
-          ),
-          SizedBox.square(
-            dimension: MediaQuery.sizeOf(context).width * 0.8,
-            child: CameraPreview(cameraController!),
-          ),
-          IconButton(
-              onPressed: () async {
-                XFile picture = await cameraController!.takePicture();
-                Gal.putImage(picture.path);
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox.square(
+              dimension: MediaQuery.of(context).size.width * 0.8,
+              child: CameraPreview(cameraController!),
+            ),
+            AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, _) {
+                return Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: GestureDetector(
+                    onTap: isAnimating ? null : _animateShutter,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black,
+                        border: Border.all(
+                          color: _colorAnimation.value ?? Colors.deepPurple,
+                          width: 5,
+                        ),
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _colorAnimation.value?.withOpacity(0.8) ?? Colors.deepPurple.withOpacity(0.8),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
               },
-              iconSize: 100,
-              icon: const Icon(
-                Icons.camera,
-                color: Colors.deepPurple,
-                size: 100,
-              )),
-          Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              TextButton(
-                  onPressed: () {},
-                  child: Text("Can't take a photo now. Skip",
-                      style: GoogleFonts.brunoAce(
-                          color: Colors.white,
-                          fontSize: 18,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.white))),
-              Text("This will damage astronaut's health",
+            ),
+            const Spacer(),
+            Column(
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    minimumSize: const Size(100, 30),
+                  ),
+                  child: Text(
+                    "Can't take photo now. Skip",
+                    style: GoogleFonts.brunoAce(
+                      color: Colors.white,
+                      fontSize: 12,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.white,
+                    ),
+                  ),
+                ),
+                Text(
+                  "This will damage astronaut's health",
                   style: GoogleFonts.brunoAce(
                     color: Colors.white,
                     fontSize: 14,
-                  ))
-            ],
-          ),
-          Spacer()
-        ],
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
-  Future<void> _SetupCameraController() async {
-    List<CameraDescription> cameras = await availableCameras();
+  Widget _buildTutorialOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.7),
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.grey[800],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Camera Guide",
+                style: GoogleFonts.brunoAce(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _tutorialStep(
+                "1",
+                "Each study session needs a photo to track your progress.",
+              ),
+              const SizedBox(height: 10),
+              _tutorialStep(
+                "2",
+                "Take a picture of your study space, materials, or yourself.",
+              ),
+              const SizedBox(height: 10),
+              _tutorialStep(
+                "3",
+                "Photos help your astronaut's health grow.",
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () => setState(() => showingTutorial = false),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                    ),
+                    child: Text(
+                      "HIDE",
+                      style: GoogleFonts.brunoAce(fontSize: 14),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => setState(() => showingTutorial = false),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: Text(
+                      "GOT IT",
+                      style: GoogleFonts.brunoAce(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tutorialStep(String number, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: const BoxDecoration(
+            color: Colors.deepPurple,
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            number,
+            style: GoogleFonts.brunoAce(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            description,
+            style: GoogleFonts.arimo(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _setupCameraController() async {
+    final cameras = await availableCameras();
     if (cameras.isNotEmpty) {
-      setState(() {
-        cameras = cameras;
-        cameraController =
-            CameraController(cameras.first, ResolutionPreset.high);
-      });
-      cameraController?.initialize().then((_) {
-        setState(() {});
-      });
+      cameraController = CameraController(cameras.first, ResolutionPreset.high);
+      await cameraController?.initialize();
+      if (mounted) setState(() {});
     }
+  }
+  
+  void _animateShutter() {
+    if (isAnimating) return;
+    
+    setState(() => isAnimating = true);
+    _animationController.forward().then((_) {
+      _animationController.reverse();
+      setState(() => isAnimating = false);
+    });
+    Future.delayed(const Duration(milliseconds: 150), () {
+    });
   }
 }
