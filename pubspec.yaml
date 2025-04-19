@@ -72,6 +72,8 @@ flutter:
     - assets/asset-book.png
     - assets/backGroundScreen.png
     - assets/astro_notification.png
+    - assets/mascot5.png
+    - assets/mascot6.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -4,6 +4,7 @@ import 'package:studyspace/splash_screen.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/study_overview_screen.dart';
+import 'information_screen.dart'; 
 
 void main() {
   runApp(const StudySpaceApp());
@@ -81,6 +82,15 @@ class HomeScreen extends StatelessWidget {
                   );
                 },
                 child: const Text('Add Study Goal'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const InformationScreen()),
+                  );
+                },
+                child: const Text('Go to Information Screen'),
               )
             ])));
   }
