@@ -4,7 +4,8 @@ import 'package:studyspace/splash_screen.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/study_overview_screen.dart';
-import 'information_screen.dart'; 
+import 'information_screen.dart';
+import 'package:studyspace/services/isar_service.dart';
 
 void main() {
   runApp(const StudySpaceApp());
@@ -19,14 +20,20 @@ class StudySpaceApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Study Space',
       theme: ThemeData.dark(),
-      home: const HomeScreen(),
+      home: HomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  HomeScreen({super.key});
+  final service = IsarService();
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,10 +94,19 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const InformationScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const InformationScreen()),
                   );
                 },
                 child: const Text('Go to Information Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final newGoal = widget.service.createGoalObj("Goal Name",
+                      DateTime.now(), DateTime.now(), "easy", [], null);
+                  widget.service.addGoal(newGoal);
+                },
+                child: const Text('Add Goal'),
               )
             ])));
   }
