@@ -107,6 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   widget.service.addGoal(newGoal);
                 },
                 child: const Text('Add Goal'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  widget.service.clearDb();
+                },
+                child: const Text('Clear Database'),
               )
             ])));
   }

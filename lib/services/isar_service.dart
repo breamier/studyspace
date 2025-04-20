@@ -30,6 +30,11 @@ class IsarService extends ChangeNotifier {
     print("YEHEYEYEYEYEYE");
   }
 
+  Future<void> clearDb() async {
+    final isar = await db;
+    await isar.writeTxn(() => isar.clear());
+  }
+
   Future<Isar> openDB() async {
     final dir = await getApplicationDocumentsDirectory();
     print('ISAR DB path: ${dir.path}');
