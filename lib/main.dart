@@ -6,6 +6,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/study_overview_screen.dart';
 import 'information_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
+import 'screens/analaytics_screen.dart';
 
 void main() {
   runApp(const StudySpaceApp());
@@ -89,6 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: const Text('Add Study Goal'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AnalyticsScreen()),
+                  );
+                },
+                child: const Text('Go to Analytics Screen'),
               ),
               ElevatedButton(
                 onPressed: () {
