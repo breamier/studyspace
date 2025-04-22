@@ -1,33 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:flutter_popup_card/flutter_popup_card.dart';
+import 'package:isar/isar.dart';
+import 'package:studyspace/models/goal.dart';
+import 'package:studyspace/services/isar_service.dart';
+import 'package:intl/intl.dart';
 import 'dart:ui';
 
 class TopicOverview extends StatefulWidget {
-  final String topicTitle;
-  final String targetDate;
+  final Id goalId;
 
   const TopicOverview({
     super.key,
-    required this.topicTitle,
-    required this.targetDate,
+    required this.goalId,
   });
 
   @override
   State<TopicOverview> createState() => _TopicOverviewState();
 }
 
-class SubTopic {
-  String title;
-  bool completed;
-
-  SubTopic({required this.title, required this.completed});
-}
-
 class _TopicOverviewState extends State<TopicOverview> {
+  final IsarService _isarService = IsarService();
+  Goal? _goal;
+  bool _isLoading = true;
+  final List<TextEditingController> _subtopicControllers = [];
+  final FocusNode _newSubtopicFocusNode = FocusNode();
+
+  // subtopics to delete
+  final List<Subtopic> _selectedSubtopicsToDelete = [];
+
   late double deviceHeight;
   late double deviceWidth;
   late bool isSmallScreen;
+  @override
+  void initState() {
+    super.initState();
+    _loadGoal();
+  }
 
   @override
   void didChangeDependencies() {
@@ -37,6 +46,217 @@ class _TopicOverviewState extends State<TopicOverview> {
     isSmallScreen = deviceWidth < 600;
   }
 
+  Future<void> _loadGoal() async {
+    setState(() => _isLoading = true);
+    try {
+      final goal = await _isarService.getGoalById(widget.goalId);
+      if (mounted) {
+        setState(() {
+          _goal = goal;
+          if (goal != null) {
+            _initializeControllers(goal.subtopics);
+          }
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _initializeControllers(List<Subtopic> subtopics) {
+    _subtopicControllers.clear();
+    for (var subtopic in subtopics) {
+      _subtopicControllers.add(TextEditingController(text: subtopic.name));
+    }
+  }
+
+  Future<void> _saveSubtopics() async {
+    if (_goal == null) return;
+
+    final newSubtopics = _subtopicControllers
+        .where((c) => c.text.trim().isNotEmpty)
+        .map((controller) {
+      final existing = _goal!.subtopics.firstWhere(
+        (s) => s.name == controller.text.trim(),
+        orElse: () => Subtopic()..name = controller.text.trim(),
+      );
+      return existing..name = controller.text.trim();
+    }).toList();
+
+    _goal!.subtopics = newSubtopics;
+    await _isarService.updateGoal(_goal!);
+    if (mounted) setState(() {});
+  }
+
+  void _addNewSubtopicField() {
+    setState(() => _subtopicControllers.add(TextEditingController()));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_newSubtopicFocusNode);
+    });
+  }
+
+  void _toggleSubtopicCompletion(int index) async {
+    if (_goal == null || index >= _goal!.subtopics.length) return;
+
+    setState(() {
+      _goal!.subtopics[index].completed = !_goal!.subtopics[index].completed;
+    });
+    await _isarService.updateGoal(_goal!);
+  }
+
+  void _showDeleteSubtopicDialog() {
+    final selectedSubtopics =
+        _goal!.subtopics.where((s) => !s.completed).toList();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 22, 22, 22),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Colors.white, width: 2.0),
+              ),
+              title: Text(
+                'Select Subtopics to Delete',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: deviceWidth * 0.05,
+                  fontFamily: 'Arimo',
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: selectedSubtopics.length,
+                  itemBuilder: (context, index) {
+                    final subtopic = selectedSubtopics[index];
+                    return CheckboxListTile(
+                      title: Text(
+                        subtopic.name,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: deviceWidth * 0.04,
+                          fontFamily: 'Arimo',
+                        ),
+                      ),
+                      value: _selectedSubtopicsToDelete.contains(subtopic),
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            _selectedSubtopicsToDelete.add(subtopic);
+                          } else {
+                            _selectedSubtopicsToDelete.remove(subtopic);
+                          }
+                        });
+                      },
+                      activeColor: const Color.fromRGBO(176, 152, 228, 1),
+                      checkColor: Colors.white,
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: deviceWidth * 0.04,
+                      fontFamily: 'Arimo',
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_selectedSubtopicsToDelete.isNotEmpty) {
+                      await _deleteSelectedSubtopics();
+                      // Reload the goal after deletion
+                      await _loadGoal();
+                    }
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(194, 109, 68, 221),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: const BorderSide(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                  child: Text(
+                    'Delete Selected',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: deviceWidth * 0.04,
+                      fontFamily: 'Arimo',
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteSelectedSubtopics() async {
+    if (_goal == null || _selectedSubtopicsToDelete.isEmpty) return;
+
+    try {
+      // call deleteSubtopics
+      await _isarService.deleteSubtopics(_goal!, _selectedSubtopicsToDelete);
+
+      // update
+      setState(() {
+        // remove from goal's subtopics
+        _goal!.subtopics.removeWhere(
+            (subtopic) => _selectedSubtopicsToDelete.contains(subtopic));
+
+        // remove deleted subtopics controllers
+        _subtopicControllers.removeWhere((controller) =>
+            _selectedSubtopicsToDelete
+                .any((subtopic) => subtopic.name == controller.text));
+
+        // clear list
+        _selectedSubtopicsToDelete.clear();
+      });
+
+      // show message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Subtopics deleted successfully',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'Arimo',
+            ),
+          ),
+          backgroundColor: const Color.fromARGB(194, 109, 68, 221),
+        ),
+      );
+    } catch (e) {
+      // show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete subtopics',
+            style: TextStyle(fontFamily: 'Arimo'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // postpone dialog
   void _postponeNotification() {
     showPopupCard(
       context: context,
@@ -69,18 +289,20 @@ class _TopicOverviewState extends State<TopicOverview> {
                         children: [
                           Text(
                             "Delay your mission?",
-                            style: GoogleFonts.arimo(
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: deviceWidth * 0.05,
+                              fontFamily: 'Arimo',
                             ),
                           ),
                           SizedBox(height: deviceHeight * 0.02),
                           Text(
                             "I'll move your mission to --/--/--",
-                            style: GoogleFonts.arimo(
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: deviceWidth * 0.035,
+                              fontFamily: 'Arimo',
                             ),
                           ),
                           SizedBox(height: deviceHeight * 0.02),
@@ -122,9 +344,10 @@ class _TopicOverviewState extends State<TopicOverview> {
                                     ),
                                     child: Text(
                                       "Confirm",
-                                      style: GoogleFonts.arimo(
+                                      style: TextStyle(
                                         color: Colors.white,
                                         fontSize: deviceWidth * 0.04,
+                                        fontFamily: 'Arimo',
                                       ),
                                     ),
                                   ),
@@ -152,9 +375,10 @@ class _TopicOverviewState extends State<TopicOverview> {
                                     ),
                                     child: Text(
                                       "Cancel",
-                                      style: GoogleFonts.arimo(
+                                      style: TextStyle(
                                         color: Colors.white,
                                         fontSize: deviceWidth * 0.04,
+                                        fontFamily: 'Arimo',
                                       ),
                                     ),
                                   ),
@@ -175,287 +399,352 @@ class _TopicOverviewState extends State<TopicOverview> {
     );
   }
 
-  String nextSessionDate = '12/09/24';
-  String totalStudyTime = '00:00';
-
-  List<SubTopic> subTopics = [
-    SubTopic(title: "Conditional Probability", completed: false),
-    SubTopic(title: "Probability Function", completed: false),
-  ];
+  @override
+  void dispose() {
+    for (var controller in _subtopicControllers) {
+      controller.dispose();
+    }
+    _newSubtopicFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text(
-          "Goals",
-          style: GoogleFonts.arimo(
-            color: Colors.white,
-            fontSize: deviceWidth * 0.05,
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_goal == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Error'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-            size: deviceWidth * 0.06,
+        body: const Center(child: Text('Goal not found')),
+      );
+    }
+
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    final targetDate = dateFormat.format(_goal!.end);
+    final nextSessionDate =
+        dateFormat.format(DateTime.now().add(const Duration(days: 1)));
+
+    return WillPopScope(
+      onWillPop: () async {
+        await _saveSubtopics();
+        return true;
+      },
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Text(
+            "Goals",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: deviceWidth * 0.05,
+              fontFamily: 'BrunoAceSC',
+            ),
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Container(
-        width: deviceWidth,
-        height: deviceHeight,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/backGroundScreen.png"),
-            fit: BoxFit.cover,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+              size: deviceWidth * 0.06,
+            ),
+            onPressed: () async {
+              await _saveSubtopics();
+              Navigator.pop(context);
+            },
           ),
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(deviceWidth * 0.04),
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: deviceHeight - MediaQuery.of(context).padding.top,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: deviceHeight * 0.05),
-                    Text(
-                      widget.topicTitle,
-                      style: GoogleFonts.arimo(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: deviceWidth * 0.07,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: deviceHeight * 0.03),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              "target end date",
-                              style: GoogleFonts.brunoAce(
-                                color: Colors.white,
-                                fontSize: deviceWidth * 0.03,
-                              ),
-                            ),
-                            Text(
-                              widget.targetDate,
-                              style: GoogleFonts.brunoAce(
-                                color: Colors.white,
-                                fontSize: deviceWidth * 0.04,
-                              ),
-                            ),
-                          ],
+        body: Container(
+          width: deviceWidth,
+          height: deviceHeight,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/backGroundScreen.png"),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.all(deviceWidth * 0.04),
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        deviceHeight - MediaQuery.of(context).padding.top,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: deviceHeight * 0.05),
+                      Text(
+                        _goal!.goalName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: deviceWidth * 0.07,
+                          fontFamily: 'Arimo',
                         ),
-                        if (!isSmallScreen) SizedBox(width: deviceWidth * 0.1),
-                        Column(
-                          children: [
-                            Text(
-                              "next session",
-                              style: GoogleFonts.brunoAce(
-                                color: Colors.white,
-                                fontSize: deviceWidth * 0.03,
-                              ),
-                            ),
-                            Text(
-                              nextSessionDate,
-                              style: GoogleFonts.brunoAce(
-                                color: Colors.white,
-                                fontSize: deviceWidth * 0.04,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: deviceHeight * 0.03),
-                    Text(
-                      "total study time",
-                      style: GoogleFonts.brunoAce(
-                        color: Colors.white,
-                        fontSize: deviceWidth * 0.03,
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    Text(
-                      totalStudyTime,
-                      style: GoogleFonts.brunoAce(
-                        color: Colors.white,
-                        fontSize: deviceWidth * 0.04,
-                      ),
-                    ),
-                    SizedBox(height: deviceHeight * 0.04),
-                    PhotoCard(
-                      deviceWidth: deviceWidth,
-                      deviceHeight: deviceHeight,
-                    ),
-                    SizedBox(height: deviceHeight * 0.03),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: deviceWidth * 0.04,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      SizedBox(height: deviceHeight * 0.03),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Text(
-                            "Subtopics",
-                            style: GoogleFonts.arimo(
-                              color: Colors.white,
-                              fontSize: deviceWidth * 0.06,
-                            ),
+                          Column(
+                            children: [
+                              Text(
+                                "target end date",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: deviceWidth * 0.04,
+                                  fontFamily: 'BrunoAceSC',
+                                ),
+                              ),
+                              Text(
+                                targetDate,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: deviceWidth * 0.05,
+                                  fontFamily: 'Arimo',
+                                ),
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.delete,
-                              color: const Color.fromRGBO(176, 152, 228, 1),
-                              size: deviceWidth * 0.07,
-                            ),
-                            onPressed: () => Navigator.pop(context),
+                          if (!isSmallScreen)
+                            SizedBox(width: deviceWidth * 0.1),
+                          Column(
+                            children: [
+                              Text(
+                                "next session",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: deviceWidth * 0.04,
+                                  fontFamily: 'BrunoAceSC',
+                                ),
+                              ),
+                              Text(
+                                nextSessionDate,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: deviceWidth * 0.05,
+                                  fontFamily: 'Arimo',
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ),
-                    ...subTopics.map(
-                      (subTopic) => Padding(
+                      SizedBox(height: deviceHeight * 0.03),
+                      Text(
+                        "total study time",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: deviceWidth * 0.04,
+                          fontFamily: 'BrunoAceSC',
+                        ),
+                      ),
+                      Text(
+                        "00:00",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: deviceWidth * 0.1,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Arimo',
+                        ),
+                      ),
+                      SizedBox(height: deviceHeight * 0.04),
+                      _buildPhotoCard(),
+                      SizedBox(height: deviceHeight * 0.03),
+                      Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: deviceWidth * 0.04,
-                          vertical: deviceHeight * 0.01,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Subtopics",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: deviceWidth * 0.06,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Arimo',
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete,
+                                color: const Color.fromRGBO(176, 152, 228, 1),
+                                size: deviceWidth * 0.07,
+                              ),
+                              onPressed: () {
+                                if (_goal != null &&
+                                    _goal!.subtopics.any((s) => !s.completed)) {
+                                  _showDeleteSubtopicDialog();
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'No incomplete subtopics to delete',
+                                        style: TextStyle(
+                                          fontFamily: 'Arimo',
+                                        ),
+                                      ),
+                                      backgroundColor: const Color.fromARGB(
+                                          194, 109, 68, 221),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      ..._subtopicControllers.asMap().entries.map(
+                        (entry) {
+                          final index = entry.key;
+                          final controller = entry.value;
+                          final isNew = index >= _goal!.subtopics.length;
+                          final subtopic =
+                              isNew ? null : _goal!.subtopics[index];
+
+                          return Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: deviceWidth * 0.04,
+                              vertical: deviceHeight * 0.00,
+                            ),
+                            child: Row(
+                              children: [
+                                if (!isNew)
+                                  SizedBox(
+                                    width: deviceWidth * 0.04,
+                                    height: deviceWidth * 0.04,
+                                    child: Checkbox(
+                                      value: subtopic?.completed ?? false,
+                                      onChanged: (value) =>
+                                          _toggleSubtopicCompletion(index),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      side: const BorderSide(
+                                        color: Colors.white,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                if (!isNew) SizedBox(width: deviceWidth * 0.03),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: controller,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: deviceWidth * 0.04,
+                                      fontFamily: 'Arimo',
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: isNew ? "New subtopic" : null,
+                                      hintStyle: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: deviceWidth * 0.04,
+                                        fontFamily: 'Arimo',
+                                      ),
+                                      border: InputBorder.none,
+                                    ),
+                                    onChanged: (value) => _saveSubtopics(),
+                                    focusNode: isNew &&
+                                            index ==
+                                                _subtopicControllers.length - 1
+                                        ? _newSubtopicFocusNode
+                                        : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: deviceWidth * 0.02,
+                          right: deviceWidth * 0.04,
+                          top: deviceHeight * 0.01,
                         ),
                         child: Row(
                           children: [
                             SizedBox(
-                              width: deviceWidth * 0.04,
-                              height: deviceWidth * 0.04,
-                              child: Checkbox(
-                                value: subTopic.completed,
-                                onChanged: (value) {
-                                  setState(() {
-                                    subTopic.completed = value ?? false;
-                                  });
-                                },
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                side: const BorderSide(
-                                  color: Colors.white,
-                                  width: 1.5,
+                              width: deviceWidth * 0.03,
+                              height: deviceWidth * 0.09,
+                              child: Container(
+                                // decoration: BoxDecoration(
+                                //   borderRadius: BorderRadius.circular(5),
+                                //   border: Border.all(
+                                //     color: const Color.fromARGB(
+                                //         187, 187, 187, 187),
+                                //     width: 1.5,
+                                //   ),
+                                // ),
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(
+                                    Icons.add,
+                                    size: deviceWidth * 0.08,
+                                    color: const Color.fromARGB(
+                                        187, 187, 187, 187),
+                                  ),
+                                  onPressed: _addNewSubtopicField,
                                 ),
                               ),
                             ),
-                            SizedBox(width: deviceWidth * 0.03),
-                            Expanded(
-                              child: Text(
-                                subTopic.title,
-                                style: GoogleFonts.arimo(
-                                  color: Colors.white,
-                                  fontSize: deviceWidth * 0.04,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                            SizedBox(width: deviceWidth * 0.06),
+                            Text(
+                              "Add a subtopic",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: deviceWidth * 0.04,
+                                fontFamily: 'Arimo',
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: deviceWidth * 0.04,
-                        right: deviceWidth * 0.04,
-                        top: deviceHeight * 0.01,
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: deviceWidth * 0.04,
-                            height: deviceWidth * 0.04,
-                            child: Container(
-                              width: deviceWidth * 0.05,
-                              height: deviceWidth * 0.05,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(
-                                  color: const Color.fromARGB(
-                                    187,
-                                    187,
-                                    187,
-                                    187,
-                                  ),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                icon: Icon(
-                                  Icons.add,
-                                  size: deviceWidth * 0.03,
-                                  color: const Color.fromARGB(
-                                    187,
-                                    187,
-                                    187,
-                                    187,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    subTopics.add(
-                                      SubTopic(
-                                        title: "New Subtopic",
-                                        completed: false,
-                                      ),
-                                    );
-                                  });
-                                },
-                              ),
+                      SizedBox(height: deviceHeight * 0.04),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: deviceWidth * 0.04,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildActionButton(
+                              text: "Start Session",
+                              color: const Color.fromARGB(194, 109, 68, 221),
+                              onPressed: () {},
+                              deviceWidth: deviceWidth,
+                              deviceHeight: deviceHeight,
                             ),
-                          ),
-                          SizedBox(width: deviceWidth * 0.04),
-                          Text(
-                            "Add a subtopic",
-                            style: GoogleFonts.arimo(
-                              color: Colors.white,
-                              fontSize: deviceWidth * 0.04,
+                            SizedBox(width: deviceWidth * 0.05),
+                            _buildActionButton(
+                              text: "Postpone Session",
+                              color: const Color.fromARGB(185, 195, 29, 32),
+                              onPressed: _postponeNotification,
+                              deviceWidth: deviceWidth,
+                              deviceHeight: deviceHeight,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(height: deviceHeight * 0.04),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: deviceWidth * 0.04,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _actionButton(
-                            text: "Start Session",
-                            color: const Color.fromARGB(194, 109, 68, 221),
-                            onPressed: () {},
-                            deviceWidth: deviceWidth,
-                            deviceHeight: deviceHeight,
-                          ),
-                          SizedBox(width: deviceWidth * 0.05),
-                          _actionButton(
-                            text: "Postpone Session",
-                            color: const Color.fromARGB(185, 195, 29, 32),
-                            onPressed: _postponeNotification,
-                            deviceWidth: deviceWidth,
-                            deviceHeight: deviceHeight,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: deviceHeight * 0.03),
-                  ],
+                      SizedBox(height: deviceHeight * 0.03),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -465,7 +754,48 @@ class _TopicOverviewState extends State<TopicOverview> {
     );
   }
 
-  Widget _actionButton({
+  Widget _buildPhotoCard() {
+    return Card(
+      color: const Color.fromRGBO(176, 152, 228, 1),
+      margin: EdgeInsets.symmetric(horizontal: deviceWidth * 0.04),
+      child: Padding(
+        padding: EdgeInsets.all(deviceWidth * 0.04),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Photos",
+              style: TextStyle(
+                color: const Color.fromARGB(255, 68, 67, 67),
+                fontSize: deviceWidth * 0.045,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Arimo',
+              ),
+            ),
+            Text(
+              "# photos, # videos",
+              style: TextStyle(
+                color: const Color.fromARGB(255, 68, 67, 67),
+                fontSize: deviceWidth * 0.035,
+                fontFamily: 'Arimo',
+              ),
+            ),
+            SizedBox(height: deviceHeight * 0.01),
+            Container(
+              height: deviceHeight * 0.25,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 68, 67, 67),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
     required String text,
     required Color color,
     required VoidCallback onPressed,
@@ -487,62 +817,12 @@ class _TopicOverviewState extends State<TopicOverview> {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: GoogleFonts.arimo(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: deviceWidth * 0.035,
+            fontFamily: 'Arimo',
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class PhotoCard extends StatelessWidget {
-  final double deviceWidth;
-  final double deviceHeight;
-
-  const PhotoCard({
-    super.key,
-    required this.deviceWidth,
-    required this.deviceHeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: const Color.fromRGBO(176, 152, 228, 1),
-      margin: EdgeInsets.symmetric(horizontal: deviceWidth * 0.04),
-      child: Padding(
-        padding: EdgeInsets.all(deviceWidth * 0.04),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Photos",
-              style: GoogleFonts.arimo(
-                color: const Color.fromARGB(255, 68, 67, 67),
-                fontSize: deviceWidth * 0.045,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              "# photos, # videos",
-              style: GoogleFonts.arimo(
-                color: const Color.fromARGB(255, 68, 67, 67),
-                fontSize: deviceWidth * 0.035,
-              ),
-            ),
-            SizedBox(height: deviceHeight * 0.01),
-            Container(
-              height: deviceHeight * 0.25,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 68, 67, 67),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ],
         ),
       ),
     );
