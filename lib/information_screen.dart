@@ -34,34 +34,34 @@ class _InformationScreenState extends State<InformationScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: () => setState(() => _currentDetailPage = 'Science Behind Study Space'),
+                onTap: () => setState(
+                    () => _currentDetailPage = 'Science Behind Study Space'),
                 child: _buildInfoCard(
                   'assets/mascot6.png',
                   'Science Behind\nStudy Space',
                   'Spacing out study sessions helps your brain retain information longer and reduce the need for cramming.',
                 ),
               ),
-              
               const SizedBox(height: 24),
               _buildSectionTitle('How can we help you?'),
-              
               _buildSearchBar(),
-              
               const SizedBox(height: 24),
               _buildSectionTitle('FAQs'),
-              
               const SizedBox(height: 10),
               FAQItem(
                 question: 'How does the app know when to send study reminder?',
-                answer: 'The app uses spaced repetition algorithms to determine the optimal time for sending reminders based on your learning patterns and memory retention curve.',
+                answer:
+                    'The app uses spaced repetition algorithms to determine the optimal time for sending reminders based on your learning patterns and memory retention curve.',
               ),
               FAQItem(
                 question: 'Can I customize my study schedule?',
-                answer: 'Yes, you can set preferred study times, adjust reminder frequency, and specify days when you want to study specific subjects.',
+                answer:
+                    'Yes, you can set preferred study times, adjust reminder frequency, and specify days when you want to study specific subjects.',
               ),
               FAQItem(
                 question: 'Is the app suitable for all learners?',
-                answer: 'Study Space is designed to benefit learners of all ages and across various subjects, from languages to sciences to professional skills.',
+                answer:
+                    'Study Space is designed to benefit learners of all ages and across various subjects, from languages to sciences to professional skills.',
               ),
             ],
           ),
@@ -70,18 +70,20 @@ class _InformationScreenState extends State<InformationScreen> {
       bottomNavigationBar: _buildBottomNav(),
     );
   }
-  
+
   Widget _buildDetailPage(BuildContext context, String pageName) {
     String content = '';
-    
+
     if (pageName == 'About Us') {
-      content = '''Study space combines the power of Spaced Repetition with personalized reminders to help you master any subject faster and retain information longer..
+      content =
+          '''Study space combines the power of Spaced Repetition with personalized reminders to help you master any subject faster and retain information longer..
 
 This application introduces novices to this concept and helps learners sustain their study habits. By automatically scheduling study sessions based on the lessons' difficulty level, providing real-time progress reports, and designing quests to motivate users to study, Study Space offers an engaging and fun approach to learning that adapts to the users' needs and goals.
 
 Study Space is aimed at university students and lifelong learners whose goal is to improve their study habits and retain information long-term. The application increases the users' learning capacity and productivity by providing a sense of accountability without the added pressure. Like an accountability buddy, Study Space encourages the user by checking on progress, giving rewards, and reminding users in a friendly manner.''';
     } else if (pageName == 'Science Behind Study Space') {
-      content = '''Our app is built on the science of Spaced Repetition, a method proven to enhance memory retention and boost learning efficiency. By spacing out study sessions, your brain strengthens connections, helping you retain information longer and reduce the need for cramming.
+      content =
+          '''Our app is built on the science of Spaced Repetition, a method proven to enhance memory retention and boost learning efficiency. By spacing out study sessions, your brain strengthens connections, helping you retain information longer and reduce the need for cramming.
 
 Study Space takes this proven method to the next level by adapting the schedule based on the difficulty of the material. The app automatically adjusts the intervals for reviewing content, so you focus more on what you struggle with and less on what you've already mastered. This targeted approach helps maximize learning in less time. Coupled with real-time progress tracking and motivating features like quests, Study Space ensures that your study routine is both effective and enjoyable, making it easier to build long-term retention habits that stick.''';
     }
@@ -91,7 +93,8 @@ Study Space takes this proven method to the next level by adapting the schedule 
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 children: [
                   Container(
@@ -101,7 +104,8 @@ Study Space takes this proven method to the next level by adapting the schedule 
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => setState(() => _currentDetailPage = null),
+                      onPressed: () =>
+                          setState(() => _currentDetailPage = null),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -117,20 +121,20 @@ Study Space takes this proven method to the next level by adapting the schedule 
               child: Text(
                 pageName,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold
-                ),
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
             Expanded(
               child: SingleChildScrollView(
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
                   padding: const EdgeInsets.all(20.0),
                   decoration: BoxDecoration(
-                    color:  Colors.grey[900]!,
+                    color: Colors.grey[900]!,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey[900]!, width: 1),
                   ),
@@ -177,7 +181,7 @@ Study Space takes this proven method to the next level by adapting the schedule 
       ),
     );
   }
-  
+
   Widget _buildLogo() {
     return Center(
       child: Padding(
@@ -190,7 +194,7 @@ Study Space takes this proven method to the next level by adapting the schedule 
       ),
     );
   }
-  
+
   Widget _buildInfoCard(String imagePath, String title, String description) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -231,7 +235,7 @@ Study Space takes this proven method to the next level by adapting the schedule 
       ),
     );
   }
-  
+
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -245,7 +249,7 @@ Study Space takes this proven method to the next level by adapting the schedule 
       ),
     );
   }
-  
+
   Widget _buildSearchBar() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
@@ -264,7 +268,7 @@ Study Space takes this proven method to the next level by adapting the schedule 
       ),
     );
   }
-  
+
   Widget _buildBottomNav() {
     return BottomNavigationBar(
       backgroundColor: Colors.black,
@@ -277,9 +281,12 @@ Study Space takes this proven method to the next level by adapting the schedule 
       onTap: (index) => setState(() => _selectedIndex = index),
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Study Goals'),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 40), label: 'Add Goal'),
-        BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.menu_book), label: 'Study Goals'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle, size: 40), label: 'Add Goal'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.analytics), label: 'Analytics'),
         BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
       ],
     );
@@ -308,7 +315,7 @@ class _FAQItemState extends State<FAQItem> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white, width: 1),
       ),
@@ -319,16 +326,17 @@ class _FAQItemState extends State<FAQItem> {
           title: Text(
             widget.question,
             style: const TextStyle(
-              color: Colors.black, 
+              color: Colors.black,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
           trailing: Icon(
             _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-            color: Colors.black, 
+            color: Colors.black,
           ),
-          onExpansionChanged: (expanded) => setState(() => _expanded = expanded),
+          onExpansionChanged: (expanded) =>
+              setState(() => _expanded = expanded),
           backgroundColor: Colors.white,
           children: [
             Container(
@@ -340,7 +348,8 @@ class _FAQItemState extends State<FAQItem> {
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
                 ),
-                border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
+                border:
+                    Border(top: BorderSide(color: Colors.black12, width: 0.5)),
               ),
               child: Text(
                 widget.answer,

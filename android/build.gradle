@@ -1,8 +1,23 @@
+
+
+buildscript {
+    ext.kotlin_version = '1.9.23'  // Use latest stable version
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'  // Update to latest
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
+
     subprojects {
         afterEvaluate { project ->
             if (project.hasProperty('android')) {
@@ -14,6 +29,7 @@ allprojects {
             }
         }
     }
+    // until here
 }
 
 rootProject.buildDir = "../build"

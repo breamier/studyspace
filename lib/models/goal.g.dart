@@ -32,13 +32,23 @@ const GoalSchema = CollectionSchema(
       name: r'goalName',
       type: IsarType.string,
     ),
-    r'start': PropertySchema(
+    r'isCurrent': PropertySchema(
       id: 3,
+      name: r'isCurrent',
+      type: IsarType.bool,
+    ),
+    r'isUpcoming': PropertySchema(
+      id: 4,
+      name: r'isUpcoming',
+      type: IsarType.bool,
+    ),
+    r'start': PropertySchema(
+      id: 5,
       name: r'start',
       type: IsarType.dateTime,
     ),
     r'subtopics': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'subtopics',
       type: IsarType.objectList,
       target: r'Subtopic',
@@ -86,9 +96,11 @@ void _goalSerialize(
   writer.writeString(offsets[0], object.difficulty);
   writer.writeDateTime(offsets[1], object.end);
   writer.writeString(offsets[2], object.goalName);
-  writer.writeDateTime(offsets[3], object.start);
+  writer.writeBool(offsets[3], object.isCurrent);
+  writer.writeBool(offsets[4], object.isUpcoming);
+  writer.writeDateTime(offsets[5], object.start);
   writer.writeObjectList<Subtopic>(
-    offsets[4],
+    offsets[6],
     allOffsets,
     SubtopicSchema.serialize,
     object.subtopics,
@@ -106,9 +118,9 @@ Goal _goalDeserialize(
   object.end = reader.readDateTime(offsets[1]);
   object.goalName = reader.readString(offsets[2]);
   object.id = id;
-  object.start = reader.readDateTime(offsets[3]);
+  object.start = reader.readDateTime(offsets[5]);
   object.subtopics = reader.readObjectList<Subtopic>(
-        offsets[4],
+        offsets[6],
         SubtopicSchema.deserialize,
         allOffsets,
         Subtopic(),
@@ -131,8 +143,12 @@ P _goalDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 4:
+      return (reader.readBool(offset)) as P;
+    case 5:
+      return (reader.readDateTime(offset)) as P;
+    case 6:
       return (reader.readObjectList<Subtopic>(
             offset,
             SubtopicSchema.deserialize,
@@ -596,6 +612,25 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> isCurrentEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCurrent',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> isUpcomingEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isUpcoming',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterFilterCondition> startEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -781,6 +816,30 @@ extension GoalQuerySortBy on QueryBuilder<Goal, Goal, QSortBy> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByIsCurrent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCurrent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByIsCurrentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCurrent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByIsUpcoming() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUpcoming', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByIsUpcomingDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUpcoming', Sort.desc);
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterSortBy> sortByStart() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'start', Sort.asc);
@@ -843,6 +902,30 @@ extension GoalQuerySortThenBy on QueryBuilder<Goal, Goal, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByIsCurrent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCurrent', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByIsCurrentDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCurrent', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByIsUpcoming() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUpcoming', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByIsUpcomingDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isUpcoming', Sort.desc);
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterSortBy> thenByStart() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'start', Sort.asc);
@@ -874,6 +957,18 @@ extension GoalQueryWhereDistinct on QueryBuilder<Goal, Goal, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'goalName', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QDistinct> distinctByIsCurrent() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isCurrent');
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QDistinct> distinctByIsUpcoming() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isUpcoming');
     });
   }
 
@@ -909,6 +1004,18 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Goal, bool, QQueryOperations> isCurrentProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isCurrent');
+    });
+  }
+
+  QueryBuilder<Goal, bool, QQueryOperations> isUpcomingProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isUpcoming');
+    });
+  }
+
   QueryBuilder<Goal, DateTime, QQueryOperations> startProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'start');
@@ -933,8 +1040,18 @@ const SubtopicSchema = Schema(
   name: r'Subtopic',
   id: -1565134535968889765,
   properties: {
-    r'name': PropertySchema(
+    r'completed': PropertySchema(
       id: 0,
+      name: r'completed',
+      type: IsarType.bool,
+    ),
+    r'hashCode': PropertySchema(
+      id: 1,
+      name: r'hashCode',
+      type: IsarType.long,
+    ),
+    r'name': PropertySchema(
+      id: 2,
       name: r'name',
       type: IsarType.string,
     )
@@ -961,7 +1078,9 @@ void _subtopicSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.name);
+  writer.writeBool(offsets[0], object.completed);
+  writer.writeLong(offsets[1], object.hashCode);
+  writer.writeString(offsets[2], object.name);
 }
 
 Subtopic _subtopicDeserialize(
@@ -971,7 +1090,8 @@ Subtopic _subtopicDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Subtopic();
-  object.name = reader.readString(offsets[0]);
+  object.completed = reader.readBool(offsets[0]);
+  object.name = reader.readString(offsets[2]);
   return object;
 }
 
@@ -983,6 +1103,10 @@ P _subtopicDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -991,6 +1115,69 @@ P _subtopicDeserializeProp<P>(
 
 extension SubtopicQueryFilter
     on QueryBuilder<Subtopic, Subtopic, QFilterCondition> {
+  QueryBuilder<Subtopic, Subtopic, QAfterFilterCondition> completedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'completed',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Subtopic, Subtopic, QAfterFilterCondition> hashCodeEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hashCode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Subtopic, Subtopic, QAfterFilterCondition> hashCodeGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hashCode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Subtopic, Subtopic, QAfterFilterCondition> hashCodeLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hashCode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Subtopic, Subtopic, QAfterFilterCondition> hashCodeBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hashCode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Subtopic, Subtopic, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
