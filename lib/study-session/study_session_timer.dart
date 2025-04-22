@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class StudySessionTimer extends StatefulWidget{
   @override
@@ -29,7 +30,7 @@ class _StateStudySessionTimer extends State<StudySessionTimer>{
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-
+        timerStack()
       ],
     );
 
@@ -54,20 +55,61 @@ class _StateStudySessionTimer extends State<StudySessionTimer>{
     String strMin = minutes.toString().padLeft(2, '0');
     String strHrs = hours.toString().padLeft(2, '0');
 
-    String strDuration = '$strHrs:$strMin:$strSec';
+    String strDuration = '$strHrs:$strMin';
+    String secDuration  =strSec;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
           textAlign: TextAlign.center,
           strDuration,
           textScaler:
           TextScaler.linear(sizeQuery* 0.009),
+        ),
+        Text(
+          textAlign: TextAlign.center,
+          secDuration,
+          textScaler: TextScaler.linear(sizeQuery*0.002),
         )
       ],
     );
   }
 
 
+  Widget timerContainer(){
+    return Container(
+        width: 300.0,
+        height: 300.0,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+        color: Colors.deepPurple,
+        shape: BoxShape.circle,
+    ),
+        child: studyTimer(),
+    );
+  }
+  Widget timerButton(){
+    return ElevatedButton(onPressed: (){}, child: Icon(Icons.play_arrow),
+      style: ButtonStyle(
+      shape: WidgetStateProperty.all(CircleBorder()),
+        minimumSize: WidgetStateProperty.all(Size(MediaQuery.sizeOf(context).width*0.15, MediaQuery.sizeOf(context).width*0.15)),
+    )
+      ,);
+  }
+
+  Widget timerStack(){
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      clipBehavior: Clip.none,
+      children: [
+          timerContainer(),
+          Positioned(
+            bottom: MediaQuery.sizeOf(context).height *-0.03,
+            child: timerButton(),
+          ),
+      ],
+    );
+  }
 }

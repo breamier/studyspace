@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:studyspace/study-session/study_session.dart';
 
 class StudySessionCamera extends StatefulWidget {
   const StudySessionCamera({super.key});
@@ -91,6 +92,10 @@ class _StudySessionCameraState extends State<StudySessionCamera> {
               onPressed: () async {
                 XFile picture = await cameraController!.takePicture();
                 Gal.putImage(picture.path);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StudySession()),
+                );
               },
               iconSize: 100,
               icon: const Icon(
