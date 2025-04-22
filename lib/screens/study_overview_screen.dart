@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:studyspace/models/goal.dart';
+import 'package:studyspace/services/isar_service.dart';
 import './topic_overview_screen.dart';
 
 class StudyOverview extends StatefulWidget {
@@ -9,42 +11,77 @@ class StudyOverview extends StatefulWidget {
   State<StudyOverview> createState() => _StudyOverviewState();
 }
 
-class StudyGoal {
-  final String title;
-  final String dueDate;
-  bool completed;
-
-  StudyGoal({
-    required this.title,
-    required this.dueDate,
-    required this.completed,
-  });
-}
-
 class _StudyOverviewState extends State<StudyOverview> {
-  final List<StudyGoal> studyGoals = [
-    StudyGoal(
-      title: 'Automata Theory',
-      dueDate: '12/08/2024',
-      completed: false,
-    ),
-    StudyGoal(
-      title: 'Statistics and Probability',
-      dueDate: '12/08/2024',
-      completed: false,
-    ),
-    StudyGoal(title: 'Other Topic', dueDate: '12/08/2024', completed: false),
-    StudyGoal(
-      title: 'Other Topic Too',
-      dueDate: '12/08/2024',
-      completed: false,
-    ),
-  ];
+  final IsarService _isarService = IsarService();
+  // get list of goals in isar
+  late Future<List<Goal>> _goals;
+  final TextEditingController _searchController = TextEditingController();
+  // default: ascending
+  bool _sortAscending = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshGoals();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _refreshGoals() {
+    setState(() {
+      _goals = _isarService.getAllGoals();
+    });
+  }
+
+  void _onSearchChanged() {
+    //rebuild
+    setState(() {});
+  }
+
+  void _toggleSortOrder() {
+    // default: ascending
+    // switch to descending if tap
+    setState(() {
+      _sortAscending = !_sortAscending;
+    });
+  }
+
+  Future<List<Goal>> _getFilteredGoals() async {
+    final goals = await _goals;
+    final searchGoal = _searchController.text.toLowerCase();
+
+    // Search goal through filter
+    var filterGoal = goals
+        .where((goal) => goal.goalName.toLowerCase().contains(searchGoal))
+        .toList();
+
+    // Ascending order
+    filterGoal.sort((a, b) =>
+        _sortAscending ? a.end.compareTo(b.end) : b.end.compareTo(a.end));
+
+    return filterGoal;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+      backgroundColor: const Color.fromARGB(255, 14, 14, 14),
+      //extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+              size: 20,
+            )),
+      ),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -57,58 +94,102 @@ class _StudyOverviewState extends State<StudyOverview> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 50),
               Text(
                 'Current Study Goals',
-                style: GoogleFonts.arimo(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 30,
+                  fontFamily: 'Arimo',
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
-              const SearchBar(
-                leading: Icon(Icons.search, color: Colors.white),
+              SearchBar(
+                controller: _searchController,
+                leading: const Icon(Icons.search, color: Colors.white),
                 hintText: 'Search for a study goal',
-                backgroundColor: WidgetStatePropertyAll<Color>(
+                backgroundColor: const WidgetStatePropertyAll<Color>(
                   Color.fromRGBO(50, 50, 50, 1),
                 ),
-                hintStyle: WidgetStatePropertyAll<TextStyle>(
+                hintStyle: const WidgetStatePropertyAll<TextStyle>(
                   TextStyle(color: Colors.white),
                 ),
-                textStyle: WidgetStatePropertyAll<TextStyle>(
+                textStyle: const WidgetStatePropertyAll<TextStyle>(
                   TextStyle(color: Colors.white, fontFamily: 'Arimo'),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const SizedBox(width: 15),
-                  const Icon(Icons.sort, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    'due date: ascending',
-                    style: GoogleFonts.arimo(color: Colors.white, fontSize: 14),
+              const SizedBox(height: 5),
+              GestureDetector(
+                onTap: _toggleSortOrder,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      const Icon(Icons.sort, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        'due date: ${_sortAscending ? 'ascending' : 'descending'}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontFamily: 'Arimo',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               Expanded(
-                child: ListView.builder(
-                  itemCount: studyGoals.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: StudyGoalCard(
-                        goal: studyGoals[index],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => TopicOverview(
-                                topicTitle: studyGoals[index].title,
-                                targetDate: studyGoals[index].dueDate,
-                              ),
+                child: FutureBuilder<List<Goal>>(
+                  future: _getFilteredGoals(),
+                  builder: (context, snapshot) {
+                    // waiting state
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final goals = snapshot.data ?? [];
+
+                    // return message if search is empty
+                    if (goals.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No study goals found',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Arimo',
+                          ),
+                        ),
+                      );
+                    }
+
+                    // list all current goals from isar db
+                    return RefreshIndicator(
+                      onRefresh: () async => _refreshGoals(),
+                      child: ListView.builder(
+                        itemCount: goals.length,
+                        itemBuilder: (context, index) {
+                          final goal = goals[index];
+                          final dueDate =
+                              DateFormat('dd/MM/yyyy').format(goal.end);
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: StudyGoalCard(
+                              title: goal.goalName,
+                              dueDate: dueDate,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        TopicOverview(goalId: goal.id),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
@@ -126,10 +207,16 @@ class _StudyOverviewState extends State<StudyOverview> {
 }
 
 class StudyGoalCard extends StatelessWidget {
-  final StudyGoal goal;
+  final String title;
+  final String dueDate;
   final VoidCallback onTap;
 
-  const StudyGoalCard({super.key, required this.goal, required this.onTap});
+  const StudyGoalCard({
+    super.key,
+    required this.title,
+    required this.dueDate,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +230,7 @@ class StudyGoalCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
               Image.asset("assets/asset-book.png", width: 32, height: 32),
@@ -153,19 +240,21 @@ class StudyGoalCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      goal.title,
-                      style: GoogleFonts.arimo(
+                      title,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Arimo',
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Due on ${goal.dueDate}',
-                      style: GoogleFonts.arimo(
+                      'Due on $dueDate',
+                      style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 12,
+                        fontFamily: 'Arimo',
                       ),
                     ),
                   ],

@@ -7,7 +7,7 @@ import 'screens/study_overview_screen.dart';
 import 'information_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 
-void main() {
+void main() async {
   runApp(const StudySpaceApp());
 }
 
