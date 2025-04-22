@@ -268,12 +268,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget lessonChip(String title, String subject, Color color,
       {double progress = 0.5}) {
     return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 8, bottom: 8),
-      padding: const EdgeInsets.all(10),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: color.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.zero,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +285,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Text(subject, style: kBodyFont.copyWith(fontSize: 12)),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.zero,
             child: LinearProgressIndicator(
               value: progress,
               backgroundColor: Colors.white24,
@@ -318,14 +318,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ['Longest Study Session', '3h 20m'],
     ];
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 2.6,
-      children: stats.map((s) => statCard(s[0], s[1])).toList(),
+    double cardWidth = MediaQuery.of(context).size.width * 0.44;
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: stats.map((s) {
+        return SizedBox(
+          width: cardWidth,
+          height: 100,
+          child: statCard(s[0], s[1]),
+        );
+      }).toList(),
     );
   }
 
@@ -340,27 +344,66 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: kBodyFont.copyWith(fontSize: 16)),
+          FittedBox(
+            // This ensures text fits within available space
+            fit: BoxFit.scaleDown, // Shrinks the text without overflowing
+            child: Text(label, style: kBodyFont.copyWith(fontSize: 16)),
+          ),
           const SizedBox(height: 8),
-          Text(value,
-              style: kBodyFont.copyWith(
-                  fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style:
+                kBodyFont.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+            maxLines: 1,
+            softWrap: false,
+          ),
         ],
       ),
     );
   }
 
   Widget seeFinishedGoalsButton() {
-    return ElevatedButton.icon(
-      onPressed: () {},
-      icon: const Icon(Icons.arrow_forward),
-      label: const Text('See finished learning goals'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color.fromARGB(40, 189, 183, 183),
-        foregroundColor: kWhite,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        textStyle: kBodyFont.copyWith(fontWeight: FontWeight.bold),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white10,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Text(
+                'See finished learning goals',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.deepPurpleAccent,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.deepPurpleAccent.withOpacity(0.6),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(8),
+              child: const Icon(
+                Icons.arrow_forward,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
