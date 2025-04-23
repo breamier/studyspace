@@ -14,104 +14,37 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset('assets/stars.png', fit: BoxFit.cover),
+      appBar: AppBar(
+        backgroundColor: Colors.black.withOpacity(0.7),
+        automaticallyImplyLeading: false, 
+        leadingWidth: 56, 
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+              padding: EdgeInsets.zero,
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-          
-          Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: Container(
-                  color: Colors.black.withOpacity(0.5),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildProgressBar(
-                          'assets/astronaut_icon.png',
-                          'HP',
-                          0.75,
-                          Colors.red.shade700,
-                          Colors.red.shade400,
-                          Colors.white
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        _buildProgressBar(
-                          'assets/rocket_icon.png',
-                          'Progress',
-                          0.85,
-                          Colors.grey.shade500,
-                          Colors.grey.shade400,
-                          Colors.black
-                        ),
-                         
-                        _buildStatsSection(),
-                        const SizedBox(height: 24),
-
-                        Container(
-                          margin: const EdgeInsets.only(top: 60), 
-                          height: 350,
-                          width: double.infinity,
-                          child: Center(
-                            child: Image.asset(
-                              'assets/moon_with_astronaut.png',
-                              height: 700,
-                              fit: BoxFit.contain, 
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+        ),
+        title: const Text(
+          "Home",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.only(top: 20, bottom: 12, left: 16, right: 16),
-      color: Colors.black.withOpacity(0.7), 
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                  padding: EdgeInsets.zero,
-                  onPressed: () {},
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                "Home",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          
+        ),
+        actions: [
           Container(
+            margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
@@ -138,6 +71,58 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
           ),
         ],
       ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset('assets/stars.png', fit: BoxFit.cover),
+          ),
+          
+          Container(
+            color: Colors.black.withOpacity(0.5),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildProgressBar(
+                    'assets/astronaut_icon.png',
+                    'HP',
+                    0.75,
+                    Colors.red.shade700,
+                    Colors.red.shade400,
+                    Colors.white
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  _buildProgressBar(
+                    'assets/rocket_icon.png',
+                    'Progress',
+                    0.85,
+                    Colors.grey.shade500,
+                    Colors.grey.shade400,
+                    Colors.black
+                  ),
+                   
+                  _buildStatsSection(),
+                  const SizedBox(height: 24),
+                  
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/moon_with_astronaut.png',
+                        fit: BoxFit.contain, 
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
