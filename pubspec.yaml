@@ -43,6 +43,7 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
   path_provider: ^2.1.5
   table_calendar: ^3.2.0
+  flutter_cube: ^0.1.1
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +88,9 @@ flutter:
     - assets/Satellite_icon.png
     - assets/shooting_star.png
 
+    - assets/planets/planet1.obj
+    - assets/planets/planet1.mtl
+    - assets/sample.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
