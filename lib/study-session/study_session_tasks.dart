@@ -20,15 +20,28 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   final IsarService _isarService = IsarService();
   Goal? _goal;
   bool _isLoading = true;
-  final List<TextEditingController> _taskController = [];
-  final FocusNode _focusNode = FocusNode();
+  final List<TextEditingController> _subtopicControllers = [];
+  final FocusNode _newSubtopicFocusNode = FocusNode();
 
+  // subtopics to delete
   final List<Subtopic> _selectedSubtopicsToDelete = [];
+
+  late double deviceHeight;
+  late double deviceWidth;
+  late bool isSmallScreen;
 
   @override
   void initState() {
     super.initState();
     _loadGoal();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    deviceHeight = MediaQuery.of(context).size.height;
+    deviceWidth = MediaQuery.of(context).size.width;
+    isSmallScreen = deviceWidth < 600;
   }
 
   Future<void> _loadGoal() async {
@@ -52,16 +65,16 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   }
 
   void _initializeControllers(List<Subtopic> subtopics) {
-    _taskController.clear();
+    _subtopicControllers.clear();
     for (var subtopic in subtopics) {
-      _taskController.add(TextEditingController(text: subtopic.name));
+      _subtopicControllers.add(TextEditingController(text: subtopic.name));
     }
   }
 
   Future<void> _saveSubtopics() async {
     if (_goal == null) return;
 
-    final newSubtopics = _taskController
+    final newSubtopics = _subtopicControllers
         .where((c) => c.text.trim().isNotEmpty)
         .map((controller) {
       final existing = _goal!.subtopics.firstWhere(
@@ -77,9 +90,9 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   }
 
   void _addNewSubtopicField() {
-    setState(() => _taskController.add(TextEditingController()));
+    setState(() => _subtopicControllers.add(TextEditingController()));
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_focusNode);
+      FocusScope.of(context).requestFocus(_newSubtopicFocusNode);
     });
   }
 
@@ -202,8 +215,9 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
             (subtopic) => _selectedSubtopicsToDelete.contains(subtopic));
 
         // remove deleted subtopics controllers
-        _taskController.removeWhere((controller) => _selectedSubtopicsToDelete
-            .any((subtopic) => subtopic.name == controller.text));
+        _subtopicControllers.removeWhere((controller) =>
+            _selectedSubtopicsToDelete
+                .any((subtopic) => subtopic.name == controller.text));
 
         // clear list
         _selectedSubtopicsToDelete.clear();
@@ -242,7 +256,108 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
       return const Center();
     }
     return Column(
-      children: [],
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Subtopics"),
+            IconButton(onPressed: () {}, icon: Icon(Icons.delete))
+          ],
+        ),
+        ..._subtopicControllers.asMap().entries.map(
+          (entry) {
+            final index = entry.key;
+            final controller = entry.value;
+            final isNew = index >= _goal!.subtopics.length;
+            final subtopic = isNew ? null : _goal!.subtopics[index];
+
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: deviceWidth * 0.04,
+                vertical: deviceHeight * 0.00,
+              ),
+              child: Row(
+                children: [
+                  if (!isNew)
+                    SizedBox(
+                      width: deviceWidth * 0.04,
+                      height: deviceWidth * 0.04,
+                      child: Checkbox(
+                        value: subtopic?.completed ?? false,
+                        onChanged: (value) => _toggleSubtopicCompletion(index),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        side: const BorderSide(
+                          color: Colors.white,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  if (!isNew) SizedBox(width: deviceWidth * 0.03),
+                  Expanded(
+                    child: TextFormField(
+                      controller: controller,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: deviceWidth * 0.04,
+                        fontFamily: 'Arimo',
+                      ),
+                      decoration: InputDecoration(
+                        hintText: isNew ? "New subtopic" : null,
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: deviceWidth * 0.04,
+                          fontFamily: 'Arimo',
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (value) => _saveSubtopics(),
+                      focusNode:
+                          isNew && index == _subtopicControllers.length - 1
+                              ? _newSubtopicFocusNode
+                              : null,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        Padding(
+            padding: EdgeInsets.only(
+              left: deviceWidth * 0.02,
+              right: deviceWidth * 0.04,
+              top: deviceHeight * 0.01,
+            ),
+            child: TextButton(
+              onPressed:  _addNewSubtopicField,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: deviceWidth * 0.03,
+                    height: deviceWidth * 0.09,
+                    child: Container(
+                      child: Icon(
+                          Icons.add,
+                          size: deviceWidth * 0.08,
+                          color: const Color.fromARGB(187, 187, 187, 187),
+                        )
+                      ),
+                    ),
+                  SizedBox(width: deviceWidth * 0.06),
+                  Text(
+                    "Add a subtopic",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: deviceWidth * 0.04,
+                      fontFamily: 'Arimo',
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ],
     );
   }
 }

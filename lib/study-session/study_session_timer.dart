@@ -3,8 +3,13 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
 
 class StudySessionTimer extends StatefulWidget{
+
+  final Id goalId;
+  const StudySessionTimer({super.key, required this.goalId});
+
   @override
   State<StudySessionTimer> createState(){
     return _StateStudySessionTimer();
@@ -17,6 +22,9 @@ class _StateStudySessionTimer extends State<StudySessionTimer>{
   bool isActive = false;
   late double sizeQuery;
 
+  int getTime(){
+    return time;
+  }
   @override
   void dispose(){
     timer?.cancel();

@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => StudySession()),
+                            builder: (context) => StudySession(goalId: 1)),
                       );
                     },
                     child: const Text('Go to Study Session'),

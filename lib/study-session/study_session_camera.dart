@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class StudySessionCamera extends StatefulWidget {
@@ -9,8 +10,7 @@ class StudySessionCamera extends StatefulWidget {
   State<StudySessionCamera> createState() => _StudySessionCameraState();
 }
 
-class _StudySessionCameraState extends State<StudySessionCamera>
-    with SingleTickerProviderStateMixin {
+class _StudySessionCameraState extends State<StudySessionCamera> with SingleTickerProviderStateMixin {
   CameraController? cameraController;
   bool showingTutorial = true;
   bool isAnimating = false;
@@ -59,17 +59,11 @@ class _StudySessionCameraState extends State<StudySessionCamera>
         ],
       ),
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white54, width: 1),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.arrow_circle_left_outlined,
+            color: Colors.white,
           ),
         ),
         backgroundColor: Colors.black,
@@ -123,9 +117,18 @@ class _StudySessionCameraState extends State<StudySessionCamera>
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-            SizedBox.square(
-              dimension: MediaQuery.of(context).size.width * 0.8,
-              child: CameraPreview(cameraController!),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.width * 0.9,
+              child:  ClipRect(
+                child: OverflowBox(
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: BoxFit.fitWidth,
+                    child: CameraPreview(cameraController!),
+                  ),
+                ),
+              ),
             ),
             AnimatedBuilder(
               animation: _animationController,
@@ -151,8 +154,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _colorAnimation.value?.withOpacity(0.8) ??
-                                Colors.deepPurple.withOpacity(0.8),
+                            color: _colorAnimation.value?.withOpacity(0.8) ?? Colors.deepPurple.withOpacity(0.8),
                           ),
                           child: const Icon(
                             Icons.camera_alt,
@@ -318,6 +320,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
       await cameraController?.initialize();
       if (mounted) setState(() {});
     }
+
   }
 
   void _animateShutter() {
@@ -328,6 +331,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
       _animationController.reverse();
       setState(() => isAnimating = false);
     });
-    Future.delayed(const Duration(milliseconds: 150), () {});
+    Future.delayed(const Duration(milliseconds: 150), () {
+    });
   }
 }
