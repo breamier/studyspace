@@ -9,32 +9,33 @@ class StudySessionCamera extends StatefulWidget {
   State<StudySessionCamera> createState() => _StudySessionCameraState();
 }
 
-class _StudySessionCameraState extends State<StudySessionCamera> with SingleTickerProviderStateMixin {
+class _StudySessionCameraState extends State<StudySessionCamera>
+    with SingleTickerProviderStateMixin {
   CameraController? cameraController;
   bool showingTutorial = true;
   bool isAnimating = false;
-  
+
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<Color?> _colorAnimation;
-  
+
   @override
   void initState() {
     super.initState();
     _setupCameraController();
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
         tween: Tween<double>(begin: 0.9, end: 0.6),
         weight: 40,
       ),
     ]).animate(_animationController);
-    
+
     _colorAnimation = ColorTween(
       begin: Colors.deepPurple,
       end: Colors.white,
@@ -54,15 +55,21 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
       body: Stack(
         children: [
           _buildUI(),
-          if (showingTutorial) _buildTutorialOverlay(), 
+          if (showingTutorial) _buildTutorialOverlay(),
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_circle_left_outlined,
-            color: Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
         ),
         backgroundColor: Colors.black,
@@ -75,7 +82,7 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
     if (cameraController?.value.isInitialized != true) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     return SafeArea(
       child: SizedBox.expand(
         child: Column(
@@ -144,7 +151,8 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _colorAnimation.value?.withOpacity(0.8) ?? Colors.deepPurple.withOpacity(0.8),
+                            color: _colorAnimation.value?.withOpacity(0.8) ??
+                                Colors.deepPurple.withOpacity(0.8),
                           ),
                           child: const Icon(
                             Icons.camera_alt,
@@ -311,16 +319,15 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
       if (mounted) setState(() {});
     }
   }
-  
+
   void _animateShutter() {
     if (isAnimating) return;
-    
+
     setState(() => isAnimating = true);
     _animationController.forward().then((_) {
       _animationController.reverse();
       setState(() => isAnimating = false);
     });
-    Future.delayed(const Duration(milliseconds: 150), () {
-    });
+    Future.delayed(const Duration(milliseconds: 150), () {});
   }
 }
