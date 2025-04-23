@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
+import 'package:studyspace/study-session/study-session-rewards.dart';
 
 import '../models/goal.dart';
 import '../services/isar_service.dart';
@@ -134,7 +135,10 @@ class _StudySessionEndState extends State<StudySessionEnd>
             ),
             ElevatedButton(
               onPressed: () {
-                setState(() {});
+                setState(() {
+                  //update data and send data
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> StudySessionRewards(goalId: widget.goalId, ) ));
+                });
               },
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.all(Colors.deepPurple),

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/study-session/study-session-end.dart';
 import 'package:studyspace/study-session/study_session_tasks.dart';
-import 'package:studyspace/study-session/study_session_timer.dart';
 
 class StudySession extends StatefulWidget {
   final Id goalId;
