@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/splash_screen.dart';
+import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/study_overview_screen.dart';
@@ -110,6 +111,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: const Text('Go to Information Screen'),
               ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => StudySession()),
+                      );
+                    },
+                    child: const Text('Go to Study Session'),
+                  ),
               ElevatedButton(
                 onPressed: () {
                   final newGoal = widget.service.createGoalObj("Goal Name",

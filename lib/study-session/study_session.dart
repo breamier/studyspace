@@ -35,8 +35,9 @@ class _StateStudySession extends State<StudySession>{
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         StudySessionTimer(),
+        SizedBox(height: MediaQuery.sizeOf(context).height *0.1),
+        StudySessionTasks(goalId: 2,),
         Spacer(),
-        StudySessionTasks(),
         ElevatedButton(onPressed: (){}, child: Text("End Study Session"))
       ],
     );

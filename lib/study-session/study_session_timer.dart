@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class _StateStudySessionTimer extends State<StudySessionTimer>{
         Text(
           textAlign: TextAlign.center,
           secDuration,
-          textScaler: TextScaler.linear(sizeQuery*0.002),
+          textScaler: TextScaler.linear(sizeQuery*0.004),
         )
       ],
     );
@@ -91,9 +92,14 @@ class _StateStudySessionTimer extends State<StudySessionTimer>{
     );
   }
   Widget timerButton(){
-    return ElevatedButton(onPressed: (){}, child: Icon(Icons.play_arrow),
+    return ElevatedButton(onPressed: (){
+      setState(() {
+        isActive = !isActive;
+      });
+    }, child: Icon(isActive? Icons.pause_rounded:Icons.play_arrow_rounded),
       style: ButtonStyle(
-      shape: WidgetStateProperty.all(CircleBorder()),
+        shape: WidgetStateProperty.all(CircleBorder()),
+        shadowColor: WidgetStateProperty.all(Color(Colors.white.hashCode)),
         minimumSize: WidgetStateProperty.all(Size(MediaQuery.sizeOf(context).width*0.15, MediaQuery.sizeOf(context).width*0.15)),
     )
       ,);
