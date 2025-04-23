@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
+import 'package:studyspace/main.dart';
 
 import '../models/goal.dart';
 import '../models/mission.dart';
@@ -32,6 +33,12 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
     'Study after 9 PM',
     'Complete 3 study sessions',
   ];
+  final List<String> _allRewards = [
+    'Exploration Credits',
+    'Resource Points',
+    'Experience Points',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +46,6 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
     _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
   }
-
 
   Future<void> _loadGoal() async {
     setState(() => _isLoading = true);
@@ -105,49 +111,180 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
                   fontSize: 18,
                 )),
             // Mission Board
-            const SizedBox(height: 30),
-            FutureBuilder<List<Mission>>(
-              future: _missionsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final missions = snapshot.data ?? [];
-                final displayedMissions = missions.take(3).toList();
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white),
-                    color: const Color.fromARGB(40, 189, 183, 183),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Completed Missions',
-                        style: TextStyle(
-                          fontFamily: 'BrunoAceSC',
-                          fontSize: 18,)),
-                      for (var i = 0; i < displayedMissions.length; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8,left: 10),
-                          child: Row(
-                            children: [
-                            Icon(Icons.arrow_right,size:18),
-                            Text(
-                              displayedMissions[i].text,
+            Spacer(),
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
+                child: FutureBuilder<List<Mission>>(
+                  future: _missionsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final missions = snapshot.data ?? [];
+                    final displayedMissions = missions.take(3).toList();
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white),
+                        color: const Color.fromARGB(40, 189, 183, 183),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Completed Missions',
                               style: TextStyle(
-                                  fontSize: 14,
-                                  fontFamily: 'Amino'
+                                fontFamily: 'BrunoAceSC',
+                                fontSize: 18,
+                              )),
+                          for (var i = 0; i < displayedMissions.length; i++)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: 8, left: 10),
+                              child: Row(children: [
+                                Icon(Icons.arrow_right, size: 18),
+                                Text(
+                                  displayedMissions[i].text,
+                                  style: TextStyle(
+                                      fontSize: 14, fontFamily: 'Amino'),
+                                ),
+                              ]),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                )),
+            // Mission Board
+            const SizedBox(height: 30),
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
+                child: FutureBuilder<List<Mission>>(
+                  future: _missionsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final missions = snapshot.data ?? [];
+                    final displayedMissions = missions.take(3).toList();
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white),
+                        color: const Color.fromARGB(40, 189, 183, 183),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            Icon(Icons.star),
+                            Text('Rewards',
+                                style: TextStyle(
+                                  fontFamily: 'BrunoAceSC',
+                                  fontSize: 18,
+                                ))
+                          ]),
+                          SizedBox(height:10),
+                            Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white),
+                                  color:Colors.white24,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child:Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: 8, top:8, left: 10),
+                              child: Row(children: [
+                                Icon(Icons.rocket_launch_outlined, size: 18),
+                                Text(
+                                  "Experience",
+                                  style: TextStyle(
+                                      fontSize: 14, fontFamily: 'Amino'),
+                                ),
+                                Spacer(),
+                                Text("+10")
+                              ]),
+                            )),
+                          SizedBox(height:10),
+                          Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white),
+                                color:Colors.white24,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),]
-                          ),
-                        ),
-                    ],
-                  ),
-                );
+                              child:Padding(
+                                padding:
+                                const EdgeInsets.only(bottom: 8, top:8, left: 10),
+                                child: Row(children: [
+                                  Icon(Icons.map_outlined, size: 18),
+                                  Text(
+                                    "Experience",
+                                    style: TextStyle(
+                                        fontSize: 14, fontFamily: 'Amino'),
+                                  ),
+                                  Spacer(),
+                                  Text("+10")
+                                ]),
+                              )),
+                          SizedBox(height:10),
+                          Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white),
+                                color:Colors.white24,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child:Padding(
+                                padding:
+                                const EdgeInsets.only(bottom: 8, top:8, left: 10),
+                                child: Row(children: [
+                                  Icon(Icons.stars_outlined, size: 18),
+                                  Text(
+                                    "Resource Points",
+                                    style: TextStyle(
+                                        fontSize: 14, fontFamily: 'Amino'),
+                                  ),
+                                  Spacer(),
+                                  Text("+10")
+                                ]),
+                              )),
+                        ],
+                      ),
+                    );
+                  },
+                )),
+            Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  //update data and send data
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => HomeScreen()));
+                });
               },
+              style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
+                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
+                    side: BorderSide(
+                      width: 1,
+                      color: Colors.white,
+                    ),
+                  )),
+                  padding: WidgetStateProperty.all(EdgeInsets.symmetric(
+                      horizontal: MediaQuery.sizeOf(context).width * 0.25,
+                      vertical: MediaQuery.sizeOf(context).height * 0.02))),
+              child: Text("Claim Rewards",
+                  style: TextStyle(
+                      fontFamily: 'Arimo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: MediaQuery.sizeOf(context).width * 0.04,
+                      color: Colors.white)),
             ),
           ],
         ),

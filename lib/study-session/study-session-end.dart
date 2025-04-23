@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,8 +106,11 @@ class _StudySessionEndState extends State<StudySessionEnd>
                 )
               ],
             ),
-            Spacer(),
-            //Image Here,
+            Padding(
+                padding: EdgeInsets.all(30),
+                child:Image.asset(
+              "assets/sample.png"
+            )),
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
                 child: Text(
@@ -130,9 +135,7 @@ class _StudySessionEndState extends State<StudySessionEnd>
                       fontFamily: 'Amino',
                       fontSize: 12,
                     ))),
-            SizedBox(
-              height: MediaQuery.sizeOf(context).height *0.05,
-            ),
+            Spacer(),
             ElevatedButton(
               onPressed: () {
                 setState(() {

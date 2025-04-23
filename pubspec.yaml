@@ -83,6 +83,7 @@ flutter:
     - assets/mascot6.png
     - assets/planets/planet1.obj
     - assets/planets/planet1.mtl
+    - assets/sample.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
