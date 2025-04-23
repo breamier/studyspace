@@ -12,19 +12,27 @@ class PreviewStudyGoal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Preview Learning Goal",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            )),
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_circle_left_outlined,
-              color: Colors.white,
-            )),
+        centerTitle: true,
+        title: const Text(
+          "Preview Learning Goal",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
@@ -86,7 +94,7 @@ class PreviewStudyGoal extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "To...",
+                          "Until ...",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w700),
                         ),
@@ -121,19 +129,26 @@ class PreviewStudyGoal extends StatelessWidget {
                     "I think it would have",
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                   ),
-                  ChoiceChip(
-                    label: Text(goal.difficulty),
-                    selected: false,
-                    showCheckmark: false,
-                    selectedColor: Colors.white,
-                    backgroundColor: Colors.grey[900],
-                    labelStyle: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      chipTheme: Theme.of(context).chipTheme.copyWith(
+                            labelStyle: const TextStyle(color: Colors.white),
+                          ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: Colors.white),
+                    child: ChoiceChip(
+                      label: Text(goal.difficulty),
+                      selected: false,
+                      showCheckmark: false,
+                      selectedColor: Colors.white,
+                      backgroundColor: Colors.grey[900],
+                      labelStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Colors.white),
+                      ),
                     ),
                   ),
                   const Text(
@@ -152,7 +167,7 @@ class PreviewStudyGoal extends StatelessWidget {
                     .map((s) => ListTile(
                           leading: const Icon(
                             Icons.track_changes,
-                            color: Colors.lightGreen,
+                            color: Colors.white,
                           ),
                           title: Text(
                             s.name,
@@ -164,49 +179,68 @@ class PreviewStudyGoal extends StatelessWidget {
                     .toList(),
               ),
               const SizedBox(height: 20),
-              TableCalendar(
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2050, 12, 31),
-                focusedDay: goal.start,
-                calendarStyle: const CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                      color: Colors.greenAccent, shape: BoxShape.circle),
-                  markerDecoration:
-                      BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[900],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white, width: 1),
                 ),
-                selectedDayPredicate: (day) =>
-                    day.isAtSameMomentAs(goal.start) ||
-                    day.isAtSameMomentAs(goal.end),
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: TextStyle(color: Colors.white),
-                  leftChevronIcon:
-                      Icon(Icons.chevron_left, color: Colors.white),
-                  rightChevronIcon:
-                      Icon(Icons.chevron_right, color: Colors.white),
-                ),
-                calendarBuilders: CalendarBuilders(
-                  defaultBuilder: (context, day, _) {
-                    if (day == goal.start || day == goal.end) {
-                      return Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.lightGreen,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${day.day}',
-                            style: const TextStyle(color: Colors.black),
+                padding: const EdgeInsets.all(12),
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2050, 12, 31),
+                  focusedDay: goal.start,
+                  calendarStyle: const CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                        color: Colors.greenAccent, shape: BoxShape.circle),
+                    todayTextStyle: TextStyle(color: Colors.black),
+                    markerDecoration: BoxDecoration(
+                        color: Colors.red, shape: BoxShape.circle),
+                  ),
+                  selectedDayPredicate: (day) =>
+                      day.isAtSameMomentAs(goal.start) ||
+                      day.isAtSameMomentAs(goal.end),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    titleTextStyle: TextStyle(color: Colors.white),
+                    leftChevronIcon:
+                        Icon(Icons.chevron_left, color: Colors.white),
+                    rightChevronIcon:
+                        Icon(Icons.chevron_right, color: Colors.white),
+                  ),
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, day, _) {
+                      if (day.year == goal.start.year &&
+                              day.month == goal.start.month &&
+                              day.day == goal.start.day ||
+                          day.year == goal.end.year &&
+                              day.month == goal.end.month &&
+                              day.day == goal.end.day) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
-                        ),
-                      );
-                    }
-                    return null;
-                  },
+                          child: Center(
+                            child: Text(
+                              '${day.day}',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        );
+                      }
+                      return null;
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
+              const Text(
+                "* These are the dates of your study sessions & revisions",
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 20),
               MaterialButton(
                   onPressed: () async {
                     await IsarService().addGoal(goal);
