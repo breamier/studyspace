@@ -118,17 +118,9 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.width * 0.9,
-              child:  ClipRect(
-                child: OverflowBox(
-                  alignment: Alignment.center,
-                  child: FittedBox(
-                    fit: BoxFit.fitWidth,
-                    child: CameraPreview(cameraController!),
-                  ),
-                ),
-              ),
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.width * 0.8,
+              child:  CameraPreview(cameraController!),
             ),
             AnimatedBuilder(
               animation: _animationController,
