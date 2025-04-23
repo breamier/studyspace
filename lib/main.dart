@@ -8,6 +8,7 @@ import 'screens/study_overview_screen.dart';
 import 'information_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'screens/analytics_screen.dart';
+import 'astronaut_pet_screen.dart';
 
 void main() async {
   runApp(const StudySpaceApp());
@@ -121,6 +122,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: const Text('Go to Study Session'),
                   ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AstronautPetScreen()),
+                  );
+                },
+                child: const Text('Go to Astronaut Pet Screen Screen'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   widget.service.clearDb();

@@ -81,6 +81,13 @@ flutter:
     - assets/astro_notification.png
     - assets/mascot5.png
     - assets/mascot6.png
+    - assets/rocket_icon.png
+    - assets/astronaut_icon.png
+    - assets/moon_with_astronaut.png
+    - assets/planet_icon.png
+    - assets/Satellite_icon.png
+    - assets/shooting_star.png
+
     - assets/planets/planet1.obj
     - assets/planets/planet1.mtl
     - assets/sample.png
