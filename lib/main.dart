@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (context) => const AstronautPetScreen()),
                   );
                 },
-                child: const Text('Go to Astronaut Pet Screen Screen'),
+                child: const Text('Go to Astronaut Pet Screen'),
               ),
               ElevatedButton(
                 onPressed: () {
