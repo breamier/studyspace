@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:studyspace/models/goal.dart';
-import 'package:studyspace/services/isar_service.dart';
+import 'preview_study_goal.dart';
 
 class AddStudyGoal extends StatefulWidget {
   const AddStudyGoal({super.key});
@@ -19,8 +19,6 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final IsarService _isarService = IsarService();
-
   @override
   void initState() {
     super.initState();
@@ -30,19 +28,25 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: const Text("Create a Learning Goal",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               )),
-          leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.arrow_circle_left_outlined,
-                color: Colors.white,
-              )),
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white54, width: 1),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
           backgroundColor: Colors.black,
         ),
         backgroundColor: Colors.black,
@@ -169,7 +173,7 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
                   ),
                   MaterialButton(
                       onPressed: () async {
-                        await _saveGoal();
+                        await _previewGoal();
                       },
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
@@ -221,7 +225,7 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
 
   // save goal in db
 
-  Future<void> _saveGoal() async {
+  Future<void> _previewGoal() async {
     if (_formKey.currentState!.validate()) {
       final subtopicList = subtopics
           .map((controller) => Subtopic()..name = controller.text)
@@ -234,10 +238,12 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
         ..difficulty = _difficulty
         ..subtopics = subtopicList;
 
-      await _isarService.addGoal(newGoal);
-
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PreviewStudyGoal(goal: newGoal),
+            ));
       }
     }
   }

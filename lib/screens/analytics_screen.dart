@@ -111,6 +111,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         backgroundColor: kOnyx,
         elevation: 0,
         title: Text('Analytics', style: kHeadingFont.copyWith(fontSize: 18)),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
