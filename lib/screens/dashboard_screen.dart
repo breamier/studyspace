@@ -7,10 +7,22 @@ import 'package:studyspace/services/isar_service.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
-  fontFamily: 'BrunoAce',
+  fontFamily: 'Arimo',
   fontSize: 22,
   fontWeight: FontWeight.bold,
   color: Colors.white,
+  shadows: [
+    Shadow(
+      blurRadius: 10.0,
+      color: Colors.white,
+      offset: Offset(0, 0),
+    ),
+    Shadow(
+      blurRadius: 20.0,
+      color: kPurple,
+      offset: Offset(0, 0),
+    ),
+  ],
 );
 
 final TextStyle kBodyFont = const TextStyle(
@@ -86,123 +98,133 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Goal>>(
-        future: _goalsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/stars.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: FutureBuilder<List<Goal>>(
+          future: _goalsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
 
-          final goals = snapshot.data ?? [];
-          final currentGoals = goals.where((g) => g.isCurrent).toList();
-          final upcomingGoals = goals.where((g) => g.isUpcoming).toList();
+            final goals = snapshot.data ?? [];
+            final currentGoals = goals.where((g) => g.isCurrent).toList();
+            final upcomingGoals = goals.where((g) => g.isUpcoming).toList();
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Current Study Goals
-                if (currentGoals.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  sectionTitle('Current Study Goal'),
-                  const SizedBox(height: 10),
-                  for (final goal in currentGoals)
-                    studyGoalTile(
-                      '📖 ${goal.goalName}',
-                      'Study Now',
-                      date: DateFormat('dd / MM / yyyy').format(goal.end),
-                    )
-                ] else ...[
-                  const SizedBox(height: 10),
-                  sectionTitle('Current Study Goal'),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'No current study goals',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-
-                // Upcoming Study Goals
-                if (upcomingGoals.isNotEmpty) ...[
-                  const SizedBox(height: 30),
-                  sectionTitle('Upcoming Study Goals'),
-                  const SizedBox(height: 10),
-                  for (final goal in upcomingGoals)
-                    studyGoalTile(
-                      '📖 ${goal.goalName}',
-                      'View',
-                      date: DateFormat('dd / MM / yyyy').format(goal.start),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Current Study Goals
+                  if (currentGoals.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    sectionTitle("Today's Study Goal"),
+                    const SizedBox(height: 10),
+                    for (final goal in currentGoals)
+                      studyGoalTile(
+                        '📖 ${goal.goalName}',
+                        'Study Now',
+                        date: DateFormat('dd / MM / yyyy').format(goal.end),
+                        isToday: DateUtils.isSameDay(goal.end, DateTime.now()),
+                      )
+                  ] else ...[
+                    // Today's Study Goals
+                    const SizedBox(height: 10),
+                    sectionTitle("Today's Study Goal"),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'No study goals today',
+                      style: TextStyle(color: Colors.white),
                     ),
-                ] else ...[
+                  ],
+
+                  // Upcoming Study Goals
+                  if (upcomingGoals.isNotEmpty) ...[
+                    const SizedBox(height: 30),
+                    sectionTitle('Upcoming Study Goals'),
+                    const SizedBox(height: 10),
+                    for (final goal in upcomingGoals)
+                      studyGoalTile(
+                        '📖 ${goal.goalName}',
+                        'View',
+                        date: DateFormat('dd / MM / yyyy').format(goal.start),
+                      ),
+                  ] else ...[
+                    const SizedBox(height: 30),
+                    sectionTitle('Upcoming Study Goals'),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'No upcoming study goals',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+
+                  // Mission Board
                   const SizedBox(height: 30),
-                  sectionTitle('Upcoming Study Goals'),
+                  sectionTitle('Mission Board'),
                   const SizedBox(height: 10),
-                  const Text(
-                    'No upcoming study goals',
-                    style: TextStyle(color: Colors.white),
+                  FutureBuilder<List<Mission>>(
+                    future: _missionsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final missions = snapshot.data ?? [];
+                      final displayedMissions = missions.take(3).toList();
+
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: kWhite),
+                          color: const Color.fromARGB(40, 189, 183, 183),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var i = 0; i < displayedMissions.length; i++)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
+                                  style: kBodyFont.copyWith(fontSize: 14),
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: TextButton.icon(
+                                onPressed: () {},
+                                icon: const Icon(Icons.emoji_emotions_outlined,
+                                    color: kWhite, size: 18),
+                                label: Text(
+                                  'Astronaut >>',
+                                  style: kBodyFont.copyWith(fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
+                  const SizedBox(height: 80),
                 ],
-
-                // Mission Board
-                const SizedBox(height: 30),
-                sectionTitle('Mission Board'),
-                const SizedBox(height: 10),
-                FutureBuilder<List<Mission>>(
-                  future: _missionsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final missions = snapshot.data ?? [];
-                    final displayedMissions = missions.take(3).toList();
-
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: kWhite),
-                        color: const Color.fromARGB(40, 189, 183, 183),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (var i = 0; i < displayedMissions.length; i++)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Text(
-                                '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
-                                style: kBodyFont.copyWith(fontSize: 14),
-                              ),
-                            ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: TextButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.emoji_emotions_outlined,
-                                  color: kWhite, size: 18),
-                              label: Text(
-                                'Astronaut >>',
-                                style: kBodyFont.copyWith(fontSize: 14),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 80),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: kOnyx,
@@ -227,27 +249,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Text(
       title,
       style: kHeadingFont.copyWith(
-        fontSize: 18,
+        fontSize: 21,
         fontWeight: FontWeight.bold,
       ),
     );
   }
 
-  Widget studyGoalTile(String title, String buttonText, {String? date}) {
+  Widget studyGoalTile(String title, String buttonText,
+      {String? date, bool isToday = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: kWhite),
+        color: isToday
+            ? const Color.fromARGB(201, 244, 244, 244).withOpacity(0.1)
+            : Colors.transparent,
+        border: Border.all(
+          color: isToday ? kPurple : kWhite,
+          width: isToday ? 2 : 1,
+        ),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: isToday
+            ? [
+                BoxShadow(
+                  color:
+                      const Color.fromARGB(255, 229, 220, 255).withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ]
+            : [],
       ),
       child: Row(
         children: [
+          if (isToday)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+            ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: kBodyFont.copyWith(fontSize: 16)),
+                Text(
+                  title,
+                  style: kBodyFont.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: kWhite,
+                  ),
+                ),
                 if (date != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -255,7 +305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       'Due on $date',
                       style: kBodyFont.copyWith(
                         fontSize: 12,
-                        color: const Color(0xB3FFFFFF),
+                        color: Color(0xB3FFFFFF),
                       ),
                     ),
                   ),
@@ -265,8 +315,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: kOnyx,
-              side: const BorderSide(color: kWhite),
-              foregroundColor: kWhite,
+              side: BorderSide(color: kWhite),
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () {},
