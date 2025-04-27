@@ -112,16 +112,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: const Text('Go to Information Screen'),
               ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => StudySession(goalId: 1)),
-                      );
-                    },
-                    child: const Text('Go to Study Session'),
-                  ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StudySession(goalId: 1)),
+                  );
+                },
+                child: const Text('Go to Study Session'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(

@@ -22,33 +22,53 @@ const GoalSchema = CollectionSchema(
       name: r'difficulty',
       type: IsarType.string,
     ),
-    r'end': PropertySchema(
+    r'easeFactor': PropertySchema(
       id: 1,
+      name: r'easeFactor',
+      type: IsarType.double,
+    ),
+    r'end': PropertySchema(
+      id: 2,
       name: r'end',
       type: IsarType.dateTime,
     ),
     r'goalName': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'goalName',
       type: IsarType.string,
     ),
+    r'interval': PropertySchema(
+      id: 4,
+      name: r'interval',
+      type: IsarType.long,
+    ),
     r'isCurrent': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'isCurrent',
       type: IsarType.bool,
     ),
     r'isUpcoming': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'isUpcoming',
       type: IsarType.bool,
     ),
+    r'reps': PropertySchema(
+      id: 7,
+      name: r'reps',
+      type: IsarType.long,
+    ),
+    r'sessionDates': PropertySchema(
+      id: 8,
+      name: r'sessionDates',
+      type: IsarType.dateTimeList,
+    ),
     r'start': PropertySchema(
-      id: 5,
+      id: 9,
       name: r'start',
       type: IsarType.dateTime,
     ),
     r'subtopics': PropertySchema(
-      id: 6,
+      id: 10,
       name: r'subtopics',
       type: IsarType.objectList,
       target: r'Subtopic',
@@ -60,7 +80,15 @@ const GoalSchema = CollectionSchema(
   deserializeProp: _goalDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'sessions': LinkSchema(
+      id: 5543848154071693983,
+      name: r'sessions',
+      target: r'Session',
+      single: false,
+      linkName: r'goal',
+    )
+  },
   embeddedSchemas: {r'Subtopic': SubtopicSchema},
   getId: _goalGetId,
   getLinks: _goalGetLinks,
@@ -76,6 +104,7 @@ int _goalEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.difficulty.length * 3;
   bytesCount += 3 + object.goalName.length * 3;
+  bytesCount += 3 + object.sessionDates.length * 8;
   bytesCount += 3 + object.subtopics.length * 3;
   {
     final offsets = allOffsets[Subtopic]!;
@@ -94,13 +123,17 @@ void _goalSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.difficulty);
-  writer.writeDateTime(offsets[1], object.end);
-  writer.writeString(offsets[2], object.goalName);
-  writer.writeBool(offsets[3], object.isCurrent);
-  writer.writeBool(offsets[4], object.isUpcoming);
-  writer.writeDateTime(offsets[5], object.start);
+  writer.writeDouble(offsets[1], object.easeFactor);
+  writer.writeDateTime(offsets[2], object.end);
+  writer.writeString(offsets[3], object.goalName);
+  writer.writeLong(offsets[4], object.interval);
+  writer.writeBool(offsets[5], object.isCurrent);
+  writer.writeBool(offsets[6], object.isUpcoming);
+  writer.writeLong(offsets[7], object.reps);
+  writer.writeDateTimeList(offsets[8], object.sessionDates);
+  writer.writeDateTime(offsets[9], object.start);
   writer.writeObjectList<Subtopic>(
-    offsets[6],
+    offsets[10],
     allOffsets,
     SubtopicSchema.serialize,
     object.subtopics,
@@ -115,12 +148,16 @@ Goal _goalDeserialize(
 ) {
   final object = Goal();
   object.difficulty = reader.readString(offsets[0]);
-  object.end = reader.readDateTime(offsets[1]);
-  object.goalName = reader.readString(offsets[2]);
+  object.easeFactor = reader.readDouble(offsets[1]);
+  object.end = reader.readDateTime(offsets[2]);
+  object.goalName = reader.readString(offsets[3]);
   object.id = id;
-  object.start = reader.readDateTime(offsets[5]);
+  object.interval = reader.readLong(offsets[4]);
+  object.reps = reader.readLong(offsets[7]);
+  object.sessionDates = reader.readDateTimeList(offsets[8]) ?? [];
+  object.start = reader.readDateTime(offsets[9]);
   object.subtopics = reader.readObjectList<Subtopic>(
-        offsets[6],
+        offsets[10],
         SubtopicSchema.deserialize,
         allOffsets,
         Subtopic(),
@@ -139,16 +176,24 @@ P _goalDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readBool(offset)) as P;
-    case 4:
-      return (reader.readBool(offset)) as P;
-    case 5:
       return (reader.readDateTime(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readBool(offset)) as P;
+    case 7:
+      return (reader.readLong(offset)) as P;
+    case 8:
+      return (reader.readDateTimeList(offset) ?? []) as P;
+    case 9:
+      return (reader.readDateTime(offset)) as P;
+    case 10:
       return (reader.readObjectList<Subtopic>(
             offset,
             SubtopicSchema.deserialize,
@@ -166,11 +211,12 @@ Id _goalGetId(Goal object) {
 }
 
 List<IsarLinkBase<dynamic>> _goalGetLinks(Goal object) {
-  return [];
+  return [object.sessions];
 }
 
 void _goalAttach(IsarCollection<dynamic> col, Id id, Goal object) {
   object.id = id;
+  object.sessions.attach(col, col.isar.collection<Session>(), r'sessions', id);
 }
 
 extension GoalQueryWhereSort on QueryBuilder<Goal, Goal, QWhere> {
@@ -375,6 +421,68 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'difficulty',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> easeFactorEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'easeFactor',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> easeFactorGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'easeFactor',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> easeFactorLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'easeFactor',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> easeFactorBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'easeFactor',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -612,6 +720,58 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> intervalEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'interval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> intervalGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'interval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> intervalLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'interval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> intervalBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'interval',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterFilterCondition> isCurrentEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -628,6 +788,196 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
         property: r'isUpcoming',
         value: value,
       ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> repsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reps',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> repsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'reps',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> repsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'reps',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> repsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'reps',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesElementEqualTo(
+      DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      sessionDatesElementGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'sessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesElementLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'sessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesElementBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'sessionDates',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'sessionDates',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'sessionDates',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'sessionDates',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'sessionDates',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'sessionDates',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'sessionDates',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -777,7 +1127,63 @@ extension GoalQueryObject on QueryBuilder<Goal, Goal, QFilterCondition> {
   }
 }
 
-extension GoalQueryLinks on QueryBuilder<Goal, Goal, QFilterCondition> {}
+extension GoalQueryLinks on QueryBuilder<Goal, Goal, QFilterCondition> {
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessions(
+      FilterQuery<Session> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'sessions');
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'sessions', lower, includeLower, upper, includeUpper);
+    });
+  }
+}
 
 extension GoalQuerySortBy on QueryBuilder<Goal, Goal, QSortBy> {
   QueryBuilder<Goal, Goal, QAfterSortBy> sortByDifficulty() {
@@ -789,6 +1195,18 @@ extension GoalQuerySortBy on QueryBuilder<Goal, Goal, QSortBy> {
   QueryBuilder<Goal, Goal, QAfterSortBy> sortByDifficultyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'difficulty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByEaseFactor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'easeFactor', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByEaseFactorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'easeFactor', Sort.desc);
     });
   }
 
@@ -816,6 +1234,18 @@ extension GoalQuerySortBy on QueryBuilder<Goal, Goal, QSortBy> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByIntervalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.desc);
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterSortBy> sortByIsCurrent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCurrent', Sort.asc);
@@ -837,6 +1267,18 @@ extension GoalQuerySortBy on QueryBuilder<Goal, Goal, QSortBy> {
   QueryBuilder<Goal, Goal, QAfterSortBy> sortByIsUpcomingDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isUpcoming', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByReps() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reps', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> sortByRepsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reps', Sort.desc);
     });
   }
 
@@ -863,6 +1305,18 @@ extension GoalQuerySortThenBy on QueryBuilder<Goal, Goal, QSortThenBy> {
   QueryBuilder<Goal, Goal, QAfterSortBy> thenByDifficultyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'difficulty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByEaseFactor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'easeFactor', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByEaseFactorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'easeFactor', Sort.desc);
     });
   }
 
@@ -902,6 +1356,18 @@ extension GoalQuerySortThenBy on QueryBuilder<Goal, Goal, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByIntervalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.desc);
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterSortBy> thenByIsCurrent() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCurrent', Sort.asc);
@@ -926,6 +1392,18 @@ extension GoalQuerySortThenBy on QueryBuilder<Goal, Goal, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByReps() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reps', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterSortBy> thenByRepsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'reps', Sort.desc);
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterSortBy> thenByStart() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'start', Sort.asc);
@@ -947,6 +1425,12 @@ extension GoalQueryWhereDistinct on QueryBuilder<Goal, Goal, QDistinct> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QDistinct> distinctByEaseFactor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'easeFactor');
+    });
+  }
+
   QueryBuilder<Goal, Goal, QDistinct> distinctByEnd() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'end');
@@ -960,6 +1444,12 @@ extension GoalQueryWhereDistinct on QueryBuilder<Goal, Goal, QDistinct> {
     });
   }
 
+  QueryBuilder<Goal, Goal, QDistinct> distinctByInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'interval');
+    });
+  }
+
   QueryBuilder<Goal, Goal, QDistinct> distinctByIsCurrent() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isCurrent');
@@ -969,6 +1459,18 @@ extension GoalQueryWhereDistinct on QueryBuilder<Goal, Goal, QDistinct> {
   QueryBuilder<Goal, Goal, QDistinct> distinctByIsUpcoming() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isUpcoming');
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QDistinct> distinctByReps() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'reps');
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QDistinct> distinctBySessionDates() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'sessionDates');
     });
   }
 
@@ -992,6 +1494,12 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Goal, double, QQueryOperations> easeFactorProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'easeFactor');
+    });
+  }
+
   QueryBuilder<Goal, DateTime, QQueryOperations> endProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'end');
@@ -1004,6 +1512,12 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Goal, int, QQueryOperations> intervalProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'interval');
+    });
+  }
+
   QueryBuilder<Goal, bool, QQueryOperations> isCurrentProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCurrent');
@@ -1013,6 +1527,18 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
   QueryBuilder<Goal, bool, QQueryOperations> isUpcomingProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isUpcoming');
+    });
+  }
+
+  QueryBuilder<Goal, int, QQueryOperations> repsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'reps');
+    });
+  }
+
+  QueryBuilder<Goal, List<DateTime>, QQueryOperations> sessionDatesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'sessionDates');
     });
   }
 
