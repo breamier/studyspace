@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/screens/add_study_goal.dart';
+import 'package:studyspace/services/notif_service.dart';
 import 'package:studyspace/splash_screen.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
@@ -11,6 +12,8 @@ import 'screens/analytics_screen.dart';
 import 'astronaut_pet_screen.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized;
+  NotifService().initNotification();
   runApp(const StudySpaceApp());
 }
 
@@ -131,6 +134,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: const Text('Go to Astronaut Pet Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().showNotification(
+                      title: "Study Space", body: "Learn Now!");
+                },
+                child: const Text('Show Notification'),
               ),
               ElevatedButton(
                 onPressed: () {
