@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:studyspace/models/goal.dart';
 import 'preview_study_goal.dart';
-import 'package:studyspace/services/scheduler.dart';
 
 class AddStudyGoal extends StatefulWidget {
   const AddStudyGoal({super.key});
