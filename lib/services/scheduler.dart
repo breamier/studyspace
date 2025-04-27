@@ -4,7 +4,7 @@ import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/services/sm_response.dart';
 
 class Scheduler {
-  Future<void> initializeSessions(Goal goal) async {
+  Future<List<DateTime>> initializeSessions(Goal goal) async {
     Scheduler scheduler = Scheduler();
 
     DateTime currentStartDate = goal.start;
@@ -14,8 +14,8 @@ class Scheduler {
     int interval = goal.interval;
     double easeFactor = goal.easeFactor;
 
-    goal.sessionDates.clear();
-    goal.sessionDates.add(currentStartDate);
+    List<DateTime> sessionDates = [];
+    sessionDates.add(currentStartDate);
 
     while (currentStartDate.isBefore(endDate)) {
       DateTime nextDate = scheduler.scheduleNextReview(
@@ -27,7 +27,7 @@ class Scheduler {
         previousEaseFactor: easeFactor,
       );
       print("Current: $currentStartDate - Next: $nextDate");
-      goal.sessionDates.add(nextDate);
+      sessionDates.add(nextDate);
 
       Sm sm = Sm();
       SmResponse response = sm.calc(
@@ -48,13 +48,15 @@ class Scheduler {
       currentStartDate = nextDate;
     }
 
-    if (!goal.sessionDates.contains(endDate)) {
-      goal.sessionDates.add(endDate);
+    if (!sessionDates.contains(endDate)) {
+      sessionDates.add(endDate);
     }
 
-    for (var date in goal.sessionDates) {
+    for (var date in sessionDates) {
       print("Session Date: ${DateFormat('yyyy-MM-dd').format(date)}");
     }
+
+    return sessionDates;
   }
 
   int mapDifficultyToQuality(String difficulty) {
@@ -96,7 +98,6 @@ class Scheduler {
         quality = 4; // Default: EASY
     }
 
-    // Create an instance of SM for the calculation
     Sm sm = Sm();
     SmResponse response = sm.calc(
       quality: quality,
@@ -105,61 +106,12 @@ class Scheduler {
       previousEaseFactor: previousEaseFactor,
     );
 
-    // Calculate the next review date based on the interval
     DateTime nextReviewDate = startDate.add(Duration(days: response.interval));
 
-    // Ensure the review date doesn't go beyond the end date
     if (nextReviewDate.isAfter(endDate)) {
       nextReviewDate = endDate;
     }
 
     return nextReviewDate;
   }
-}
-
-void main() {
-  DateTime startDate = DateTime(2025, 5, 1);
-  DateTime endDate = DateTime(2025, 5, 30);
-  print(DateTime.now());
-
-  Scheduler scheduler = Scheduler();
-
-  // Simulate the first review with an Easy difficulty
-  DateTime nextReview = scheduler.scheduleNextReview(
-    startDate: startDate,
-    endDate: endDate,
-    difficulty: 'medium',
-  );
-
-  // Print the next review date
-  String formattedDate = DateFormat('yyyy-MM-dd').format(nextReview);
-  print("Next review date: $formattedDate");
-
-  // Simulate 2nd Review date
-
-  // Calculate the second review using the results from the first review
-  DateTime secondReview = scheduler.scheduleNextReview(
-    startDate: nextReview,
-    endDate: endDate,
-    difficulty: 'easy',
-    previousRepetitions: 1,
-    previousInterval: 6,
-    previousEaseFactor: 2.28,
-  );
-  String secondReviewFormatted = DateFormat('yyyy-MM-dd').format(secondReview);
-  print("Second review date: $secondReviewFormatted");
-
-  // Simulate the 3rd review: Assume quality remains 'easy'
-
-  // Calculate the third review using the results from the second review
-  DateTime thirdReview = scheduler.scheduleNextReview(
-    startDate: secondReview,
-    endDate: endDate,
-    difficulty: 'easy',
-    previousRepetitions: 2, // Increased repetitions after the second review
-    previousInterval: 6, // The interval from the second review
-    previousEaseFactor: 2.14, // The easeFactor from the second review
-  );
-  String thirdReviewFormatted = DateFormat('yyyy-MM-dd').format(thirdReview);
-  print("Third review date: $thirdReviewFormatted");
 }

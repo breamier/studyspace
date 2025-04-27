@@ -3,10 +3,15 @@ import 'package:studyspace/models/goal.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:studyspace/services/isar_service.dart';
+import 'package:studyspace/services/scheduler.dart';
 
 class PreviewStudyGoal extends StatelessWidget {
   final Goal goal;
-  const PreviewStudyGoal({super.key, required this.goal});
+  PreviewStudyGoal({super.key, required this.goal});
+
+  Future<List<DateTime>> _getSessionDates(Goal goal) async {
+    return await Scheduler().initializeSessions(goal);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,62 +184,75 @@ class PreviewStudyGoal extends StatelessWidget {
                     .toList(),
               ),
               const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[900],
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white, width: 1),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: TableCalendar(
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2050, 12, 31),
-                  focusedDay: goal.start,
-                  calendarStyle: const CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                        color: Colors.greenAccent, shape: BoxShape.circle),
-                    todayTextStyle: TextStyle(color: Colors.black),
-                    markerDecoration: BoxDecoration(
-                        color: Colors.red, shape: BoxShape.circle),
-                  ),
-                  selectedDayPredicate: (day) =>
-                      day.isAtSameMomentAs(goal.start) ||
-                      day.isAtSameMomentAs(goal.end),
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    titleTextStyle: TextStyle(color: Colors.white),
-                    leftChevronIcon:
-                        Icon(Icons.chevron_left, color: Colors.white),
-                    rightChevronIcon:
-                        Icon(Icons.chevron_right, color: Colors.white),
-                  ),
-                  calendarBuilders: CalendarBuilders(
-                    defaultBuilder: (context, day, _) {
-                      if (day.year == goal.start.year &&
-                              day.month == goal.start.month &&
-                              day.day == goal.start.day ||
-                          day.year == goal.end.year &&
-                              day.month == goal.end.month &&
-                              day.day == goal.end.day) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${day.day}',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        );
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ),
+              FutureBuilder<List<DateTime>>(
+                  future: _getSessionDates(goal),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text("Error retrieving sessions"));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(child: Text('No sessions found.'));
+                    }
+
+                    final sessionDates = snapshot.data!;
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white, width: 1),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: TableCalendar(
+                        firstDay: DateTime.utc(2020, 1, 1),
+                        lastDay: DateTime.utc(2050, 12, 31),
+                        focusedDay: goal.start,
+                        calendarStyle: const CalendarStyle(
+                          todayDecoration: BoxDecoration(
+                              color: Colors.greenAccent,
+                              shape: BoxShape.circle),
+                          todayTextStyle: TextStyle(color: Colors.black),
+                          markerDecoration: BoxDecoration(
+                              color: Colors.red, shape: BoxShape.circle),
+                        ),
+                        selectedDayPredicate: (day) =>
+                            day.isAtSameMomentAs(goal.start) ||
+                            day.isAtSameMomentAs(goal.end),
+                        headerStyle: const HeaderStyle(
+                          formatButtonVisible: false,
+                          titleCentered: true,
+                          titleTextStyle: TextStyle(color: Colors.white),
+                          leftChevronIcon:
+                              Icon(Icons.chevron_left, color: Colors.white),
+                          rightChevronIcon:
+                              Icon(Icons.chevron_right, color: Colors.white),
+                        ),
+                        calendarBuilders: CalendarBuilders(
+                          defaultBuilder: (context, day, _) {
+                            if (sessionDates.any((sessionDate) =>
+                                sessionDate.year == day.year &&
+                                sessionDate.month == day.month &&
+                                sessionDate.day == day.day)) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${day.day}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              );
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    );
+                  }),
               const SizedBox(height: 30),
               const Text(
                 "* These are the dates of your study sessions & revisions",
@@ -243,6 +261,9 @@ class PreviewStudyGoal extends StatelessWidget {
               const SizedBox(height: 20),
               MaterialButton(
                   onPressed: () async {
+                    final sessionDates =
+                        await Scheduler().initializeSessions(goal);
+                    goal.sessionDates = sessionDates;
                     await IsarService().addGoal(goal);
                     if (context.mounted)
                       Navigator.popUntil(context, (route) => route.isFirst);

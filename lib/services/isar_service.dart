@@ -6,7 +6,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
 import 'package:studyspace/models/session.dart';
-import 'package:studyspace/services/scheduler.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -33,8 +32,6 @@ class IsarService extends ChangeNotifier {
     final isar = await db;
     isar.writeTxnSync<int>(() => isar.goals.putSync(newGoal));
     print("Goal added successfully!");
-    await Scheduler()
-        .initializeSessions(newGoal); // Adds a list of initial study sessions
   }
 
   // filter -> Upcoming goals date for dashboard
