@@ -8,7 +8,6 @@ class InformationScreen extends StatefulWidget {
 }
 
 class _InformationScreenState extends State<InformationScreen> {
-  int _selectedIndex = 0;
   String? _currentDetailPage;
 
   @override
@@ -67,7 +66,6 @@ class _InformationScreenState extends State<InformationScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -153,7 +151,6 @@ Study Space takes this proven method to the next level by adapting the schedule 
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -266,29 +263,6 @@ Study Space takes this proven method to the next level by adapting the schedule 
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.grey[600],
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      currentIndex: _selectedIndex,
-      onTap: (index) => setState(() => _selectedIndex = index),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book), label: 'Study Goals'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle, size: 40), label: 'Add Goal'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.analytics), label: 'Analytics'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-      ],
     );
   }
 }

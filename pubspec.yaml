@@ -87,10 +87,25 @@ flutter:
     - assets/planet_icon.png
     - assets/Satellite_icon.png
     - assets/shooting_star.png
-
     - assets/planets/planet1.obj
     - assets/planets/planet1.mtl
     - assets/sample.png
+    - assets/replenished_astronaut.png
+    - assets/spaceship.png
+    - assets/spaceship_with_astronaut.png
+    - assets/orange_astronaut.png
+    - assets/blue_astronaut.png
+    - assets/white_spaceship.png
+    - assets/orange_spaceship.png
+    - assets/astronaut_roulette1.png
+    - assets/astronaut_roulette2.png
+    - assets/moon_with_spaceship.png
+    - assets/traveling_astronaut.png
+    - assets/moon_with_orange_astronaut.png
+    - assets/moon_with_blue_astronaut.png
+    - assets/moon_with_orange_spaceship.png
+    - assets/moon_with_white_spaceship.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

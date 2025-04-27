@@ -4,6 +4,11 @@ import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
 import 'package:studyspace/services/isar_service.dart';
+import 'package:studyspace/screens/study_overview_screen.dart';
+import 'package:studyspace/screens/add_study_goal.dart';
+import 'package:studyspace/screens/analytics_screen.dart';
+import 'package:studyspace/screens/information_screen.dart';
+import 'package:studyspace/screens/astronaut_pet_screen.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
@@ -47,6 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final IsarService _isarService = IsarService();
   late Future<List<Goal>> _goalsFuture;
   late Future<List<Mission>> _missionsFuture;
+  int _selectedIndex = 0;
 
   final List<String> _allMissions = [
     'Study 30 minutes straight',
@@ -76,6 +82,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return; 
+    
+    switch (index) {
+      case 0: 
+        setState(() {
+          _selectedIndex = index;
+        });
+        break;
+      case 1: 
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const StudyOverview()),
+        ).then((_) => setState(() => _selectedIndex = 0)); 
+        break;
+      case 2: 
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddStudyGoal()),
+        ).then((_) => setState(() => _selectedIndex = 0));
+        break;
+      case 3: 
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
+        ).then((_) => setState(() => _selectedIndex = 0));
+        break;
+      case 4: 
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings screen coming soon!')),
+        );
+        setState(() {
+          _selectedIndex = 0; 
+        });
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,9 +136,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.refresh, color: kWhite),
             onPressed: _refreshGoals,
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.help_outline, color: kWhite),
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: kWhite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InformationScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -197,7 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 8),
                                 child: Text(
-                                  '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
+                                  'Mission ${i + 1}: ${displayedMissions[i].text}',
                                   style: kBodyFont.copyWith(fontSize: 14),
                                 ),
                               ),
@@ -205,7 +254,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Align(
                               alignment: Alignment.bottomRight,
                               child: TextButton.icon(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const AstronautPetScreen()),
+                                  );
+                                },
                                 icon: const Icon(Icons.emoji_emotions_outlined,
                                     color: kWhite, size: 18),
                                 label: Text(
@@ -230,6 +284,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: kOnyx,
         selectedItemColor: kPurple,
         unselectedItemColor: kWhite,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
@@ -275,7 +331,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   color:
                       const Color.fromARGB(255, 229, 220, 255).withOpacity(0.3),
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ]
             : [],
@@ -283,8 +339,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         children: [
           if (isToday)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
             ),
           Expanded(
             child: Column(
@@ -305,7 +361,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       'Due on $date',
                       style: kBodyFont.copyWith(
                         fontSize: 12,
-                        color: Color(0xB3FFFFFF),
+                        color: const Color(0xB3FFFFFF),
                       ),
                     ),
                   ),
@@ -315,7 +371,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: kOnyx,
-              side: BorderSide(color: kWhite),
+              side: const BorderSide(color: kWhite),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),

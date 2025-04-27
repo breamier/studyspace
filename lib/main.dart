@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/screens/add_study_goal.dart';
-import 'package:studyspace/splash_screen.dart';
+import 'package:studyspace/screens/replenished_astronaut_screen.dart';
+import 'package:studyspace/screens/splash_screen.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/study_overview_screen.dart';
-import 'information_screen.dart';
+import 'screens/information_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'screens/analytics_screen.dart';
-import 'astronaut_pet_screen.dart';
+import 'screens/astronaut_pet_screen.dart';
+import 'screens/astronaut_traveling_screen.dart';
+
 
 void main() async {
   runApp(const StudySpaceApp());
@@ -131,6 +134,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: const Text('Go to Astronaut Pet Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AstronautTravelScreen()),
+                  );
+                },
+                child: const Text('Go to Astronaut Traveling Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ReplenishedAstronautScreen()),
+                  );
+                },
+                child: const Text('Go to Replenished Astronaut Screen'),
               ),
               ElevatedButton(
                 onPressed: () {

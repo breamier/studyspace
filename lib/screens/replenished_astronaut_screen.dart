@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'marketplace_screen.dart'; 
+import 'edit_astronaut_screen.dart'; 
 
-class AstronautPetScreen extends StatefulWidget {
-  const AstronautPetScreen({Key? key}) : super(key: key);
+class ReplenishedAstronautScreen extends StatefulWidget {
+  const ReplenishedAstronautScreen({Key? key}) : super(key: key);
 
   @override
-  State<AstronautPetScreen> createState() => _AstronautPetScreenState();
+  State<ReplenishedAstronautScreen> createState() => _ReplenishedAstronautScreenState();
 }
 
-class _AstronautPetScreenState extends State<AstronautPetScreen> {
-  int _selectedIndex = 0;
+class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +87,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                   _buildProgressBar(
                     'assets/astronaut_icon.png',
                     'HP',
-                    0.75,
+                    1.0,
                     Colors.red.shade700,
                     Colors.red.shade400,
                     Colors.white
@@ -104,14 +105,14 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                    
                   _buildStatsSection(),
                   const SizedBox(height: 24),
-                  
+ 
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
                       child: Image.asset(
-                        'assets/moon_with_astronaut.png',
+                        'assets/replenished_astronaut.png',
                         fit: BoxFit.contain, 
                       ),
                     ),
@@ -122,7 +123,6 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -198,10 +198,30 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                 _buildStatHeader('assets/planet_icon.png', 'Planets Visited:', '2'),
                 
                 const SizedBox(height: 24),
-                _buildActionButton(Icons.backpack),
+                _buildActionButton(
+                  Icons.backpack,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MarketplaceScreen(),
+                      ),
+                    );
+                  },
+                ),
                 
                 const SizedBox(height: 16),
-                _buildActionButton(Icons.edit),
+                _buildActionButton(
+                  Icons.edit,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditAstronautScreen(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -279,21 +299,24 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
     );
   }
 
-  Widget _buildActionButton(IconData icon) {
+  Widget _buildActionButton(IconData icon, VoidCallback onPressed) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white, width: 1),
-          color: const Color(0xFF333333),
-        ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 24,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white, width: 1),
+            color: const Color(0xFF333333),
+          ),
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: 24,
+          ),
         ),
       ),
     );
@@ -344,26 +367,6 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
             minHeight: 6,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.grey[600],
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      currentIndex: _selectedIndex,
-      onTap: (index) => setState(() => _selectedIndex = index),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Study Goals'),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 40), label: 'Add Goal'),
-        BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Analytics'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
       ],
     );
   }
