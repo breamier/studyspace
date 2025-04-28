@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:io' as io;
 
 class NotifService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -9,6 +10,9 @@ class NotifService {
 
   Future<void> initNotification() async {
     if (_isInitialized) return;
+    if (io.Platform.isAndroid) {
+      await _requestPermission();
+    }
 
     const initSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -18,6 +22,25 @@ class NotifService {
     );
 
     await notificationsPlugin.initialize(initSettings);
+    _isInitialized = true;
+  }
+
+  Future<void> _requestPermission() async {
+    if (io.Platform.isAndroid) {
+      final androidImplementation =
+          notificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      if (androidImplementation != null) {
+        final granted =
+            await androidImplementation.requestNotificationsPermission();
+        if (granted ?? false) {
+          print("Notification permission granted");
+        } else {
+          print("Notification permission denied");
+        }
+      }
+    }
   }
 
   NotificationDetails notificationDetails() {

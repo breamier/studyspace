@@ -12,8 +12,8 @@ import 'screens/analytics_screen.dart';
 import 'astronaut_pet_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized;
-  NotifService().initNotification();
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotifService().initNotification();
   runApp(const StudySpaceApp());
 }
 
