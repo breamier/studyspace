@@ -4,6 +4,7 @@ import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/services/isar_service.dart';
+import 'package:studyspace/services/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 
@@ -433,6 +434,15 @@ class _TopicOverviewState extends State<TopicOverview> {
     final targetDate = dateFormat.format(_goal!.end);
     final nextSessionDate =
         dateFormat.format(DateTime.now().add(const Duration(days: 1)));
+    // Fetch the latest Session to add values in the Scheduler
+    // Scheduler().scheduleNextReview(
+    //   startDate: session.start,
+    //   endDate: goal.end,
+    //   difficulty: session.difficulty,
+    //   previousRepetitions: goal.reps,
+    //   previousInterval: goal.interval,
+    //   previousEaseFactor: goal.easeFactor
+    // );
 
     return WillPopScope(
       onWillPop: () async {

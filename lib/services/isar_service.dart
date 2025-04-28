@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
+import 'package:studyspace/models/session.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -30,7 +31,7 @@ class IsarService extends ChangeNotifier {
   Future<void> addGoal(Goal newGoal) async {
     final isar = await db;
     isar.writeTxnSync<int>(() => isar.goals.putSync(newGoal));
-    print("YEHEYEYEYEYEYE");
+    print("Goal added successfully!");
   }
 
   // filter -> Upcoming goals date for dashboard
@@ -94,7 +95,7 @@ class IsarService extends ChangeNotifier {
     final dir = await getApplicationDocumentsDirectory();
     print('ISAR DB path: ${dir.path}');
     if (Isar.instanceNames.isEmpty) {
-      final isar = await Isar.open([GoalSchema, MissionSchema],
+      final isar = await Isar.open([GoalSchema, MissionSchema, SessionSchema],
           directory: dir.path, inspector: true);
       print('ISAR DB opened: ${isar.name}');
       return isar;
