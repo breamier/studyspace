@@ -4,10 +4,11 @@ import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
 import 'package:studyspace/services/isar_service.dart';
+import 'navbar.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
-  fontFamily: 'Arimo',
+  fontFamily: 'BrunoAceSC',
   fontSize: 22,
   fontWeight: FontWeight.bold,
   color: Colors.white,
@@ -79,170 +80,166 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kOnyx,
-      appBar: AppBar(
         backgroundColor: kOnyx,
-        elevation: 0,
-        title: Text(
-          'Study Space',
-          style: kHeadingFont,
+        appBar: AppBar(
+          backgroundColor: kOnyx,
+          elevation: 0,
+          title: Text(
+            'Study Space',
+            style: kHeadingFont,
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: kWhite),
+              onPressed: _refreshGoals,
+            ),
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Icon(Icons.help_outline, color: kWhite),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: kWhite),
-            onPressed: _refreshGoals,
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/stars.png'),
+              fit: BoxFit.cover,
+            ),
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.help_outline, color: kWhite),
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/stars.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: FutureBuilder<List<Goal>>(
-          future: _goalsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          child: FutureBuilder<List<Goal>>(
+            future: _goalsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-            final goals = snapshot.data ?? [];
-            final currentGoals = goals.where((g) => g.isCurrent).toList();
-            final upcomingGoals = goals.where((g) => g.isUpcoming).toList();
+              final goals = snapshot.data ?? [];
+              final currentGoals = goals.where((g) => g.isCurrent).toList();
+              final upcomingGoals = goals.where((g) => g.isUpcoming).toList();
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Current Study Goals
-                  if (currentGoals.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    sectionTitle("Today's Study Goal"),
-                    const SizedBox(height: 10),
-                    for (final goal in currentGoals)
-                      studyGoalTile(
-                        '📖 ${goal.goalName}',
-                        'Study Now',
-                        date: DateFormat('dd / MM / yyyy').format(goal.end),
-                        isToday: DateUtils.isSameDay(goal.end, DateTime.now()),
-                      )
-                  ] else ...[
-                    // Today's Study Goals
-                    const SizedBox(height: 10),
-                    sectionTitle("Today's Study Goal"),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'No study goals today',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-
-                  // Upcoming Study Goals
-                  if (upcomingGoals.isNotEmpty) ...[
-                    const SizedBox(height: 30),
-                    sectionTitle('Upcoming Study Goals'),
-                    const SizedBox(height: 10),
-                    for (final goal in upcomingGoals)
-                      studyGoalTile(
-                        '📖 ${goal.goalName}',
-                        'View',
-                        date: DateFormat('dd / MM / yyyy').format(goal.start),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Current Study Goals
+                    if (currentGoals.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      sectionTitle("Today's Study Goal"),
+                      const SizedBox(height: 10),
+                      for (final goal in currentGoals)
+                        studyGoalTile(
+                          '📖 ${goal.goalName}',
+                          'Study Now',
+                          date: DateFormat('dd / MM / yyyy').format(goal.end),
+                          isToday:
+                              DateUtils.isSameDay(goal.end, DateTime.now()),
+                        )
+                    ] else ...[
+                      // Today's Study Goals
+                      const SizedBox(height: 10),
+                      sectionTitle("Today's Study Goal"),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'No study goals today',
+                        style: TextStyle(color: Colors.white),
                       ),
-                  ] else ...[
+                    ],
+
+                    // Upcoming Study Goals
+                    if (upcomingGoals.isNotEmpty) ...[
+                      const SizedBox(height: 30),
+                      sectionTitle('Upcoming Study Goals'),
+                      const SizedBox(height: 10),
+                      for (final goal in upcomingGoals)
+                        studyGoalTile(
+                          '📖 ${goal.goalName}',
+                          'View',
+                          date: DateFormat('dd / MM / yyyy').format(goal.start),
+                        ),
+                    ] else ...[
+                      const SizedBox(height: 30),
+                      sectionTitle('Upcoming Study Goals'),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'No upcoming study goals',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+
+                    // Mission Board
                     const SizedBox(height: 30),
-                    sectionTitle('Upcoming Study Goals'),
+                    sectionTitle('Mission Board'),
                     const SizedBox(height: 10),
-                    const Text(
-                      'No upcoming study goals',
-                      style: TextStyle(color: Colors.white),
+                    FutureBuilder<List<Mission>>(
+                      future: _missionsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        final missions = snapshot.data ?? [];
+                        final displayedMissions = missions.take(3).toList();
+
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: kWhite),
+                            color: const Color.fromARGB(40, 189, 183, 183),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (var i = 0; i < displayedMissions.length; i++)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Text(
+                                    '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
+                                    style: kBodyFont.copyWith(fontSize: 14),
+                                  ),
+                                ),
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: TextButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                      Icons.emoji_emotions_outlined,
+                                      color: kWhite,
+                                      size: 18),
+                                  label: Text(
+                                    'Astronaut >>',
+                                    style: kBodyFont.copyWith(fontSize: 14),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
+                    const SizedBox(height: 80),
                   ],
-
-                  // Mission Board
-                  const SizedBox(height: 30),
-                  sectionTitle('Mission Board'),
-                  const SizedBox(height: 10),
-                  FutureBuilder<List<Mission>>(
-                    future: _missionsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final missions = snapshot.data ?? [];
-                      final displayedMissions = missions.take(3).toList();
-
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: kWhite),
-                          color: const Color.fromARGB(40, 189, 183, 183),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (var i = 0; i < displayedMissions.length; i++)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Text(
-                                  '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
-                                  style: kBodyFont.copyWith(fontSize: 14),
-                                ),
-                              ),
-                            const SizedBox(height: 10),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: TextButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.emoji_emotions_outlined,
-                                    color: kWhite, size: 18),
-                                label: Text(
-                                  'Astronaut >>',
-                                  style: kBodyFont.copyWith(fontSize: 14),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 80),
-                ],
-              ),
-            );
-          },
+                ),
+              );
+            },
+          ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: kOnyx,
-        selectedItemColor: kPurple,
-        unselectedItemColor: kWhite,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Study Goals'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle), label: 'Add Goal'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.analytics), label: 'Analytics'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-      ),
-    );
+        bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: 0,
+          onTap: (index) {
+            if (index != 3) {
+              Navigator.pop(context);
+            }
+          },
+        ));
   }
 
   Widget sectionTitle(String title) {
