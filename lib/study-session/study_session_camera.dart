@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image/image.dart' as img;
 
 class StudySessionCamera extends StatefulWidget {
   const StudySessionCamera({super.key});
@@ -141,13 +143,11 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                 ? SizedBox.square(
                     dimension: MediaQuery.of(context).size.width * 0.8,
                     child: Image.file(imgFile!,
-                        width: MediaQuery.of(context).size.width * 0.8),
+                        height: MediaQuery.of(context).size.width * 0.8),
                   )
                 : SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
                     height: MediaQuery.of(context).size.width * 0.8,
-                    child: CameraPreview(cameraController!),
-                  ),
+                    child: buildCameraPreview(cameraController!)),
             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             picTaken
                 ? Column(
@@ -155,15 +155,19 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                       Text(
                         "Satisfied with the picture?",
                         style:
-                            TextStyle(fontSize: 21, fontFamily: "BrunoAceSC"),
+                            TextStyle(fontSize: 18, fontFamily: "BrunoAceSC"),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.sizeOf(context).height * 0.01,
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              //save pic and proceed
-                              Gal.putImage(picture!.path);
+                            onPressed: () async {
+                              Gal.putImage(imgFile!.path);
+                              // go to study session
+                              Navigator.pop(context);
                             },
                             style: ButtonStyle(
                                 backgroundColor:
@@ -172,7 +176,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                         RoundedRectangleBorder>(
                                     RoundedRectangleBorder(
                                         borderRadius:
-                                            BorderRadius.circular(18.0),
+                                            BorderRadius.circular(10.0),
                                         side:
                                             BorderSide(color: Colors.white)))),
                             child: Text("Continue",
@@ -186,13 +190,13 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                 });
                               },
                               style: ButtonStyle(
-                                  backgroundColor: WidgetStateProperty.all(
-                                      Colors.white24),
+                                  backgroundColor:
+                                      WidgetStateProperty.all(Colors.white24),
                                   shape: WidgetStateProperty.all<
                                           RoundedRectangleBorder>(
                                       RoundedRectangleBorder(
                                           borderRadius:
-                                              BorderRadius.circular(18.0),
+                                              BorderRadius.circular(10.0),
                                           side: BorderSide(
                                               color: Colors.white)))),
                               child: Text("Retake",
@@ -208,14 +212,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                       return Transform.scale(
                         scale: _scaleAnimation.value,
                         child: GestureDetector(
-                          onTap: () async {
-                            isAnimating ? null : _animateShutter;
-                            picture = await cameraController!.takePicture();
-                            setState(() {
-                              imgFile = File(picture!.path);
-                              picTaken = true;
-                            });
-                          },
+                          onTap: isAnimating ? null : _takePicture,
                           child: Container(
                             width: 100,
                             height: 100,
@@ -250,7 +247,9 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                       );
                     },
                   ),
-            const Spacer(),
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.05,
+            ),
             Column(
               children: [
                 TextButton(
@@ -404,7 +403,22 @@ class _StudySessionCameraState extends State<StudySessionCamera>
     }
   }
 
-  void _animateShutter() {
+  Widget buildCameraPreview(CameraController cameraController) {
+    final double previewAspectRatio = 1;
+    return AspectRatio(
+      aspectRatio: 1 / previewAspectRatio,
+      child: ClipRect(
+        child: Transform.scale(
+          scale: cameraController.value.aspectRatio / previewAspectRatio,
+          child: Center(
+            child: CameraPreview(cameraController),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _takePicture() {
     if (isAnimating) return;
 
     setState(() => isAnimating = true);
@@ -412,6 +426,32 @@ class _StudySessionCameraState extends State<StudySessionCamera>
       _animationController.reverse();
       setState(() => isAnimating = false);
     });
-    Future.delayed(const Duration(milliseconds: 150), () {});
+    Future.delayed(const Duration(milliseconds: 150), () async {
+      picture = await cameraController!.takePicture();
+      var decodedImage =
+          await decodeImageFromList(File(picture!.path).readAsBytesSync());
+
+      var cropSize = min(decodedImage.width, decodedImage.height);
+      var offsetX =
+          (decodedImage.width - min(decodedImage.width, decodedImage.height)) ~/
+              2;
+      var offsetY = (decodedImage.height -
+              min(decodedImage.width, decodedImage.height)) ~/
+          2;
+
+      final imageBytes =
+          img.decodeImage(File(picture!.path).readAsBytesSync())!;
+
+      img.Image cropOne = img.copyCrop(
+        imageBytes, x: offsetX, y: offsetY, width: cropSize,height: cropSize
+      );
+      print(cropOne.height);
+      print(cropOne.width);
+
+      imgFile = await File(picture!.path).writeAsBytes(img.encodePng(cropOne));
+      setState(() {
+        picTaken = true;
+      });
+    });
   }
 }
