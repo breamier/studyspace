@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image/image.dart' as img;
 
 class StudySessionCamera extends StatefulWidget {
   const StudySessionCamera({super.key});
@@ -10,14 +14,32 @@ class StudySessionCamera extends StatefulWidget {
   State<StudySessionCamera> createState() => _StudySessionCameraState();
 }
 
-class _StudySessionCameraState extends State<StudySessionCamera> with SingleTickerProviderStateMixin {
+class _StudySessionCameraState extends State<StudySessionCamera>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   CameraController? cameraController;
   bool showingTutorial = true;
   bool isAnimating = false;
+  bool picTaken = false;
+  File? imgFile;
+  XFile? picture;
 
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<Color?> _colorAnimation;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (cameraController == null ||
+        cameraController?.value.isInitialized == false) {
+      return;
+    }
+    if (state == AppLifecycleState.inactive) {
+      cameraController?.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _setupCameraController();
+    }
+  }
 
   @override
   void initState() {
@@ -117,50 +139,117 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: MediaQuery.of(context).size.width * 0.8,
-              child:  CameraPreview(cameraController!),
-            ),
-            AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, _) {
-                return Transform.scale(
-                  scale: _scaleAnimation.value,
-                  child: GestureDetector(
-                    onTap: isAnimating ? null : _animateShutter,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black,
-                        border: Border.all(
-                          color: _colorAnimation.value ?? Colors.deepPurple,
-                          width: 5,
-                        ),
+            picTaken
+                ? SizedBox.square(
+                    dimension: MediaQuery.of(context).size.width * 0.8,
+                    child: Image.file(imgFile!,
+                        height: MediaQuery.of(context).size.width * 0.8),
+                  )
+                : SizedBox(
+                    height: MediaQuery.of(context).size.width * 0.8,
+                    child: buildCameraPreview(cameraController!)),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            picTaken
+                ? Column(
+                    children: [
+                      Text(
+                        "Satisfied with the picture?",
+                        style:
+                            TextStyle(fontSize: 18, fontFamily: "BrunoAceSC"),
                       ),
-                      child: Center(
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _colorAnimation.value?.withOpacity(0.8) ?? Colors.deepPurple.withOpacity(0.8),
+                      SizedBox(
+                        height: MediaQuery.sizeOf(context).height * 0.01,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              Gal.putImage(imgFile!.path);
+                              // go to study session
+                              Navigator.pop(context);
+                            },
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    WidgetStateProperty.all(Colors.deepPurple),
+                                shape: WidgetStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                        side:
+                                            BorderSide(color: Colors.white)))),
+                            child: Text("Continue",
+                                style: TextStyle(
+                                    fontFamily: "Arimo", fontSize: 16)),
                           ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 40,
+                          ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  picTaken = false;
+                                });
+                              },
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                      WidgetStateProperty.all(Colors.white24),
+                                  shape: WidgetStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          side: BorderSide(
+                                              color: Colors.white)))),
+                              child: Text("Retake",
+                                  style: TextStyle(
+                                      fontFamily: "Arimo", fontSize: 16))),
+                        ],
+                      )
+                    ],
+                  )
+                : AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, _) {
+                      return Transform.scale(
+                        scale: _scaleAnimation.value,
+                        child: GestureDetector(
+                          onTap: isAnimating ? null : _takePicture,
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black,
+                              border: Border.all(
+                                color:
+                                    _colorAnimation.value ?? Colors.deepPurple,
+                                width: 5,
+                              ),
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color:
+                                      _colorAnimation.value?.withOpacity(0.8) ??
+                                          Colors.deepPurple.withOpacity(0.8),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 40,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.05,
             ),
-            const Spacer(),
             Column(
               children: [
                 TextButton(
@@ -312,10 +401,24 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
       await cameraController?.initialize();
       if (mounted) setState(() {});
     }
-
   }
 
-  void _animateShutter() {
+  Widget buildCameraPreview(CameraController cameraController) {
+    final double previewAspectRatio = 1;
+    return AspectRatio(
+      aspectRatio: 1 / previewAspectRatio,
+      child: ClipRect(
+        child: Transform.scale(
+          scale: cameraController.value.aspectRatio / previewAspectRatio,
+          child: Center(
+            child: CameraPreview(cameraController),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _takePicture() {
     if (isAnimating) return;
 
     setState(() => isAnimating = true);
@@ -323,7 +426,32 @@ class _StudySessionCameraState extends State<StudySessionCamera> with SingleTick
       _animationController.reverse();
       setState(() => isAnimating = false);
     });
-    Future.delayed(const Duration(milliseconds: 150), () {
+    Future.delayed(const Duration(milliseconds: 150), () async {
+      picture = await cameraController!.takePicture();
+      var decodedImage =
+          await decodeImageFromList(File(picture!.path).readAsBytesSync());
+
+      var cropSize = min(decodedImage.width, decodedImage.height);
+      var offsetX =
+          (decodedImage.width - min(decodedImage.width, decodedImage.height)) ~/
+              2;
+      var offsetY = (decodedImage.height -
+              min(decodedImage.width, decodedImage.height)) ~/
+          2;
+
+      final imageBytes =
+          img.decodeImage(File(picture!.path).readAsBytesSync())!;
+
+      img.Image cropOne = img.copyCrop(
+        imageBytes, x: offsetX, y: offsetY, width: cropSize,height: cropSize
+      );
+      print(cropOne.height);
+      print(cropOne.width);
+
+      imgFile = await File(picture!.path).writeAsBytes(img.encodePng(cropOne));
+      setState(() {
+        picTaken = true;
+      });
     });
   }
 }

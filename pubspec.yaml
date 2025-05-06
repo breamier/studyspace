@@ -44,6 +44,8 @@ dependencies:
   path_provider: ^2.1.5
   table_calendar: ^3.2.0
   flutter_cube: ^0.1.1
+  flutter_local_notifications: ^19.1.0
+  image: ^4.5.4
 
 dev_dependencies:
   flutter_test:
@@ -118,6 +120,10 @@ flutter:
     - assets/blue_spaceship.png
     - assets/purple_spaceship.png
 
+
+    - assets/choco1.jpg
+    - assets/choco2.jpg
+    - assets/choco3.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

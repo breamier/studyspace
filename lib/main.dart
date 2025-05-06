@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/screens/add_study_goal.dart';
+import 'package:studyspace/services/notif_service.dart';
 import 'package:studyspace/screens/replenished_astronaut_screen.dart';
 import 'package:studyspace/screens/splash_screen.dart';
 import 'package:studyspace/study-session/study_session.dart';
@@ -12,8 +13,9 @@ import 'screens/analytics_screen.dart';
 import 'screens/astronaut_pet_screen.dart';
 import 'screens/astronaut_traveling_screen.dart';
 
-
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotifService().initNotification();
   runApp(const StudySpaceApp());
 }
 
@@ -115,16 +117,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: const Text('Go to Information Screen'),
               ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => StudySession(goalId: 1)),
-                      );
-                    },
-                    child: const Text('Go to Study Session'),
-                  ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StudySession(goalId: 1)),
+                  );
+                },
+                child: const Text('Go to Study Session'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -150,10 +152,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const ReplenishedAstronautScreen()),
+                        builder: (context) =>
+                            const ReplenishedAstronautScreen()),
                   );
                 },
                 child: const Text('Go to Replenished Astronaut Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().showNotification(
+                      title: "Study Space", body: "Learn Now!");
+                },
+                child: const Text('Show Notification'),
               ),
               ElevatedButton(
                 onPressed: () {

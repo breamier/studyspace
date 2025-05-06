@@ -1,5 +1,5 @@
 import 'package:isar/isar.dart';
-
+import 'session.dart';
 part 'goal.g.dart';
 
 @Collection()
@@ -10,6 +10,11 @@ class Goal {
   late DateTime end;
   late String difficulty;
 
+  late int reps = 0;
+  late int interval = 0;
+  late double easeFactor = 2.5;
+
+  List<DateTime> sessionDates = [];
   List<Subtopic> subtopics = [];
 
   //keep track if goal is a current or upcoming
@@ -17,6 +22,9 @@ class Goal {
       start.isBefore(DateTime.now()) || end.isAtSameMomentAs(DateTime.now());
 
   bool get isUpcoming => start.isAfter(DateTime.now());
+
+  @Backlink(to: 'goal')
+  final sessions = IsarLinks<Session>();
 }
 
 @embedded
