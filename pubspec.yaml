@@ -101,10 +101,22 @@ flutter:
     - assets/astronaut_roulette2.png
     - assets/moon_with_spaceship.png
     - assets/traveling_astronaut.png
-    - assets/moon_with_orange_astronaut.png
+    - assets/moon_with_purple_astronaut.png
     - assets/moon_with_blue_astronaut.png
+    - assets/moon_with_black_astronaut.png
+    - assets/moon_with_green_astronaut.png
+    - assets/moon_with_orange_astronaut.png
     - assets/moon_with_orange_spaceship.png
     - assets/moon_with_white_spaceship.png
+    - assets/moon_with_blue_spaceship.png
+    - assets/moon_with_black_spaceship.png
+    - assets/moon_with_purple_spaceship.png
+    - assets/green_astronaut.png
+    - assets/purple_astronaut.png
+    - assets/black_astronaut.png
+    - assets/black_spaceship.png
+    - assets/blue_spaceship.png
+    - assets/purple_spaceship.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

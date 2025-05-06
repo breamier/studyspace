@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'marketplace_screen.dart';
+import 'package:studyspace/item_manager.dart';
 
 class EditAstronautScreen extends StatefulWidget {
-  const EditAstronautScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? unlockedItem;
+  
+  const EditAstronautScreen({Key? key, this.unlockedItem}) : super(key: key);
 
   @override
   State<EditAstronautScreen> createState() => _EditAstronautScreenState();
@@ -11,60 +14,76 @@ class EditAstronautScreen extends StatefulWidget {
 class _EditAstronautScreenState extends State<EditAstronautScreen> {
   String _selectedCategory = 'astronaut';
   bool _showSelectedImage = false;
+  int _currentItemIndex = 0;
   
-  final List<Map<String, dynamic>> _astronauts = [
-    {
-      'name': 'Orange Astronaut',
-      'image': 'assets/orange_astronaut.png',
-      'selected_image': 'assets/moon_with_orange_astronaut.png',
-    },
-    {
-      'name': 'Blue Astronaut',
-      'image': 'assets/blue_astronaut.png',
-      'selected_image': 'assets/moon_with_blue_astronaut.png',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _spaceships = [
-    {
-      'name': 'White Spaceship',
-      'image': 'assets/white_spaceship.png',
-      'selected_image': 'assets/moon_with_white_spaceship.png',
-    },
-    {
-      'name': 'Orange Spaceship',
-      'image': 'assets/orange_spaceship.png',
-      'selected_image': 'assets/moon_with_orange_spaceship.png',
-    },
-  ];
-
-  int _currentAstronautIndex = 0;
-  int _currentSpaceshipIndex = 0;
+  late List<Map<String, dynamic>> _astronauts;
+  late List<Map<String, dynamic>> _spaceships;
+  final ItemManager _itemManager = ItemManager();
   
-  List<Map<String, dynamic>> get _currentList => 
-      _selectedCategory == 'astronaut' ? _astronauts : _spaceships;
-
-  int get _currentItemIndex => 
-      _selectedCategory == 'astronaut' ? _currentAstronautIndex : _currentSpaceshipIndex;
-
-  set _currentItemIndex(int value) {
-    if (_selectedCategory == 'astronaut') {
-      _currentAstronautIndex = value;
-    } else {
-      _currentSpaceshipIndex = value;
+  @override
+  void initState() {
+    super.initState();
+    
+    _astronauts = _itemManager.astronauts;
+    _spaceships = _itemManager.spaceships;
+    
+    if (widget.unlockedItem != null) {
+      _processUnlockedItem(widget.unlockedItem!);
     }
+  }
+  
+  void _processUnlockedItem(Map<String, dynamic> unlockedItem) {
+    final String itemType = unlockedItem['type'] ?? 'astronaut';
+    final String itemName = unlockedItem['name'];
+    
+    _itemManager.unlockItem(itemName, itemType);
+    
+    setState(() {
+      _astronauts = _itemManager.astronauts;
+      _spaceships = _itemManager.spaceships;
+      _selectedCategory = itemType;
+      _currentItemIndex = _findItemIndexInUnlockedList(itemName, 
+          itemType == 'astronaut' ? _astronauts : _spaceships);
+    });
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('New $itemName unlocked! You can now select it.'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
+  }
+  
+  int _findItemIndexInUnlockedList(String itemName, List<Map<String, dynamic>> fullList) {
+    final unlockedList = fullList.where((item) => item['unlocked']).toList();
+    for (int i = 0; i < unlockedList.length; i++) {
+      if (unlockedList[i]['name'] == itemName) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
+  List<Map<String, dynamic>> get _currentList {
+    final fullList = _selectedCategory == 'astronaut' ? _astronauts : _spaceships;
+    return fullList.where((item) => item['unlocked']).toList();
   }
 
   void _switchToPreviousItem() {
+    if (_currentList.length <= 1) return;
+    
     setState(() {
       _showSelectedImage = false;
-      _currentItemIndex = _currentItemIndex == 0 
-          ? _currentList.length - 1 
-          : _currentItemIndex - 1;
+      _currentItemIndex = (_currentItemIndex - 1 + _currentList.length) % _currentList.length;
     });
   }
 
   void _switchToNextItem() {
+    if (_currentList.length <= 1) return;
+    
     setState(() {
       _showSelectedImage = false;
       _currentItemIndex = (_currentItemIndex + 1) % _currentList.length;
@@ -72,16 +91,18 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   }
 
   void _selectCurrentItem() {
-    setState(() {
-      _showSelectedImage = true;
-    });
+    final String selectedName = _currentList[_currentItemIndex]['name'];
     
+    _itemManager.setCurrentItem(selectedName, _selectedCategory);
+  
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Selected ${_currentList[_currentItemIndex]['name']}'),
-        duration: const Duration(seconds: 1),
+        duration: const Duration(milliseconds: 800),
       ),
     );
+    
+    Navigator.pop(context);
   }
 
   @override
@@ -130,7 +151,10 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             children: [
               Image.asset('assets/shooting_star.png', width: 25, height: 25),
               const SizedBox(width: 6),
-              const Text('93', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500)),
+              Text(
+                '${_itemManager.userPoints}', 
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500)
+              ),
             ],
           ),
         ),
@@ -140,6 +164,16 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
 
   Widget _buildBody() {
     final screenHeight = MediaQuery.of(context).size.height;
+  
+    if (_currentItemIndex >= _currentList.length && _currentList.isNotEmpty) {
+      _currentItemIndex = 0;
+    }
+    
+    final currentItem = _currentList.isNotEmpty 
+        ? _currentList[_currentItemIndex]
+        : {'name': 'No Item', 'image': 'assets/placeholder.png', 'current': false};
+    
+    final bool isCurrent = currentItem['current'] == true;
     
     return Stack(
       children: [
@@ -182,24 +216,24 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                             ? 'selected-image' 
                             : '${_selectedCategory}-${_currentItemIndex}',
                         child: Image.asset(
-                          _showSelectedImage 
-                              ? _currentList[_currentItemIndex]['selected_image']
-                              : _currentList[_currentItemIndex]['image'],
+                          _showSelectedImage && currentItem.containsKey('selected_image')
+                              ? currentItem['selected_image']
+                              : currentItem['image'],
                           height: screenHeight * 0.4, 
                         ),
                       ),
                     ),
 
-                    if (!_showSelectedImage)
+                    if (!_showSelectedImage && _currentList.length > 1)
                       _buildNavigationButtons(),
                   ],
                 ),
               ),
               
-              if (!_showSelectedImage)
+              if (!_showSelectedImage && _currentList.length > 1)
                 _buildDotsIndicator(),
               
-              _buildActionButton(),
+              _buildActionButton(isCurrent),
 
               if (!_showSelectedImage)
                 _buildCategorySelectors(),
@@ -211,7 +245,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       ],
     );
   }
-
+  
   Widget _buildNavigationButtons() {
     return Stack(
       children: [
@@ -274,13 +308,23 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     );
   }
 
-  Widget _buildActionButton() {
+  Widget _buildActionButton(bool isCurrent) {
+    final Color lightGreen = const Color(0xFFA7CF75); 
+    final Color darkGreen = const Color(0xFF7C9061);   
+    
     return ElevatedButton(
       onPressed: _showSelectedImage 
           ? () => setState(() => _showSelectedImage = false)
-          : _selectCurrentItem,
+          : isCurrent ? () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('This is your current item!'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            } : _selectCurrentItem,
       style: ElevatedButton.styleFrom(
-        backgroundColor: _showSelectedImage ? Colors.blue : const Color(0xFF8BC34A), 
+        backgroundColor: _showSelectedImage ? Colors.blue : isCurrent ? darkGreen : lightGreen, 
         foregroundColor: Colors.black,
         minimumSize: const Size(150, 40),
         shape: RoundedRectangleBorder(
@@ -288,7 +332,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         ),
       ),
       child: Text(
-        _showSelectedImage ? 'BACK' : 'SELECT',
+        _showSelectedImage ? 'BACK' : isCurrent ? 'CURRENT' : 'SELECT',
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
@@ -387,11 +431,11 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 
                 const SizedBox(height: 24),
                 _buildActionIcon(
-                  Icons.backpack, 
-                  () => Navigator.push(context, MaterialPageRoute(
+                Icons.backpack, 
+                () => Navigator.push(context, MaterialPageRoute(
                     builder: (context) => const MarketplaceScreen(),
                   )),
-                ),
+              ),
                 
                 const SizedBox(height: 16),
                 _buildActionIcon(
@@ -544,7 +588,12 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     final bool isSelected = _selectedCategory == category;
     
     return GestureDetector(
-      onTap: () => setState(() => _selectedCategory = category),
+      onTap: () {
+        setState(() {
+          _selectedCategory = category;
+          _currentItemIndex = 0;
+        });
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

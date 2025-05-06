@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'marketplace_screen.dart'; 
-import 'edit_astronaut_screen.dart'; 
+import 'edit_astronaut_screen.dart';
+import 'package:studyspace/item_manager.dart';
 
 class AstronautPetScreen extends StatefulWidget {
   const AstronautPetScreen({Key? key}) : super(key: key);
@@ -10,6 +11,39 @@ class AstronautPetScreen extends StatefulWidget {
 }
 
 class _AstronautPetScreenState extends State<AstronautPetScreen> {
+  final ItemManager _itemManager = ItemManager();
+  Map<String, dynamic>? _currentAstronaut;
+  Map<String, dynamic>? _currentSpaceship;
+  
+  late final ValueNotifier<bool> _itemChangeNotifier;
+  
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentItems();
+    
+    _itemChangeNotifier = _itemManager.itemChangedNotifier;
+    _itemChangeNotifier.addListener(_handleItemChanged);
+  }
+  
+  @override
+  void dispose() {
+    _itemChangeNotifier.removeListener(_handleItemChanged);
+    super.dispose();
+  }
+  
+  void _handleItemChanged() {
+    if (mounted) {
+      _getCurrentItems();
+    }
+  }
+
+  void _getCurrentItems() {
+    setState(() {
+      _currentAstronaut = _itemManager.getCurrentAstronaut();
+      _currentSpaceship = _itemManager.getCurrentSpaceship();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +93,9 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                const Text(
-                  '93', 
-                  style: TextStyle(
+                Text(
+                  '${_itemManager.userPoints}', 
+                  style: const TextStyle(
                     color: Colors.white, 
                     fontSize: 24,
                     fontWeight: FontWeight.w500
@@ -111,9 +145,12 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-                      child: Image.asset(
-                        'assets/moon_with_astronaut.png',
-                        fit: BoxFit.contain, 
+                      child: Hero(
+                        tag: 'selected-image',
+                        child: Image.asset(
+                          _getDisplayImage(),
+                          fit: BoxFit.contain, 
+                        ),
                       ),
                     ),
                   ),
@@ -124,6 +161,31 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
         ],
       ),
     );
+  }
+  
+  String _getDisplayImage() {
+    if (_currentAstronaut == null && _currentSpaceship == null) {
+      return 'assets/moon_with_astronaut.png';
+    }
+    
+    final astronaut = _currentAstronaut;
+    final spaceship = _currentSpaceship;
+    
+    String? astronautColor = astronaut != null && astronaut['current'] == true ? 
+        astronaut['name'].split(' ')[0].toLowerCase() : null;
+    
+    String? spaceshipColor = spaceship != null && spaceship['current'] == true ? 
+        spaceship['name'].split(' ')[0].toLowerCase() : null;
+    
+    if (spaceshipColor != null) {
+      return 'assets/moon_with_${spaceshipColor}_spaceship.png';
+    }
+    
+    if (astronautColor != null) {
+      return 'assets/moon_with_${astronautColor}_astronaut.png';
+    }
+    
+    return 'assets/moon_with_astronaut.png';
   }
 
   Widget _buildProgressBar(String iconPath, String label, double progress, 
@@ -201,12 +263,12 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                 _buildActionButton(
                   Icons.backpack,
                   () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
                         builder: (context) => const MarketplaceScreen(),
-                      ),
-                    );
+                    ),
+                    ).then((_) => setState(() {})); 
                   },
                 ),
                 
@@ -219,7 +281,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                       MaterialPageRoute(
                         builder: (context) => const EditAstronautScreen(),
                       ),
-                    );
+                    ).then((_) => setState(() {})); 
                   },
                 ),
               ],
