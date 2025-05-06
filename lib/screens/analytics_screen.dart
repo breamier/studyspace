@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'completed_tasks_screen.dart';
+import 'navbar.dart';
 
 const Color kPurple = Color(0xFF6C44DD);
 const Color kOnyx = Color(0xFF0E0E0E);
@@ -9,7 +10,8 @@ const Color kGreen = Color(0x5540973A);
 const Color kRed = Color(0x5443020C);
 const Color kBrown = Color(0x554D372E);
 
-final TextStyle kHeadingFont = GoogleFonts.brunoAce(
+final TextStyle kHeadingFont = TextStyle(
+  fontFamily: 'BrunoAceSC',
   fontSize: 22,
   fontWeight: FontWeight.bold,
   color: Colors.white,
@@ -19,7 +21,8 @@ final TextStyle kHeadingFont = GoogleFonts.brunoAce(
   ],
 );
 
-final TextStyle kBodyFont = GoogleFonts.arimo(
+final TextStyle kBodyFont = TextStyle(
+  fontFamily: 'Arimo',
   fontSize: 14,
   color: Colors.white,
 );
@@ -135,8 +138,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            analyticsUnsavedBanner(),
-            const SizedBox(height: 20),
             daySection(),
             const SizedBox(height: 20),
             statsGrid(),
@@ -145,55 +146,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: kOnyx,
-        selectedItemColor: kPurple,
-        unselectedItemColor: kWhite,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Study Goals'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle), label: 'Add Goal'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.analytics), label: 'Analytics'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-      ),
-    );
-  }
-
-  Widget analyticsUnsavedBanner() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: kPurple.withOpacity(0.2),
-        border: Border.all(color: kPurple),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline, color: kWhite),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Analytics Unsaved\nLogin to save and sync data',
-              style: kBodyFont.copyWith(color: kWhite),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kWhite,
-              foregroundColor: kPurple,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            child: const Text('Login'),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.close, color: kWhite),
-        ],
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 3,
+        onTap: (index) {
+          if (index != 3) {
+            Navigator.pop(context);
+          }
+        },
       ),
     );
   }
@@ -377,45 +336,55 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget seeFinishedGoalsButton() {
     return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Text(
-                'See finished learning goals',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CompletedTasksScreen(),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white10,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Text(
+                  'See finished learning goals',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.deepPurpleAccent,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.deepPurpleAccent.withOpacity(0.6),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ],
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.deepPurpleAccent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.deepPurpleAccent.withOpacity(0.6),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(8),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-              padding: const EdgeInsets.all(8),
-              child: const Icon(
-                Icons.arrow_forward,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
