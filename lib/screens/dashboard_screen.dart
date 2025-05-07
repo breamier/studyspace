@@ -9,6 +9,7 @@ import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/screens/analytics_screen.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
+import 'package:studyspace/study-session/study_session_camera.dart';
 import 'navbar.dart';
 
 // Font styles
@@ -185,6 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         studyGoalTile(
                           '📖 ${goal.goalName}',
                           'Study Now',
+                          goal.id,
                           date: DateFormat('dd / MM / yyyy').format(goal.end),
                           isToday:
                               DateUtils.isSameDay(goal.end, DateTime.now()),
@@ -209,6 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         studyGoalTile(
                           '📖 ${goal.goalName}',
                           'View',
+                          goal.id,
                           date: DateFormat('dd / MM / yyyy').format(goal.start),
                         ),
                     ] else ...[
@@ -309,7 +312,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget studyGoalTile(String title, String buttonText,
+  Widget studyGoalTile(String title, String buttonText, Id goalId,
       {String? date, bool isToday = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -373,7 +376,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => StudySessionCamera(goalId: goalId,)));
+            },
             child: Text(buttonText, style: kBodyFont),
           )
         ],

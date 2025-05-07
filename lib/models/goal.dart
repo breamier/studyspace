@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'session.dart';
+
 part 'goal.g.dart';
 
 @Collection()
@@ -28,6 +29,8 @@ class Goal {
 }
 
 @embedded
+
+
 @embedded
 class Subtopic {
   late String name;

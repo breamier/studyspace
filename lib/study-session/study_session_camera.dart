@@ -2,13 +2,16 @@ import 'dart:io';
 import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
+import 'package:isar/isar.dart';
+import 'package:studyspace/study-session/study_session.dart';
 
 class StudySessionCamera extends StatefulWidget {
-  const StudySessionCamera({super.key});
+  final Id goalId;
+
+  const StudySessionCamera({super.key, required this.goalId});
 
   @override
   State<StudySessionCamera> createState() => _StudySessionCameraState();
@@ -167,7 +170,12 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                             onPressed: () async {
                               Gal.putImage(imgFile!.path);
                               // go to study session
-                              Navigator.pop(context);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => StudySession(
+                                            goalId: widget.goalId,
+                                          )));
                             },
                             style: ButtonStyle(
                                 backgroundColor:
@@ -232,8 +240,8 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color:
-                                      _colorAnimation.value?.withOpacity(0.8) ??
-                                          Colors.deepPurple.withOpacity(0.8),
+                                      _colorAnimation.value?.withValues(alpha: 0.8) ??
+                                          Colors.deepPurple.withValues(alpha: 0.8),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt,
@@ -289,7 +297,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
 
   Widget _buildTutorialOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.7),
+      color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
@@ -442,11 +450,8 @@ class _StudySessionCameraState extends State<StudySessionCamera>
       final imageBytes =
           img.decodeImage(File(picture!.path).readAsBytesSync())!;
 
-      img.Image cropOne = img.copyCrop(
-        imageBytes, x: offsetX, y: offsetY, width: cropSize,height: cropSize
-      );
-      print(cropOne.height);
-      print(cropOne.width);
+      img.Image cropOne = img.copyCrop(imageBytes,
+          x: offsetX, y: offsetY, width: cropSize, height: cropSize);
 
       imgFile = await File(picture!.path).writeAsBytes(img.encodePng(cropOne));
       setState(() {

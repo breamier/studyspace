@@ -32,6 +32,7 @@ class _StudySessionEndState extends State<StudySessionEnd>
   @override
   void initState() {
     super.initState();
+    _isLoading = false;
     _loadGoal();
   }
 
@@ -53,6 +54,9 @@ class _StudySessionEndState extends State<StudySessionEnd>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
     sizeQuery = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Stack(

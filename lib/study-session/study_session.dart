@@ -1,10 +1,11 @@
 import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/study-session/study-session-end.dart';
 import 'package:studyspace/study-session/study_session_tasks.dart';
+
+import '../models/goal.dart';
+import '../services/isar_service.dart';
 
 class StudySession extends StatefulWidget {
   final Id goalId;
@@ -18,6 +19,8 @@ class StudySession extends StatefulWidget {
 }
 
 class _StateStudySession extends State<StudySession> {
+  final IsarService _isarService = IsarService();
+  late Future<Goal?> goal;
   Timer? timer;
   int time = 0;
   bool isActive = false;
@@ -27,6 +30,12 @@ class _StateStudySession extends State<StudySession> {
   void dispose() {
     timer?.cancel();
     super.dispose();
+  }
+@override
+void initState() {
+    // TODO: implement initState
+  goal = _isarService.getGoalById(widget.goalId);
+  super.initState();
   }
 
   @override
@@ -67,40 +76,40 @@ class _StateStudySession extends State<StudySession> {
             height: MediaQuery.sizeOf(context).height * 0.2,
           ),
           Padding(
-          padding:EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
-          child:ElevatedButton(
-            onPressed: () {
-              setState(() {
-                timer?.cancel();
-                isActive = false;
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => StudySessionEnd(
-                              goalId: widget.goalId,
-                              duration: time,
-                            )));
-              });
-            },
-            style: ButtonStyle(
-                shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                  side: BorderSide(
-                    width: 1,
-                    color: Colors.white,
-                  ),
-                )),
-                backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
-                padding: WidgetStateProperty.all(EdgeInsets.symmetric(
-                    horizontal: MediaQuery.sizeOf(context).width * 0.15,
-                    vertical: MediaQuery.sizeOf(context).height * 0.02))),
-            child: Text("Finish Study Session",
-                style: TextStyle(
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.bold,
-                    fontSize: MediaQuery.sizeOf(context).width * 0.04,
-                    color: Colors.white)),
-          )),
+              padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    timer?.cancel();
+                    isActive = false;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => StudySessionEnd(
+                                  goalId: widget.goalId,
+                                  duration: time,
+                                )));
+                  });
+                },
+                style: ButtonStyle(
+                    shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
+                      side: BorderSide(
+                        width: 1,
+                        color: Colors.white,
+                      ),
+                    )),
+                    backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
+                    padding: WidgetStateProperty.all(EdgeInsets.symmetric(
+                        horizontal: MediaQuery.sizeOf(context).width * 0.15,
+                        vertical: MediaQuery.sizeOf(context).height * 0.02))),
+                child: Text("Finish Study Session",
+                    style: TextStyle(
+                        fontFamily: 'Arimo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: MediaQuery.sizeOf(context).width * 0.04,
+                        color: Colors.white)),
+              )),
         ],
       ),
     );
@@ -156,7 +165,6 @@ class _StateStudySession extends State<StudySession> {
           isActive = !isActive;
         });
       },
-      child: Icon(isActive ? Icons.pause_rounded : Icons.play_arrow_rounded),
       style: ButtonStyle(
         shape: WidgetStateProperty.all(CircleBorder()),
         shadowColor: WidgetStateProperty.all(Color(Colors.white.hashCode)),
@@ -164,6 +172,7 @@ class _StateStudySession extends State<StudySession> {
             MediaQuery.sizeOf(context).width * 0.15,
             MediaQuery.sizeOf(context).width * 0.15)),
       ),
+      child: Icon(isActive ? Icons.pause_rounded : Icons.play_arrow_rounded),
     );
   }
 
