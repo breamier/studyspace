@@ -118,7 +118,8 @@ class _StudySessionEndState extends State<StudySessionEnd>
             ),
             Padding(
                 padding: EdgeInsets.all(30),
-                child: Image.file(File(widget.imgLoc))),
+                child: SizedBox(height: MediaQuery.sizeOf(context).width*0.5,
+                child: Image.file(File(widget.imgLoc))),),
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
                 child: Text(
