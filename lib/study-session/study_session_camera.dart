@@ -6,9 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
+import 'package:isar/isar.dart';
+import 'package:studyspace/study-session/study_session.dart';
 
 class StudySessionCamera extends StatefulWidget {
-  const StudySessionCamera({super.key});
+  final Id goalId;
+  const StudySessionCamera({super.key, required this.goalId});
 
   @override
   State<StudySessionCamera> createState() => _StudySessionCameraState();
@@ -167,7 +170,10 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                             onPressed: () async {
                               Gal.putImage(imgFile!.path);
                               // go to study session
-                              Navigator.pop(context);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => StudySession(goalId: widget.goalId,imgLoc: imgFile!.path,)));
                             },
                             style: ButtonStyle(
                                 backgroundColor:
@@ -442,9 +448,8 @@ class _StudySessionCameraState extends State<StudySessionCamera>
       final imageBytes =
           img.decodeImage(File(picture!.path).readAsBytesSync())!;
 
-      img.Image cropOne = img.copyCrop(
-        imageBytes, x: offsetX, y: offsetY, width: cropSize,height: cropSize
-      );
+      img.Image cropOne = img.copyCrop(imageBytes,
+          x: offsetX, y: offsetY, width: cropSize, height: cropSize);
       print(cropOne.height);
       print(cropOne.width);
 

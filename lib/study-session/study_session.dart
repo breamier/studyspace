@@ -8,8 +8,8 @@ import 'package:studyspace/study-session/study_session_tasks.dart';
 
 class StudySession extends StatefulWidget {
   final Id goalId;
-
-  const StudySession({super.key, required this.goalId});
+  final String imgLoc;
+  const StudySession({super.key, required this.goalId,required this.imgLoc});
 
   @override
   State<StudySession> createState() {
@@ -20,8 +20,9 @@ class StudySession extends StatefulWidget {
 class _StateStudySession extends State<StudySession> {
   Timer? timer;
   int time = 0;
+
   bool isActive = false;
-  late double sizeQuery;
+
 
   @override
   void dispose() {
@@ -31,7 +32,7 @@ class _StateStudySession extends State<StudySession> {
 
   @override
   Widget build(BuildContext context) {
-    sizeQuery = MediaQuery.of(context).size.width;
+
     timer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleTick();
     });
@@ -67,7 +68,7 @@ class _StateStudySession extends State<StudySession> {
             height: MediaQuery.sizeOf(context).height * 0.2,
           ),
           Padding(
-          padding:EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
+          padding:EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.045),
           child:ElevatedButton(
             onPressed: () {
               setState(() {
@@ -79,6 +80,7 @@ class _StateStudySession extends State<StudySession> {
                         builder: (context) => StudySessionEnd(
                               goalId: widget.goalId,
                               duration: time,
+                              imgLoc: widget.imgLoc,
                             )));
               });
             },
@@ -125,12 +127,12 @@ class _StateStudySession extends State<StudySession> {
         Text(
           textAlign: TextAlign.center,
           strDuration,
-          textScaler: TextScaler.linear(sizeQuery * 0.009),
+          textScaler: TextScaler.linear(MediaQuery.of(context).size.width * 0.009),
         ),
         Text(
           textAlign: TextAlign.center,
           secDuration,
-          textScaler: TextScaler.linear(sizeQuery * 0.004),
+          textScaler: TextScaler.linear(MediaQuery.of(context).size.width * 0.004),
         )
       ],
     );
