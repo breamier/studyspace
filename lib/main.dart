@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const StudySessionCamera()),
+                          builder: (context) => const StudySessionCamera(goalId: 1,)),
                     );
                   },
                   child: const Text("StudySession")),
@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => StudySession(goalId: 1)),
+                        builder: (context) => StudySession(goalId: 1,imgLoc: "",)),
                   );
                 },
                 child: const Text('Go to Study Session'),
