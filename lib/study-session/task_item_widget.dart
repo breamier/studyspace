@@ -9,9 +9,10 @@ class TaskItemWidget extends StatefulWidget {
   final Subtopic subtopic;
   final Id goalId;
   final bool deleteMode;
+  final Function() notifyParent;
 
   const TaskItemWidget(
-      {super.key, required this.subtopic, required this.goalId, required this.deleteMode});
+      {super.key, required this.subtopic, required this.goalId, required this.deleteMode, required  this.notifyParent});
 
   @override
   State<TaskItemWidget> createState() {
@@ -55,7 +56,12 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
     }
     return Row(
       children: [
-        widget.deleteMode?IconButton(onPressed: (){}, icon: Icon(Icons.remove_circle)):Checkbox(
+        widget.deleteMode?IconButton(onPressed: (){
+          _deleteSubtopic();
+          setState(() {
+
+          });
+        }, icon: Icon(Icons.remove_circle)):Checkbox(
             value: widget.subtopic.completed,
             onChanged: (value) {
               setState(() {
@@ -90,9 +96,13 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
     _isarService.updateGoal(current!);
 
   }
+  _deleteSubtopic(){
+    _isarService.deleteSubtopics(current!, [widget.subtopic]);
+  }
   void setDeleteMode(){
     setState(() {
       _deleteMode = !_deleteMode;
     });
+    widget.notifyParent();
   }
 }

@@ -24,7 +24,11 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   late Goal? current;
   bool _isLoading = true;
   bool _deleteMode = false;
+  void callback(){
+    setState(() {
 
+    });
+  }
   @override
   void initState() {
     goal = _isarService.getGoalById(widget.goalId);
@@ -52,7 +56,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
               setState(() {
                 _deleteMode = !_deleteMode;
               });
-            }, icon: Icon(Icons.delete))
+            }, icon: Icon(_deleteMode ? Icons.check_box:Icons.delete))
           ],
         ),
         FutureBuilder(
@@ -66,7 +70,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
                 children:
                   [
                     for(final sub in subtopics!)
-                      _deleteMode? TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:true): TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:false)
+                      _deleteMode? TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:true): TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:false,notifyParent:callback)
 
                   ]
                 ,
