@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/study-session/study-session-end.dart';
@@ -9,8 +11,8 @@ import '../services/isar_service.dart';
 
 class StudySession extends StatefulWidget {
   final Id goalId;
-
-  const StudySession({super.key, required this.goalId});
+  final String imgLoc;
+  const StudySession({super.key, required this.goalId,required this.imgLoc});
 
   @override
   State<StudySession> createState() {
@@ -23,8 +25,9 @@ class _StateStudySession extends State<StudySession> {
   late Future<Goal?> goal;
   Timer? timer;
   int time = 0;
+
   bool isActive = false;
-  late double sizeQuery;
+
 
   @override
   void dispose() {
@@ -40,7 +43,7 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
-    sizeQuery = MediaQuery.of(context).size.width;
+
     timer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleTick();
     });
@@ -76,40 +79,41 @@ void initState() {
             height: MediaQuery.sizeOf(context).height * 0.2,
           ),
           Padding(
-              padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    timer?.cancel();
-                    isActive = false;
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => StudySessionEnd(
-                                  goalId: widget.goalId,
-                                  duration: time,
-                                )));
-                  });
-                },
-                style: ButtonStyle(
-                    shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100),
-                      side: BorderSide(
-                        width: 1,
-                        color: Colors.white,
-                      ),
-                    )),
-                    backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
-                    padding: WidgetStateProperty.all(EdgeInsets.symmetric(
-                        horizontal: MediaQuery.sizeOf(context).width * 0.15,
-                        vertical: MediaQuery.sizeOf(context).height * 0.02))),
-                child: Text("Finish Study Session",
-                    style: TextStyle(
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.bold,
-                        fontSize: MediaQuery.sizeOf(context).width * 0.04,
-                        color: Colors.white)),
-              )),
+          padding:EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.045),
+          child:ElevatedButton(
+            onPressed: () {
+              setState(() {
+                timer?.cancel();
+                isActive = false;
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StudySessionEnd(
+                              goalId: widget.goalId,
+                              duration: time,
+                              imgLoc: widget.imgLoc,
+                            )));
+              });
+            },
+            style: ButtonStyle(
+                shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                  side: BorderSide(
+                    width: 1,
+                    color: Colors.white,
+                  ),
+                )),
+                backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
+                padding: WidgetStateProperty.all(EdgeInsets.symmetric(
+                    horizontal: MediaQuery.sizeOf(context).width * 0.15,
+                    vertical: MediaQuery.sizeOf(context).height * 0.02))),
+            child: Text("Finish Study Session",
+                style: TextStyle(
+                    fontFamily: 'Arimo',
+                    fontWeight: FontWeight.bold,
+                    fontSize: MediaQuery.sizeOf(context).width * 0.04,
+                    color: Colors.white)),
+          )),
         ],
       ),
     );
@@ -134,12 +138,12 @@ void initState() {
         Text(
           textAlign: TextAlign.center,
           strDuration,
-          textScaler: TextScaler.linear(sizeQuery * 0.009),
+          textScaler: TextScaler.linear(MediaQuery.of(context).size.width * 0.009),
         ),
         Text(
           textAlign: TextAlign.center,
           secDuration,
-          textScaler: TextScaler.linear(sizeQuery * 0.004),
+          textScaler: TextScaler.linear(MediaQuery.of(context).size.width * 0.004),
         )
       ],
     );

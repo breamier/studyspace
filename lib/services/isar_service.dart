@@ -142,4 +142,11 @@ class IsarService extends ChangeNotifier {
       });
     }
   }
+
+  // Session Methods
+  Future<void> addSession(Session newSession) async {
+    final isar = await db;
+    isar.writeTxnSync<int>(() => isar.sessions.putSync(newSession));
+    print("Session added successfully!");
+  }
 }

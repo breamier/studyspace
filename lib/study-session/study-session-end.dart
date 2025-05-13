@@ -8,14 +8,16 @@ import 'package:isar/isar.dart';
 import 'package:studyspace/study-session/study-session-rewards.dart';
 
 import '../models/goal.dart';
+import '../models/session.dart';
 import '../services/isar_service.dart';
 
 class StudySessionEnd extends StatefulWidget {
   final Id goalId;
   final int duration;
+  final String imgLoc;
 
   const StudySessionEnd(
-      {super.key, required this.goalId, required this.duration});
+      {super.key, required this.goalId, required this.duration, required this.imgLoc});
 
   @override
   State<StudySessionEnd> createState() => _StudySessionEndState();
@@ -32,7 +34,6 @@ class _StudySessionEndState extends State<StudySessionEnd>
   @override
   void initState() {
     super.initState();
-    _isLoading = false;
     _loadGoal();
   }
 
@@ -43,6 +44,8 @@ class _StudySessionEndState extends State<StudySessionEnd>
       if (mounted) {
         setState(() {
           _goal = goal;
+          setState(() => _isLoading = false);
+
         });
       }
     } catch (e) {
@@ -79,6 +82,9 @@ class _StudySessionEndState extends State<StudySessionEnd>
   }
 
   Widget _buildUI() {
+    if(_isLoading){
+      return Center(child: CircularProgressIndicator());
+    }
     return SafeArea(
       child: SizedBox.expand(
         child: Column(
@@ -112,16 +118,18 @@ class _StudySessionEndState extends State<StudySessionEnd>
             ),
             Padding(
                 padding: EdgeInsets.all(30),
-                child:Image.asset(
-              "assets/sample.png"
-            )),
+                child: SizedBox(height: MediaQuery.sizeOf(context).width*0.5,
+                child: Image.file(File(widget.imgLoc))),),
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
                 child: Text(
                   "How is your understanding of the topic after the session?",
                   style: TextStyle(fontFamily: 'Amino', fontSize: 18),
                 )),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.01),
 
             DifficultySelector(
               selected: _difficulty,
@@ -144,11 +152,19 @@ class _StudySessionEndState extends State<StudySessionEnd>
               onPressed: () {
                 setState(() {
                   //update data and send data
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=> StudySessionRewards(goalId: widget.goalId, ) ));
+                  _goal!.difficulty = _difficulty;
+                  _isarService.updateGoal(_goal!);
+                  Session newSession = Session()
+                    ..duration = widget.duration
+                    ..goal.value = _goal!
+                    ..end = DateTime.now()..imgPath = widget.imgLoc;
+                  _isarService.addSession(newSession);
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> StudySessionRewards(goalId: widget.goalId, ) )
+                  );
                 });
               },
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
+                  backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
                   shape: WidgetStateProperty.all(RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(100),
                     side: BorderSide(
@@ -157,13 +173,19 @@ class _StudySessionEndState extends State<StudySessionEnd>
                     ),
                   )),
                   padding: WidgetStateProperty.all(EdgeInsets.symmetric(
-                      horizontal: MediaQuery.sizeOf(context).width * 0.25,
-                      vertical: MediaQuery.sizeOf(context).height * 0.02))),
+                      horizontal: MediaQuery
+                          .sizeOf(context)
+                          .width * 0.25,
+                      vertical: MediaQuery
+                          .sizeOf(context)
+                          .height * 0.02))),
               child: Text("End Study Session",
                   style: TextStyle(
                       fontFamily: 'Arimo',
                       fontWeight: FontWeight.bold,
-                      fontSize: MediaQuery.sizeOf(context).width * 0.04,
+                      fontSize: MediaQuery
+                          .sizeOf(context)
+                          .width * 0.04,
                       color: Colors.white)),
             ),
           ],

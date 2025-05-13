@@ -45,7 +45,6 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
     _loadGoal();
     _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
-    _isLoading =false;
   }
 
   Future<void> _loadGoal() async {
@@ -66,10 +65,9 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if(_isLoading){
       return Center(child: CircularProgressIndicator());
     }
-    sizeQuery = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Stack(
         children: [
@@ -162,7 +160,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
             // Mission Board
             const SizedBox(height: 30),
             Padding(
-                padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
+                padding: EdgeInsets.symmetric(horizontal:  MediaQuery.of(context).size.width * 0.045),
                 child: FutureBuilder<List<Mission>>(
                   future: _missionsFuture,
                   builder: (context, snapshot) {

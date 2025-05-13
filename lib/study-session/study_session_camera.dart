@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
@@ -10,7 +11,6 @@ import 'package:studyspace/study-session/study_session.dart';
 
 class StudySessionCamera extends StatefulWidget {
   final Id goalId;
-
   const StudySessionCamera({super.key, required this.goalId});
 
   @override
@@ -173,9 +173,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => StudySession(
-                                            goalId: widget.goalId,
-                                          )));
+                                      builder: (context) => StudySession(goalId: widget.goalId,imgLoc: imgFile!.path,)));
                             },
                             style: ButtonStyle(
                                 backgroundColor:
@@ -240,8 +238,8 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color:
-                                      _colorAnimation.value?.withValues(alpha: 0.8) ??
-                                          Colors.deepPurple.withValues(alpha: 0.8),
+                                      _colorAnimation.value?.withOpacity(0.8) ??
+                                          Colors.deepPurple.withOpacity(0.8),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt,
@@ -452,6 +450,8 @@ class _StudySessionCameraState extends State<StudySessionCamera>
 
       img.Image cropOne = img.copyCrop(imageBytes,
           x: offsetX, y: offsetY, width: cropSize, height: cropSize);
+      print(cropOne.height);
+      print(cropOne.width);
 
       imgFile = await File(picture!.path).writeAsBytes(img.encodePng(cropOne));
       setState(() {
