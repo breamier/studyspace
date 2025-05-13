@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/study-session/task_item_widget.dart';
@@ -22,6 +23,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   late Future<Goal?> goal;
   late Goal? current;
   bool _isLoading = true;
+  bool _deleteMode = false;
 
   @override
   void initState() {
@@ -46,7 +48,11 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text("Subtopics"),
-            IconButton(onPressed: () {}, icon: Icon(Icons.delete))
+            IconButton(onPressed: () {
+              setState(() {
+                _deleteMode = !_deleteMode;
+              });
+            }, icon: Icon(Icons.delete))
           ],
         ),
         FutureBuilder(
@@ -60,7 +66,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
                 children:
                   [
                     for(final sub in subtopics!)
-                      TaskItemWidget(subtopic: sub, goalId: widget.goalId,)
+                      _deleteMode? TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:true): TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:false)
 
                   ]
                 ,

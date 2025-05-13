@@ -8,9 +8,10 @@ import '../services/isar_service.dart';
 class TaskItemWidget extends StatefulWidget {
   final Subtopic subtopic;
   final Id goalId;
+  final bool deleteMode;
 
   const TaskItemWidget(
-      {super.key, required this.subtopic, required this.goalId});
+      {super.key, required this.subtopic, required this.goalId, required this.deleteMode});
 
   @override
   State<TaskItemWidget> createState() {
@@ -26,6 +27,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   late Future<Goal?> goal;
   late Goal? current;
   bool _isLoading = true;
+  bool _deleteMode = false;
 
   @override
   void initState() {
@@ -53,7 +55,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
     }
     return Row(
       children: [
-        Checkbox(
+        widget.deleteMode?IconButton(onPressed: (){}, icon: Icon(Icons.remove_circle)):Checkbox(
             value: widget.subtopic.completed,
             onChanged: (value) {
               setState(() {
@@ -67,6 +69,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
+      readOnly: widget.deleteMode,
         controller: _textEditingController,
         decoration: InputDecoration(
           border: InputBorder.none,
@@ -84,6 +87,12 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   _updateGoal(String old,String updated,bool completed) async {
     widget.subtopic.name = updated;
     _isarService.updateSubtopic(current!, widget.subtopic);
-    await _isarService.updateGoal(current!);
+    _isarService.updateGoal(current!);
+
+  }
+  void setDeleteMode(){
+    setState(() {
+      _deleteMode = !_deleteMode;
+    });
   }
 }

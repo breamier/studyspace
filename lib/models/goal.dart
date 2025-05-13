@@ -35,6 +35,7 @@ class Goal {
 class Subtopic {
   late String name;
   bool completed = false;
+  Id id = Isar.autoIncrement;
 
   @override
   bool operator ==(Object other) =>
