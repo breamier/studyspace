@@ -1,12 +1,8 @@
 import 'dart:io';
-
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/study-session/study-session-rewards.dart';
-
 import '../models/goal.dart';
 import '../models/session.dart';
 import '../services/isar_service.dart';
@@ -15,9 +11,16 @@ class StudySessionEnd extends StatefulWidget {
   final Id goalId;
   final int duration;
   final String imgLoc;
+  final DateTime start;
+  final DateTime end;
 
   const StudySessionEnd(
-      {super.key, required this.goalId, required this.duration, required this.imgLoc});
+      {super.key,
+      required this.start,
+      required this.end,
+      required this.goalId,
+      required this.duration,
+      required this.imgLoc});
 
   @override
   State<StudySessionEnd> createState() => _StudySessionEndState();
@@ -45,7 +48,6 @@ class _StudySessionEndState extends State<StudySessionEnd>
         setState(() {
           _goal = goal;
           setState(() => _isLoading = false);
-
         });
       }
     } catch (e) {
@@ -53,6 +55,14 @@ class _StudySessionEndState extends State<StudySessionEnd>
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> saveSession() async {
+    _isarService.addSession(
+        await _isarService.createSessionObj(widget.start, widget.end,
+            widget.duration, widget.imgLoc, _difficulty, _goal!),
+        _goal!);
+    print("DONE");
   }
 
   @override
@@ -82,7 +92,7 @@ class _StudySessionEndState extends State<StudySessionEnd>
   }
 
   Widget _buildUI() {
-    if(_isLoading){
+    if (_isLoading) {
       return Center(child: CircularProgressIndicator());
     }
     return SafeArea(
@@ -117,20 +127,18 @@ class _StudySessionEndState extends State<StudySessionEnd>
               ],
             ),
             Padding(
-                padding: EdgeInsets.all(30),
-                child: SizedBox(height: MediaQuery.sizeOf(context).width*0.5,
-                child: Image.file(File(widget.imgLoc))),),
+              padding: EdgeInsets.all(30),
+              child: SizedBox(
+                  height: MediaQuery.sizeOf(context).width * 0.5,
+                  child: Image.file(File(widget.imgLoc))),
+            ),
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
                 child: Text(
                   "How is your understanding of the topic after the session?",
                   style: TextStyle(fontFamily: 'Amino', fontSize: 18),
                 )),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.01),
-
+            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
             DifficultySelector(
               selected: _difficulty,
               onSelected: (value) {
@@ -154,13 +162,13 @@ class _StudySessionEndState extends State<StudySessionEnd>
                   //update data and send data
                   _goal!.difficulty = _difficulty;
                   _isarService.updateGoal(_goal!);
-                  Session newSession = Session()
-                    ..duration = widget.duration
-                    ..goal.value = _goal!
-                    ..end = DateTime.now()..imgPath = widget.imgLoc;
-                  _isarService.addSession(newSession);
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=> StudySessionRewards(goalId: widget.goalId, ) )
-                  );
+                  saveSession();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => StudySessionRewards(
+                                goalId: widget.goalId,
+                              )));
                 });
               },
               style: ButtonStyle(
@@ -173,19 +181,13 @@ class _StudySessionEndState extends State<StudySessionEnd>
                     ),
                   )),
                   padding: WidgetStateProperty.all(EdgeInsets.symmetric(
-                      horizontal: MediaQuery
-                          .sizeOf(context)
-                          .width * 0.25,
-                      vertical: MediaQuery
-                          .sizeOf(context)
-                          .height * 0.02))),
+                      horizontal: MediaQuery.sizeOf(context).width * 0.25,
+                      vertical: MediaQuery.sizeOf(context).height * 0.02))),
               child: Text("End Study Session",
                   style: TextStyle(
                       fontFamily: 'Arimo',
                       fontWeight: FontWeight.bold,
-                      fontSize: MediaQuery
-                          .sizeOf(context)
-                          .width * 0.04,
+                      fontSize: MediaQuery.sizeOf(context).width * 0.04,
                       color: Colors.white)),
             ),
           ],
