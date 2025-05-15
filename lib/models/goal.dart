@@ -15,7 +15,8 @@ class Goal {
   late int interval = 0;
   late double easeFactor = 2.5;
 
-  List<DateTime> sessionDates = [];
+  List<DateTime> upcomingSessionDates = [];
+  List<DateTime> completedSessionDates = [];
   List<Subtopic> subtopics = [];
 
   //keep track if goal is a current or upcoming

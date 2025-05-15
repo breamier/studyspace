@@ -17,50 +17,50 @@ const GoalSchema = CollectionSchema(
   name: r'Goal',
   id: 4693499363663894908,
   properties: {
-    r'difficulty': PropertySchema(
+    r'completedSessionDates': PropertySchema(
       id: 0,
+      name: r'completedSessionDates',
+      type: IsarType.dateTimeList,
+    ),
+    r'difficulty': PropertySchema(
+      id: 1,
       name: r'difficulty',
       type: IsarType.string,
     ),
     r'easeFactor': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'easeFactor',
       type: IsarType.double,
     ),
     r'end': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'end',
       type: IsarType.dateTime,
     ),
     r'goalName': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'goalName',
       type: IsarType.string,
     ),
     r'interval': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'interval',
       type: IsarType.long,
     ),
     r'isCurrent': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isCurrent',
       type: IsarType.bool,
     ),
     r'isUpcoming': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'isUpcoming',
       type: IsarType.bool,
     ),
     r'reps': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'reps',
       type: IsarType.long,
-    ),
-    r'sessionDates': PropertySchema(
-      id: 8,
-      name: r'sessionDates',
-      type: IsarType.dateTimeList,
     ),
     r'start': PropertySchema(
       id: 9,
@@ -72,6 +72,11 @@ const GoalSchema = CollectionSchema(
       name: r'subtopics',
       type: IsarType.objectList,
       target: r'Subtopic',
+    ),
+    r'upcomingSessionDates': PropertySchema(
+      id: 11,
+      name: r'upcomingSessionDates',
+      type: IsarType.dateTimeList,
     )
   },
   estimateSize: _goalEstimateSize,
@@ -102,9 +107,9 @@ int _goalEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.completedSessionDates.length * 8;
   bytesCount += 3 + object.difficulty.length * 3;
   bytesCount += 3 + object.goalName.length * 3;
-  bytesCount += 3 + object.sessionDates.length * 8;
   bytesCount += 3 + object.subtopics.length * 3;
   {
     final offsets = allOffsets[Subtopic]!;
@@ -113,6 +118,7 @@ int _goalEstimateSize(
       bytesCount += SubtopicSchema.estimateSize(value, offsets, allOffsets);
     }
   }
+  bytesCount += 3 + object.upcomingSessionDates.length * 8;
   return bytesCount;
 }
 
@@ -122,15 +128,15 @@ void _goalSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.difficulty);
-  writer.writeDouble(offsets[1], object.easeFactor);
-  writer.writeDateTime(offsets[2], object.end);
-  writer.writeString(offsets[3], object.goalName);
-  writer.writeLong(offsets[4], object.interval);
-  writer.writeBool(offsets[5], object.isCurrent);
-  writer.writeBool(offsets[6], object.isUpcoming);
-  writer.writeLong(offsets[7], object.reps);
-  writer.writeDateTimeList(offsets[8], object.sessionDates);
+  writer.writeDateTimeList(offsets[0], object.completedSessionDates);
+  writer.writeString(offsets[1], object.difficulty);
+  writer.writeDouble(offsets[2], object.easeFactor);
+  writer.writeDateTime(offsets[3], object.end);
+  writer.writeString(offsets[4], object.goalName);
+  writer.writeLong(offsets[5], object.interval);
+  writer.writeBool(offsets[6], object.isCurrent);
+  writer.writeBool(offsets[7], object.isUpcoming);
+  writer.writeLong(offsets[8], object.reps);
   writer.writeDateTime(offsets[9], object.start);
   writer.writeObjectList<Subtopic>(
     offsets[10],
@@ -138,6 +144,7 @@ void _goalSerialize(
     SubtopicSchema.serialize,
     object.subtopics,
   );
+  writer.writeDateTimeList(offsets[11], object.upcomingSessionDates);
 }
 
 Goal _goalDeserialize(
@@ -147,14 +154,14 @@ Goal _goalDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Goal();
-  object.difficulty = reader.readString(offsets[0]);
-  object.easeFactor = reader.readDouble(offsets[1]);
-  object.end = reader.readDateTime(offsets[2]);
-  object.goalName = reader.readString(offsets[3]);
+  object.completedSessionDates = reader.readDateTimeList(offsets[0]) ?? [];
+  object.difficulty = reader.readString(offsets[1]);
+  object.easeFactor = reader.readDouble(offsets[2]);
+  object.end = reader.readDateTime(offsets[3]);
+  object.goalName = reader.readString(offsets[4]);
   object.id = id;
-  object.interval = reader.readLong(offsets[4]);
-  object.reps = reader.readLong(offsets[7]);
-  object.sessionDates = reader.readDateTimeList(offsets[8]) ?? [];
+  object.interval = reader.readLong(offsets[5]);
+  object.reps = reader.readLong(offsets[8]);
   object.start = reader.readDateTime(offsets[9]);
   object.subtopics = reader.readObjectList<Subtopic>(
         offsets[10],
@@ -163,6 +170,7 @@ Goal _goalDeserialize(
         Subtopic(),
       ) ??
       [];
+  object.upcomingSessionDates = reader.readDateTimeList(offsets[11]) ?? [];
   return object;
 }
 
@@ -174,23 +182,23 @@ P _goalDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeList(offset) ?? []) as P;
     case 1:
-      return (reader.readDouble(offset)) as P;
-    case 2:
-      return (reader.readDateTime(offset)) as P;
-    case 3:
       return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readDouble(offset)) as P;
+    case 3:
+      return (reader.readDateTime(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readDateTimeList(offset) ?? []) as P;
+      return (reader.readLong(offset)) as P;
     case 9:
       return (reader.readDateTime(offset)) as P;
     case 10:
@@ -201,6 +209,8 @@ P _goalDeserializeProp<P>(
             Subtopic(),
           ) ??
           []) as P;
+    case 11:
+      return (reader.readDateTimeList(offset) ?? []) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -295,6 +305,151 @@ extension GoalQueryWhere on QueryBuilder<Goal, Goal, QWhereClause> {
 }
 
 extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesElementEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'completedSessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesElementGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'completedSessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesElementLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'completedSessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesElementBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'completedSessionDates',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'completedSessionDates',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'completedSessionDates',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'completedSessionDates',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'completedSessionDates',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'completedSessionDates',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      completedSessionDatesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'completedSessionDates',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<Goal, Goal, QAfterFilterCondition> difficultyEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -843,144 +998,6 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesElementEqualTo(
-      DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'sessionDates',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition>
-      sessionDatesElementGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'sessionDates',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesElementLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'sessionDates',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesElementBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'sessionDates',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sessionDates',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sessionDates',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sessionDates',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sessionDates',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sessionDates',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<Goal, Goal, QAfterFilterCondition> sessionDatesLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'sessionDates',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-
   QueryBuilder<Goal, Goal, QAfterFilterCondition> startEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1109,6 +1126,151 @@ extension GoalQueryFilter on QueryBuilder<Goal, Goal, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.listLength(
         r'subtopics',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesElementEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'upcomingSessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesElementGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'upcomingSessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesElementLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'upcomingSessionDates',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesElementBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'upcomingSessionDates',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'upcomingSessionDates',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'upcomingSessionDates',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'upcomingSessionDates',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'upcomingSessionDates',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'upcomingSessionDates',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QAfterFilterCondition>
+      upcomingSessionDatesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'upcomingSessionDates',
         lower,
         includeLower,
         upper,
@@ -1418,6 +1580,12 @@ extension GoalQuerySortThenBy on QueryBuilder<Goal, Goal, QSortThenBy> {
 }
 
 extension GoalQueryWhereDistinct on QueryBuilder<Goal, Goal, QDistinct> {
+  QueryBuilder<Goal, Goal, QDistinct> distinctByCompletedSessionDates() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'completedSessionDates');
+    });
+  }
+
   QueryBuilder<Goal, Goal, QDistinct> distinctByDifficulty(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1468,15 +1636,15 @@ extension GoalQueryWhereDistinct on QueryBuilder<Goal, Goal, QDistinct> {
     });
   }
 
-  QueryBuilder<Goal, Goal, QDistinct> distinctBySessionDates() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'sessionDates');
-    });
-  }
-
   QueryBuilder<Goal, Goal, QDistinct> distinctByStart() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'start');
+    });
+  }
+
+  QueryBuilder<Goal, Goal, QDistinct> distinctByUpcomingSessionDates() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'upcomingSessionDates');
     });
   }
 }
@@ -1485,6 +1653,13 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
   QueryBuilder<Goal, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Goal, List<DateTime>, QQueryOperations>
+      completedSessionDatesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'completedSessionDates');
     });
   }
 
@@ -1536,12 +1711,6 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Goal, List<DateTime>, QQueryOperations> sessionDatesProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'sessionDates');
-    });
-  }
-
   QueryBuilder<Goal, DateTime, QQueryOperations> startProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'start');
@@ -1551,6 +1720,13 @@ extension GoalQueryProperty on QueryBuilder<Goal, Goal, QQueryProperty> {
   QueryBuilder<Goal, List<Subtopic>, QQueryOperations> subtopicsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'subtopics');
+    });
+  }
+
+  QueryBuilder<Goal, List<DateTime>, QQueryOperations>
+      upcomingSessionDatesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'upcomingSessionDates');
     });
   }
 }

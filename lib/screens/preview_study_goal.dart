@@ -263,10 +263,11 @@ class PreviewStudyGoal extends StatelessWidget {
                   onPressed: () async {
                     final sessionDates =
                         await Scheduler().initializeSessions(goal);
-                    goal.sessionDates = sessionDates;
+                    goal.upcomingSessionDates = sessionDates;
                     await IsarService().addGoal(goal);
-                    if (context.mounted)
+                    if (context.mounted) {
                       Navigator.popUntil(context, (route) => route.isFirst);
+                    }
                   },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),

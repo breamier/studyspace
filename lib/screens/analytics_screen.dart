@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'completed_tasks_screen.dart';
-import 'navbar.dart';
+import '../widgets/navbar.dart';
 
 const Color kPurple = Color(0xFF6C44DD);
 const Color kOnyx = Color(0xFF0E0E0E);
