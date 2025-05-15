@@ -28,6 +28,7 @@ class _StateStudySession extends State<StudySession> {
   int time = 0;
   late String goalName;
   bool isActive = false;
+  bool _isLoading = true;
 
   @override
   void dispose() {
@@ -37,11 +38,11 @@ class _StateStudySession extends State<StudySession> {
 
   @override
   void initState() {
-    // TODO: implement initState
     goal = _isarService.getGoalById(widget.goalId);
     goal.then((value) {
+      goalName = value!.goalName;
       setState(() {
-        goalName = value!.goalName;
+        _isLoading = false;
       });
     });
     super.initState();
@@ -49,6 +50,9 @@ class _StateStudySession extends State<StudySession> {
 
   @override
   Widget build(BuildContext context) {
+    if(_isLoading){
+      return CircularProgressIndicator();
+    }
     timer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleTick();
     });

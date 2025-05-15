@@ -9,7 +9,7 @@ class TaskItemWidget extends StatefulWidget {
   final Subtopic subtopic;
   final Id goalId;
   final bool deleteMode;
-  final Function() notifyParent;
+  final Function(Subtopic subtopic) notifyParent;
 
   const TaskItemWidget(
       {super.key, required this.subtopic, required this.goalId, required this.deleteMode, required  this.notifyParent});
@@ -97,12 +97,14 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   }
   _deleteSubtopic(){
-    _isarService.deleteSubtopics(current!, [widget.subtopic]);
+    widget.notifyParent(widget.subtopic);
+    print("child callback");
   }
   void setDeleteMode(){
     setState(() {
       _deleteMode = !_deleteMode;
     });
-    widget.notifyParent();
+    // widget.notifyParent(widget.subtopic);
+    print("child callback");
   }
 }
