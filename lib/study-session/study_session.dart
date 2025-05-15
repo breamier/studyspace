@@ -29,6 +29,7 @@ class _StateStudySession extends State<StudySession> {
   late String goalName;
   bool isActive = false;
   bool _isLoading = true;
+  DateTime start = DateTime.now();
 
   @override
   void dispose() {
@@ -113,7 +114,8 @@ class _StateStudySession extends State<StudySession> {
                                 builder: (context) => StudySessionEnd(
                                       goalId: widget.goalId,
                                       duration: time,
-                                      imgLoc: widget.imgLoc,
+                                      imgLoc: widget.imgLoc, start: start,
+                                  end:DateTime.now()
                                     )));
                       });
                     },
