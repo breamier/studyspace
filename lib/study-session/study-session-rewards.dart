@@ -23,7 +23,6 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   final IsarService _isarService = IsarService();
   Goal? _goal;
   bool _isLoading = true;
-  late double sizeQuery;
   late Future<List<Mission>> _missionsFuture;
   final List<String> _allMissions = [
     'Study 30 minutes straight',
@@ -48,7 +47,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   }
 
   Future<void> _loadGoal() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = false);
     try {
       final goal = await _isarService.getGoalById(widget.goalId);
       if (mounted) {
@@ -115,7 +114,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
             // Mission Board
             Spacer(),
             Padding(
-                padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),
+                padding: EdgeInsets.symmetric(horizontal: MediaQuery.sizeOf(context).width * 0.045),
                 child: FutureBuilder<List<Mission>>(
                   future: _missionsFuture,
                   builder: (context, snapshot) {

@@ -6,6 +6,7 @@ import 'package:studyspace/study-session/study-session-rewards.dart';
 import '../models/goal.dart';
 import '../models/session.dart';
 import '../services/isar_service.dart';
+import '../services/scheduler.dart';
 
 class StudySessionEnd extends StatefulWidget {
   final Id goalId;
@@ -63,6 +64,18 @@ class _StudySessionEndState extends State<StudySessionEnd>
             widget.duration, widget.imgLoc, _difficulty, _goal!),
         _goal!);
     print("DONE");
+
+
+      if (_goal == null || _goal!.upcomingSessionDates.isEmpty) {
+        print("Goal or sessions not found.");
+        return;
+      }
+      await Scheduler().completeStudySession(
+        goal: _goal!,
+        completedDate: widget.end,
+        newDifficulty: _difficulty,
+      );
+
   }
 
   @override
