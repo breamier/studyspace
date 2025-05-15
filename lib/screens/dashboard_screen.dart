@@ -9,6 +9,7 @@ import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/screens/analytics_screen.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
+import 'package:studyspace/item_manager.dart';
 import 'navbar.dart';
 
 // Font styles
@@ -51,9 +52,13 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final IsarService _isarService = IsarService();
+  final ItemManager _itemManager = ItemManager();
   late Future<List<Goal>> _goalsFuture;
   late Future<List<Mission>> _missionsFuture;
   int _selectedIndex = 0;
+  Map<String, dynamic>? _currentAstronaut;
+  Map<String, dynamic>? _currentSpaceship;
+  late final ValueNotifier<bool> _itemChangeNotifier;
 
   final List<String> _allMissions = [
     'Study 30 minutes straight',
@@ -70,6 +75,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _refreshGoals();
     _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
+    _getCurrentItems();
+    
+    _itemChangeNotifier = _itemManager.itemChangedNotifier;
+    _itemChangeNotifier.addListener(_handleItemChanged);
+  }
+  
+  @override
+  void dispose() {
+    _itemChangeNotifier.removeListener(_handleItemChanged);
+    super.dispose();
+  }
+  
+  void _handleItemChanged() {
+    if (mounted) {
+      _getCurrentItems();
+    }
+  }
+
+  void _getCurrentItems() {
+    setState(() {
+      _currentAstronaut = _itemManager.getCurrentAstronaut();
+      _currentSpaceship = _itemManager.getCurrentSpaceship();
+    });
+  }
+  
+  String _getDisplayImage() {
+    if (_currentAstronaut == null && _currentSpaceship == null) {
+      return 'assets/moon_with_astronaut.png';
+    }
+    
+    final astronaut = _currentAstronaut;
+    final spaceship = _currentSpaceship;
+    
+    String? astronautColor = astronaut != null && astronaut['current'] == true ? 
+        astronaut['name'].split(' ')[0].toLowerCase() : null;
+    
+    String? spaceshipColor = spaceship != null && spaceship['current'] == true ? 
+        spaceship['name'].split(' ')[0].toLowerCase() : null;
+    
+    if (spaceshipColor != null) {
+      return 'assets/moon_with_${spaceshipColor}_spaceship.png';
+    }
+    
+    if (astronautColor != null) {
+      return 'assets/moon_with_${astronautColor}_astronaut.png';
+    }
+    
+    return 'assets/moon_with_astronaut.png';
   }
 
   Future<List<Goal>> _fetchGoals() async {
@@ -272,7 +325,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: kWhite,
                                       size: 18),
                                   label: Text(
-                                    'Astronaut >>',
+                                    'Visit your Astronaut >>',
                                     style: kBodyFont.copyWith(fontSize: 14),
                                   ),
                                 ),
@@ -281,6 +334,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         );
                       },
+                    ),
+                    //preview of astronaut
+                    const SizedBox(height: 30),
+                    Center(
+                      child: Image.asset(
+                        _getDisplayImage(),
+                        height: 280,
+                      ),
                     ),
                     const SizedBox(height: 80),
                   ],
