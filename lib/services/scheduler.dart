@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:studyspace/services/sm.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/services/sm_response.dart';
+import 'package:studyspace/services/isar_service.dart';
 
 class Scheduler {
   Future<List<DateTime>> initializeSessions(Goal goal) async {
@@ -113,5 +114,43 @@ class Scheduler {
     }
 
     return nextReviewDate;
+  }
+
+  Future<void> completeStudySession({
+    required Goal goal,
+    required DateTime completedDate,
+    required String newDifficulty,
+  }) async {
+    goal.upcomingSessionDates.remove(completedDate);
+    goal.completedSessionDates.add(completedDate);
+
+    int quality = Scheduler().mapDifficultyToQuality(newDifficulty);
+
+    final sm = Sm();
+    final response = sm.calc(
+      quality: quality,
+      repetitions: goal.reps,
+      previousInterval: goal.interval,
+      previousEaseFactor: goal.easeFactor,
+    );
+
+    goal.reps = response.repetitions;
+    goal.interval = response.interval;
+    goal.easeFactor = response.easeFactor;
+    goal.difficulty = newDifficulty;
+
+    await IsarService().updateGoal(goal);
+
+    final scheduler = Scheduler();
+    goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
+
+    await IsarService().updateGoal(goal);
+
+    print(
+        "Session completed on $completedDate with '$newDifficulty' difficulty.");
+    print("Updated upcoming session dates:");
+    for (final d in goal.upcomingSessionDates) {
+      print(d.toIso8601String());
+    }
   }
 }

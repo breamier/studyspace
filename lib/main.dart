@@ -12,6 +12,7 @@ import 'package:studyspace/services/isar_service.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/astronaut_pet_screen.dart';
 import 'screens/astronaut_traveling_screen.dart';
+import 'services/scheduler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,11 +54,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
               ElevatedButton(
+                onPressed: () async {
+                  final goal = await IsarService().getFirstGoal();
+
+                  if (goal == null || goal.upcomingSessionDates.isEmpty) {
+                    print("Goal or sessions not found.");
+                    return;
+                  }
+
+                  final completedDate = goal.upcomingSessionDates.first;
+                  const newDifficulty = 'medium'; // simulate difficulty
+
+                  await Scheduler().completeStudySession(
+                    goal: goal,
+                    completedDate: completedDate,
+                    newDifficulty: newDifficulty,
+                  );
+                },
+                child: Text("Simulate Study Session"),
+              ),
+              ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const StudySessionCamera(goalId: 1,)),
+                          builder: (context) => const StudySessionCamera(
+                                goalId: 1,
+                              )),
                     );
                   },
                   child: const Text("StudySession")),
@@ -122,7 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => StudySession(goalId: 1,imgLoc: "",)),
+                        builder: (context) => StudySession(
+                              goalId: 1,
+                              imgLoc: "",
+                            )),
                   );
                 },
                 child: const Text('Go to Study Session'),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'navbar.dart';
+import '../widgets/navbar.dart';
 
 final Color kPurple = Color(0xFF9B59B6);
 
