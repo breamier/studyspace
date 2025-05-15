@@ -9,7 +9,7 @@ import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/screens/analytics_screen.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
-import 'navbar.dart';
+import '../widgets/navbar.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
