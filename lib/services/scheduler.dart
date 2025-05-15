@@ -139,8 +139,6 @@ class Scheduler {
     goal.easeFactor = response.easeFactor;
     goal.difficulty = newDifficulty;
 
-    await IsarService().updateGoal(goal);
-
     final scheduler = Scheduler();
     goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
 
