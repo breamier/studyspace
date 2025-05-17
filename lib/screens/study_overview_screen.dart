@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/services/isar_service.dart';
+import 'package:studyspace/widgets/navbar.dart';
 import './topic_overview_screen.dart';
 
 class StudyOverview extends StatefulWidget {
@@ -207,6 +208,9 @@ class _StudyOverviewState extends State<StudyOverview> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 1,
       ),
     );
   }

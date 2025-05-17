@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'marketplace_screen.dart'; 
+import 'package:studyspace/widgets/navbar.dart';
+import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
 
@@ -14,24 +15,24 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
   final ItemManager _itemManager = ItemManager();
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
-  
+
   late final ValueNotifier<bool> _itemChangeNotifier;
-  
+
   @override
   void initState() {
     super.initState();
     _getCurrentItems();
-    
+
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
   }
-  
+
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
     super.dispose();
   }
-  
+
   void _handleItemChanged() {
     if (mounted) {
       _getCurrentItems();
@@ -51,8 +52,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black.withOpacity(0.7),
-        automaticallyImplyLeading: false, 
-        leadingWidth: 56, 
+        automaticallyImplyLeading: false,
+        leadingWidth: 56,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
           child: Container(
@@ -83,7 +84,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: const Color(0xFF2A2A2A), 
+              color: const Color(0xFF2A2A2A),
             ),
             child: Row(
               children: [
@@ -94,12 +95,11 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '${_itemManager.userPoints}', 
+                  '${_itemManager.userPoints}',
                   style: const TextStyle(
-                    color: Colors.white, 
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500
-                  ),
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -111,35 +111,19 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
           Positioned.fill(
             child: Image.asset('assets/stars.png', fit: BoxFit.cover),
           ),
-          
           Container(
             color: Colors.black.withOpacity(0.5),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildProgressBar(
-                    'assets/astronaut_icon.png',
-                    'HP',
-                    0.75,
-                    Colors.red.shade700,
-                    Colors.red.shade400,
-                    Colors.white
-                  ),
-                  
+                  _buildProgressBar('assets/astronaut_icon.png', 'HP', 0.75,
+                      Colors.red.shade700, Colors.red.shade400, Colors.white),
                   const SizedBox(height: 12),
-                  _buildProgressBar(
-                    'assets/rocket_icon.png',
-                    'Progress',
-                    0.85,
-                    Colors.grey.shade500,
-                    Colors.grey.shade400,
-                    Colors.black
-                  ),
-                   
+                  _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
+                      Colors.grey.shade500, Colors.grey.shade400, Colors.black),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
- 
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
@@ -149,7 +133,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                         tag: 'selected-image',
                         child: Image.asset(
                           _getDisplayImage(),
-                          fit: BoxFit.contain, 
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -160,36 +144,41 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: -1,
+      ),
     );
   }
-  
+
   String _getDisplayImage() {
     if (_currentAstronaut == null && _currentSpaceship == null) {
       return 'assets/moon_with_astronaut.png';
     }
-    
+
     final astronaut = _currentAstronaut;
     final spaceship = _currentSpaceship;
-    
-    String? astronautColor = astronaut != null && astronaut['current'] == true ? 
-        astronaut['name'].split(' ')[0].toLowerCase() : null;
-    
-    String? spaceshipColor = spaceship != null && spaceship['current'] == true ? 
-        spaceship['name'].split(' ')[0].toLowerCase() : null;
-    
+
+    String? astronautColor = astronaut != null && astronaut['current'] == true
+        ? astronaut['name'].split(' ')[0].toLowerCase()
+        : null;
+
+    String? spaceshipColor = spaceship != null && spaceship['current'] == true
+        ? spaceship['name'].split(' ')[0].toLowerCase()
+        : null;
+
     if (spaceshipColor != null) {
       return 'assets/moon_with_${spaceshipColor}_spaceship.png';
     }
-    
+
     if (astronautColor != null) {
       return 'assets/moon_with_${astronautColor}_astronaut.png';
     }
-    
+
     return 'assets/moon_with_astronaut.png';
   }
 
-  Widget _buildProgressBar(String iconPath, String label, double progress, 
-                          Color startColor, Color endColor, Color textColor) {
+  Widget _buildProgressBar(String iconPath, String label, double progress,
+      Color startColor, Color endColor, Color textColor) {
     return Row(
       children: [
         Image.asset(
@@ -255,23 +244,22 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
           Expanded(
             flex: 1,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, 
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatHeader('assets/planet_icon.png', 'Planets Visited:', '2'),
-                
+                _buildStatHeader(
+                    'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionButton(
                   Icons.backpack,
                   () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
                         builder: (context) => const MarketplaceScreen(),
-                    ),
-                    ).then((_) => setState(() {})); 
+                      ),
+                    ).then((_) => setState(() {}));
                   },
                 ),
-                
                 const SizedBox(height: 16),
                 _buildActionButton(
                   Icons.edit,
@@ -281,13 +269,12 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                       MaterialPageRoute(
                         builder: (context) => const EditAstronautScreen(),
                       ),
-                    ).then((_) => setState(() {})); 
+                    ).then((_) => setState(() {}));
                   },
                 ),
               ],
             ),
           ),
-              
           Expanded(
             flex: 1,
             child: Column(
@@ -313,7 +300,6 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                     ),
                   ],
                 ),
-
                 _buildMissionsBox(),
               ],
             ),

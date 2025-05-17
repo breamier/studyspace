@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/widgets/navbar.dart';
 import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 
@@ -63,10 +64,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
                 Text(
                   _isLaunched ? '103' : '93',
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500
-                  ),
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -78,13 +78,15 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
           Positioned.fill(
             child: Image.asset('assets/stars.png', fit: BoxFit.cover),
           ),
-          
           Container(
             color: Colors.black.withOpacity(0.5),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: _isLaunched ? _buildTravelingView() : _buildLaunchView(),
           ),
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: -1,
       ),
     );
   }
@@ -93,28 +95,13 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildProgressBar(
-            'assets/astronaut_icon.png',
-            'HP',
-            1.0, 
-            Colors.red.shade700,
-            Colors.red.shade400,
-            Colors.white
-          ),
-          
+          _buildProgressBar('assets/astronaut_icon.png', 'HP', 1.0,
+              Colors.red.shade700, Colors.red.shade400, Colors.white),
           const SizedBox(height: 12),
-          _buildProgressBar(
-            'assets/rocket_icon.png',
-            'Progress',
-            1.0,
-            Colors.grey.shade500,
-            Colors.grey.shade400,
-            Colors.black
-          ),
-           
+          _buildProgressBar('assets/rocket_icon.png', 'Progress', 1.0,
+              Colors.grey.shade500, Colors.grey.shade400, Colors.black),
           _buildStatsSection(),
           const SizedBox(height: 24),
-
           const Center(
             child: Text(
               "Tap To Launch OFF",
@@ -140,7 +127,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
               child: Center(
                 child: Image.asset(
                   'assets/moon_with_spaceship.png',
-                  fit: BoxFit.contain, 
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -165,7 +152,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          
           const SizedBox(height: 24),
           Image.asset(
             'assets/traveling_astronaut.png',
@@ -177,8 +163,8 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
     );
   }
 
-  Widget _buildProgressBar(String iconPath, String label, double progress, 
-                         Color startColor, Color endColor, Color textColor) {
+  Widget _buildProgressBar(String iconPath, String label, double progress,
+      Color startColor, Color endColor, Color textColor) {
     return Row(
       children: [
         Image.asset(
@@ -244,10 +230,10 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
           Expanded(
             flex: 1,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, 
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatHeader('assets/planet_icon.png', 'Planets Visited:', '2'),
-                
+                _buildStatHeader(
+                    'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionButton(
                   Icons.backpack,
@@ -260,7 +246,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
                     );
                   },
                 ),
-                
                 const SizedBox(height: 16),
                 _buildActionButton(
                   Icons.edit,
@@ -276,7 +261,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
               ],
             ),
           ),
-              
           Expanded(
             flex: 1,
             child: Column(
@@ -302,7 +286,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
                     ),
                   ],
                 ),
-
                 _buildMissionsBox(),
               ],
             ),
