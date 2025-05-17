@@ -50,6 +50,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
               ElevatedButton(
+                onPressed: () {
+                  NotifService().scheduleNotification(
+                    title: "Study Space",
+                    body: "Learn Now!",
+                    hour: 18,
+                    minute: 9,
+                  );
+                },
+                child: const Text('Schedule Notification'),
+              ),
+              ElevatedButton(
                 onPressed: () async {
                   final goal = await IsarService().getFirstGoal();
 

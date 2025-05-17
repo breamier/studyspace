@@ -47,6 +47,8 @@ dependencies:
   flutter_local_notifications: ^19.1.0
   image: ^4.5.4
   lucide_icons: ^0.257.0
+  timezone: ^0.10.1
+  flutter_timezone: ^4.1.0
 
 dev_dependencies:
   flutter_test:
