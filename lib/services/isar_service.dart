@@ -14,6 +14,12 @@ class IsarService extends ChangeNotifier {
     db = openDB();
   }
 
+  // Temporary
+  Future<Goal?> getFirstGoal() async {
+    final isar = await db;
+    return await isar.goals.where().findFirst();
+  }
+
   Goal createGoalObj(String goalName, DateTime start, DateTime end,
       String difficulty, List<Subtopic> subtopics, Id? id) {
     Goal newGoal = Goal()

@@ -10,7 +10,8 @@ class MarketplaceScreen extends StatefulWidget {
   State<MarketplaceScreen> createState() => _SpaceExpressMarketplaceState();
 }
 
-class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with SingleTickerProviderStateMixin {
+class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
+    with SingleTickerProviderStateMixin {
   final Map<String, bool> _clickedButtons = {};
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -19,13 +20,13 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
   String? _selectedItem;
   int? _selectedIndex;
   bool _showResult = false;
-  
+
   final int _itemCost = 50;
-  
+
   List<Map<String, dynamic>> _rouletteItems = [];
-  
+
   final ItemManager _itemManager = ItemManager();
-  
+
   bool _allAstronautsUnlocked = false;
   bool _allSpaceshipsUnlocked = false;
 
@@ -40,7 +41,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
       parent: _controller,
       curve: Curves.easeOutCubic,
     );
-    
+
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
@@ -48,17 +49,19 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
         });
       }
     });
-    
+
     _checkAllItemsUnlocked();
   }
-  
+
   void _checkAllItemsUnlocked() {
     final astronauts = _itemManager.astronauts;
     final spaceships = _itemManager.spaceships;
-    
-    _allAstronautsUnlocked = astronauts.every((item) => item['unlocked'] == true);
-    
-    _allSpaceshipsUnlocked = spaceships.every((item) => item['unlocked'] == true);
+
+    _allAstronautsUnlocked =
+        astronauts.every((item) => item['unlocked'] == true);
+
+    _allSpaceshipsUnlocked =
+        spaceships.every((item) => item['unlocked'] == true);
   }
 
   @override
@@ -79,8 +82,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.black.withOpacity(0.7),
-      automaticallyImplyLeading: false, 
-      leadingWidth: 56, 
+      automaticallyImplyLeading: false,
+      leadingWidth: 56,
       leading: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: Container(
@@ -107,7 +110,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
       ),
       title: const Text(
         "Home",
-        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+        style: TextStyle(
+            color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
       ),
       actions: [
         _buildPointsCounter(),
@@ -121,15 +125,16 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        color: const Color(0xFF2A2A2A), 
+        color: const Color(0xFF2A2A2A),
       ),
       child: Row(
         children: [
           Image.asset('assets/shooting_star.png', width: 25, height: 25),
           const SizedBox(width: 6),
           Text(
-            '${_itemManager.userPoints}', 
-            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
+            '${_itemManager.userPoints}',
+            style: const TextStyle(
+                color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -145,7 +150,6 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
           height: double.infinity,
           fit: BoxFit.cover,
         ),
-        
         Container(
           color: Colors.black.withOpacity(0.5),
           child: SingleChildScrollView(
@@ -167,7 +171,6 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
                     ),
                   ),
                 ),
-                
                 Padding(
                   padding: const EdgeInsets.only(left: 70.0, right: 16.0),
                   child: Column(
@@ -176,29 +179,27 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
                         id: 'astronaut_roulette',
                         image: 'assets/astronaut_roulette1.png',
                         title: 'Astronaut Roulette',
-                        onBuy: () => _attemptPurchase('astronaut_roulette', 'astronaut'),
+                        onBuy: () =>
+                            _attemptPurchase('astronaut_roulette', 'astronaut'),
                         allUnlocked: _allAstronautsUnlocked,
                       ),
-                      
                       const SizedBox(height: 24),
-                      
                       _buildRouletteItem(
                         id: 'spaceship_roulette',
                         image: 'assets/astronaut_roulette2.png',
                         title: 'Spaceship Roulette',
-                        onBuy: () => _attemptPurchase('spaceship_roulette', 'spaceship'),
+                        onBuy: () =>
+                            _attemptPurchase('spaceship_roulette', 'spaceship'),
                         allUnlocked: _allSpaceshipsUnlocked,
                       ),
                     ],
                   ),
                 ),
-                
                 const SizedBox(height: 40),
               ],
             ),
           ),
         ),
-        
         _buildActionButtons(),
       ],
     );
@@ -209,27 +210,26 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
       _clickedButtons[id] = !(_clickedButtons[id] ?? false);
     });
   }
-  
+
   void _attemptPurchase(String id, String itemType) {
     if (_itemManager.userPoints < _itemCost) {
       _showInsufficientPointsDialog();
       return;
     }
-    
-    bool success = _itemManager.deductPoints(_itemCost, 
+
+    bool success = _itemManager.deductPoints(_itemCost,
         reason: 'Purchased $itemType roulette');
-    
+
     if (!success) {
       _showInsufficientPointsDialog();
       return;
     }
-    
-    setState(() {
-    });
-    
+
+    setState(() {});
+
     _startRoulette(id, itemType);
   }
-  
+
   void _showInsufficientPointsDialog() {
     showDialog(
       context: context,
@@ -247,7 +247,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK', style: TextStyle(color: Color(0xFF9CDE7A))),
+              child:
+                  const Text('OK', style: TextStyle(color: Color(0xFF9CDE7A))),
             ),
           ],
         );
@@ -257,42 +258,44 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
 
   void _startRoulette(String id, String itemType) {
     _toggleButtonState(id);
-    
+
     _rouletteItems = [];
-    
+
     if (itemType == 'astronaut') {
       _rouletteItems = _itemManager.astronauts;
     } else {
       _rouletteItems = _itemManager.spaceships;
     }
-    
-    final lockedItems = _rouletteItems.where((item) => item['unlocked'] == false).toList();
-    
+
+    final lockedItems =
+        _rouletteItems.where((item) => item['unlocked'] == false).toList();
+
     if (lockedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You have unlocked all items in this category!'),
           duration: Duration(seconds: 3),
-      ),
-    );
+        ),
+      );
       setState(() {
         _showRoulette = false;
         _clickedButtons[id] = false;
       });
       return;
     }
-  
+
     final random = Random();
     final randomIndex = random.nextInt(lockedItems.length);
     _selectedItem = lockedItems[randomIndex]['name'];
-    _selectedIndex = _rouletteItems.indexWhere((item) => item['name'] == _selectedItem);
-    
+    _selectedIndex =
+        _rouletteItems.indexWhere((item) => item['name'] == _selectedItem);
+
     setState(() {
       _showRoulette = true;
       _currentRouletteId = id;
       _showResult = false;
     });
-    
+
     _controller.reset();
     _controller.forward();
   }
@@ -306,7 +309,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
           height: double.infinity,
           fit: BoxFit.cover,
         ),
-        
+
         // Roulette content
         Container(
           color: Colors.black.withOpacity(0.7),
@@ -322,19 +325,18 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              
               const SizedBox(height: 24),
-              
               Expanded(
-                child: _showResult ? _buildResultView() : _buildSpinningRoulette(),
+                child:
+                    _showResult ? _buildResultView() : _buildSpinningRoulette(),
               ),
-              
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: ElevatedButton(
                   onPressed: _showResult ? _navigateToEditScreen : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _showResult ? const Color(0xFF9CDE7A) : Colors.grey,
+                    backgroundColor:
+                        _showResult ? const Color(0xFF9CDE7A) : Colors.grey,
                     minimumSize: const Size(200, 48),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
@@ -384,7 +386,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
                 clipBehavior: Clip.none,
                 children: [
                   for (int i = 0; i < _rouletteItems.length; i++)
-                    _buildRouletteSegment(i, _rouletteItems[i]['name'], _rouletteItems[i]['image'], _rouletteItems[i]['color']),
+                    _buildRouletteSegment(i, _rouletteItems[i]['name'],
+                        _rouletteItems[i]['image'], _rouletteItems[i]['color']),
                 ],
               ),
             ),
@@ -394,14 +397,18 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
     );
   }
 
-  Widget _buildRouletteSegment(int index, String name, String imagePath, Color? itemColor) {
+  Widget _buildRouletteSegment(
+      int index, String name, String imagePath, Color? itemColor) {
     final double angle = (2 * pi / _rouletteItems.length) * index;
     final double segmentAngle = 2 * pi / _rouletteItems.length;
 
-    final Color segmentColor = itemColor ?? (index % 2 == 0 ? Colors.purple[800]! : Colors.blue[800]!);
-    final Color darkVariant = HSLColor.fromColor(segmentColor).withLightness(
-      (HSLColor.fromColor(segmentColor).lightness - 0.2).clamp(0.0, 1.0),
-    ).toColor();
+    final Color segmentColor =
+        itemColor ?? (index % 2 == 0 ? Colors.purple[800]! : Colors.blue[800]!);
+    final Color darkVariant = HSLColor.fromColor(segmentColor)
+        .withLightness(
+          (HSLColor.fromColor(segmentColor).lightness - 0.2).clamp(0.0, 1.0),
+        )
+        .toColor();
 
     return Transform.rotate(
       angle: angle,
@@ -416,7 +423,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
               end: Alignment.bottomCenter,
               colors: [segmentColor, darkVariant],
             ),
-            border: Border.all(color: Colors.white.withOpacity(0.5), width: 0.5),
+            border:
+                Border.all(color: Colors.white.withOpacity(0.5), width: 0.5),
           ),
         ),
       ),
@@ -426,18 +434,20 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
   Widget _buildResultView() {
     if (_selectedIndex == null || _selectedIndex! >= _rouletteItems.length) {
       return const Center(
-        child: Text('Error: Invalid selection', style: TextStyle(color: Colors.white)),
+        child: Text('Error: Invalid selection',
+            style: TextStyle(color: Colors.white)),
       );
     }
-    
+
     final selectedItem = _rouletteItems[_selectedIndex!];
     final itemColor = selectedItem['color'] as Color?;
-    
+
     final Color baseColor = itemColor ?? Colors.purple;
-    final Color darkVariant = HSLColor.fromColor(baseColor).withLightness(
-      (HSLColor.fromColor(baseColor).lightness - 0.2).clamp(0.0, 1.0)
-    ).toColor();
-    
+    final Color darkVariant = HSLColor.fromColor(baseColor)
+        .withLightness(
+            (HSLColor.fromColor(baseColor).lightness - 0.2).clamp(0.0, 1.0))
+        .toColor();
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -513,20 +523,22 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
   }
 
   void _navigateToEditScreen() {
-    if (_selectedIndex == null || _selectedIndex! >= _rouletteItems.length) return;
-    
-    final selectedItem = Map<String, dynamic>.from(_rouletteItems[_selectedIndex!]);
-    
+    if (_selectedIndex == null || _selectedIndex! >= _rouletteItems.length)
+      return;
+
+    final selectedItem =
+        Map<String, dynamic>.from(_rouletteItems[_selectedIndex!]);
+
     selectedItem['unlocked'] = true;
-    
+
     selectedItem['selected_image'] = selectedItem['image'];
-    
+
     _itemManager.unlockItem(selectedItem['name'], selectedItem['type']);
-    
+
     setState(() {
       _checkAllItemsUnlocked();
     });
-    
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -549,14 +561,13 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
             backgroundColor: Colors.black,
             borderColor: Colors.white,
           ),
-          
           const SizedBox(height: 16),
-          
           _buildActionButton(
             Icons.edit,
             () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const EditAstronautScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const EditAstronautScreen()),
             ),
             backgroundColor: const Color(0xFF333333),
             borderColor: Colors.white,
@@ -590,17 +601,17 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
 
   Widget _buildRouletteItem({
     required String id,
-    required String image, 
+    required String image,
     required String title,
     required VoidCallback onBuy,
     required bool allUnlocked,
   }) {
     final bool isClicked = _clickedButtons[id] ?? false;
-    
-    final Color buttonColor = allUnlocked || isClicked 
+
+    final Color buttonColor = allUnlocked || isClicked
         ? const Color(0xFF7C9061)
         : const Color(0xFF9CDE7A);
-    
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF212121),
@@ -612,7 +623,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
             padding: const EdgeInsets.all(16.0),
             child: _buildRouletteImage(image),
           ),
-          
+
           Text(
             title,
             style: const TextStyle(
@@ -621,7 +632,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
               fontSize: 14,
             ),
           ),
-          
+
           // Item cost display
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
@@ -641,11 +652,11 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
               ],
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
-              onPressed: allUnlocked ? null : onBuy, 
+              onPressed: allUnlocked ? null : onBuy,
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonColor,
                 minimumSize: const Size(double.infinity, 48),
@@ -713,15 +724,15 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen> with Single
 
 class RouletteSegmentClipper extends CustomClipper<Path> {
   final double angle;
-  
+
   RouletteSegmentClipper(this.angle);
-  
+
   @override
   Path getClip(Size size) {
     final path = Path();
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    
+
     path.moveTo(center.dx, center.dy);
     path.lineTo(center.dx, 0);
     path.arcTo(
@@ -731,10 +742,10 @@ class RouletteSegmentClipper extends CustomClipper<Path> {
       false,
     );
     path.close();
-    
+
     return path;
   }
-  
+
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => true;
 }
