@@ -74,8 +74,7 @@ class CustomBottomNavBar extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.book), label: 'Study Goals'),
+                BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Goals'),
                 BottomNavigationBarItem(icon: SizedBox.shrink(), label: ''),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.analytics), label: 'Analytics'),

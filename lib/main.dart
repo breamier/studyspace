@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/services/notif_service.dart';
 import 'package:studyspace/screens/replenished_astronaut_screen.dart';
 import 'package:studyspace/screens/splash_screen.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/study_overview_screen.dart';
-import 'screens/information_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
-import 'screens/analytics_screen.dart';
 import 'screens/astronaut_pet_screen.dart';
 import 'screens/astronaut_traveling_screen.dart';
 import 'services/scheduler.dart';
@@ -98,47 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StudyOverview()),
-                  );
-                },
-                child: const Text('Go to Study Overview'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
                     MaterialPageRoute(builder: (context) => SplashScreen()),
                   );
                 },
                 child: const Text('Go to Splash Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddStudyGoal()),
-                  );
-                },
-                child: const Text('Add Study Goal'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AnalyticsScreen()),
-                  );
-                },
-                child: const Text('Go to Analytics Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const InformationScreen()),
-                  );
-                },
-                child: const Text('Go to Information Screen'),
               ),
               ElevatedButton(
                 onPressed: () {
