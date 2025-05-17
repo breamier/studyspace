@@ -1,7 +1,7 @@
 import 'package:isar/isar.dart';
 import 'goal.dart';
-
 part 'session.g.dart';
+
 
 @Collection()
 class Session {
@@ -10,5 +10,6 @@ class Session {
   late DateTime end;
   late int duration;
   late String imgPath;
+  late String difficulty;
   final goal = IsarLink<Goal>();
 }

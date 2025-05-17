@@ -17,23 +17,28 @@ const SessionSchema = CollectionSchema(
   name: r'Session',
   id: 4817823809690647594,
   properties: {
-    r'duration': PropertySchema(
+    r'difficulty': PropertySchema(
       id: 0,
+      name: r'difficulty',
+      type: IsarType.string,
+    ),
+    r'duration': PropertySchema(
+      id: 1,
       name: r'duration',
       type: IsarType.long,
     ),
     r'end': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'end',
       type: IsarType.dateTime,
     ),
     r'imgPath': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'imgPath',
       type: IsarType.string,
     ),
     r'start': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'start',
       type: IsarType.dateTime,
     )
@@ -65,6 +70,7 @@ int _sessionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.difficulty.length * 3;
   bytesCount += 3 + object.imgPath.length * 3;
   return bytesCount;
 }
@@ -75,10 +81,11 @@ void _sessionSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.duration);
-  writer.writeDateTime(offsets[1], object.end);
-  writer.writeString(offsets[2], object.imgPath);
-  writer.writeDateTime(offsets[3], object.start);
+  writer.writeString(offsets[0], object.difficulty);
+  writer.writeLong(offsets[1], object.duration);
+  writer.writeDateTime(offsets[2], object.end);
+  writer.writeString(offsets[3], object.imgPath);
+  writer.writeDateTime(offsets[4], object.start);
 }
 
 Session _sessionDeserialize(
@@ -88,11 +95,12 @@ Session _sessionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Session();
-  object.duration = reader.readLong(offsets[0]);
-  object.end = reader.readDateTime(offsets[1]);
+  object.difficulty = reader.readString(offsets[0]);
+  object.duration = reader.readLong(offsets[1]);
+  object.end = reader.readDateTime(offsets[2]);
   object.id = id;
-  object.imgPath = reader.readString(offsets[2]);
-  object.start = reader.readDateTime(offsets[3]);
+  object.imgPath = reader.readString(offsets[3]);
+  object.start = reader.readDateTime(offsets[4]);
   return object;
 }
 
@@ -104,12 +112,14 @@ P _sessionDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
-    case 1:
-      return (reader.readDateTime(offset)) as P;
-    case 2:
       return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readDateTime(offset)) as P;
     case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -206,6 +216,136 @@ extension SessionQueryWhere on QueryBuilder<Session, Session, QWhereClause> {
 
 extension SessionQueryFilter
     on QueryBuilder<Session, Session, QFilterCondition> {
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'difficulty',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'difficulty',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'difficulty',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> difficultyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'difficulty',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterFilterCondition> durationEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -568,6 +708,18 @@ extension SessionQueryLinks
 }
 
 extension SessionQuerySortBy on QueryBuilder<Session, Session, QSortBy> {
+  QueryBuilder<Session, Session, QAfterSortBy> sortByDifficulty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByDifficultyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.desc);
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterSortBy> sortByDuration() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'duration', Sort.asc);
@@ -619,6 +771,18 @@ extension SessionQuerySortBy on QueryBuilder<Session, Session, QSortBy> {
 
 extension SessionQuerySortThenBy
     on QueryBuilder<Session, Session, QSortThenBy> {
+  QueryBuilder<Session, Session, QAfterSortBy> thenByDifficulty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByDifficultyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.desc);
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterSortBy> thenByDuration() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'duration', Sort.asc);
@@ -682,6 +846,13 @@ extension SessionQuerySortThenBy
 
 extension SessionQueryWhereDistinct
     on QueryBuilder<Session, Session, QDistinct> {
+  QueryBuilder<Session, Session, QDistinct> distinctByDifficulty(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'difficulty', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Session, Session, QDistinct> distinctByDuration() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'duration');
@@ -713,6 +884,12 @@ extension SessionQueryProperty
   QueryBuilder<Session, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Session, String, QQueryOperations> difficultyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'difficulty');
     });
   }
 
