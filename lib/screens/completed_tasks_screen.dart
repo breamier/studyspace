@@ -101,11 +101,6 @@ class CompletedTasksScreen extends StatelessWidget {
         ),
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: 3,
-          onTap: (index) {
-            if (index != 3) {
-              Navigator.pop(context);
-            }
-          },
         ));
   }
 }

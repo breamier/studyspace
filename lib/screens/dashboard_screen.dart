@@ -10,9 +10,12 @@ import 'package:studyspace/screens/analytics_screen.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import 'navbar.dart';
 =======
 import '../study-session/study_session_camera.dart';
+=======
+>>>>>>> cf38c09633fc193d939fe4db39109309aa55715c
 import '../widgets/navbar.dart';
 >>>>>>> 56ace96e702f151eb156b261d4b52dc8e6113e9b
 
@@ -34,6 +37,11 @@ final TextStyle kHeadingFont = const TextStyle(
       offset: Offset(0, 0),
     ),
   ],
+);
+
+final TextStyle noGlowHeading = kHeadingFont.copyWith(
+  fontSize: 14,
+  shadows: [],
 );
 
 final TextStyle kBodyFont = const TextStyle(
@@ -140,79 +148,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    switch (index) {
-      case 0:
-        setState(() {
-          _selectedIndex = index;
-        });
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const StudyOverview()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-      case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddStudyGoal()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-      case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AnalyticsScreen()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-      case 4:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings screen coming soon!')),
-        );
-        setState(() {
-          _selectedIndex = 0;
-        });
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kOnyx,
+      appBar: AppBar(
         backgroundColor: kOnyx,
-        appBar: AppBar(
-          backgroundColor: kOnyx,
-          elevation: 0,
-          title: Text(
-            'Study Space',
-            style: kHeadingFont,
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh, color: kWhite),
-              onPressed: _refreshGoals,
-            ),
-            IconButton(
-              icon: const Icon(Icons.help_outline, color: kWhite),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const InformationScreen()),
-                );
-              },
-            ),
-          ],
+        elevation: 0,
+        title: Text(
+          'Study Space',
+          style: kHeadingFont,
         ),
-        body: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/stars.png'),
-              fit: BoxFit.cover,
-            ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: kWhite),
+            onPressed: _refreshGoals,
           ),
+<<<<<<< HEAD
           child: FutureBuilder<List<Goal>>(
             future: _goalsFuture,
             builder: (context, snapshot) {
@@ -352,18 +304,174 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 80),
                   ],
                 ),
+=======
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: kWhite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const InformationScreen()),
+>>>>>>> cf38c09633fc193d939fe4db39109309aa55715c
               );
             },
           ),
+        ],
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/stars.png'),
+            fit: BoxFit.cover,
+          ),
         ),
-        bottomNavigationBar: CustomBottomNavBar(
-          currentIndex: 0,
-          onTap: (index) {
-            if (index != 3) {
-              Navigator.pop(context);
+        child: FutureBuilder<List<Goal>>(
+          future: _goalsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
             }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            final goals = snapshot.data ?? [];
+            final currentGoals = goals.where((g) => g.isCurrent).toList();
+            final upcomingGoals = goals.where((g) => g.isUpcoming).toList();
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Current Study Goals
+                  if (currentGoals.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    sectionTitle("Today's Study Goal"),
+                    const SizedBox(height: 10),
+                    for (final goal in currentGoals)
+                      studyGoalTile(
+                        '📖 ${goal.goalName}',
+                        'Study Now',
+                        date: DateFormat('dd / MM / yyyy').format(goal.end),
+                        isToday: DateUtils.isSameDay(goal.end, DateTime.now()),
+                      )
+                  ] else ...[
+                    // Today's Study Goals
+                    const SizedBox(height: 10),
+                    sectionTitle("Today's Study Goal"),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'No study goals today',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+
+                  // Upcoming Study Goals
+                  if (upcomingGoals.isNotEmpty) ...[
+                    const SizedBox(height: 30),
+                    sectionTitle('Upcoming Study Goals'),
+                    const SizedBox(height: 10),
+                    for (final goal in upcomingGoals)
+                      studyGoalTile(
+                        '📖 ${goal.goalName}',
+                        'View',
+                        date: DateFormat('dd / MM / yyyy').format(goal.start),
+                      ),
+                  ] else ...[
+                    const SizedBox(height: 30),
+                    sectionTitle('Upcoming Study Goals'),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'No upcoming study goals',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+
+                  // Mission Board
+                  const SizedBox(height: 30),
+                  sectionTitle('Mission Board'),
+                  const SizedBox(height: 10),
+                  FutureBuilder<List<Mission>>(
+                    future: _missionsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final missions = snapshot.data ?? [];
+                      final displayedMissions = missions.take(3).toList();
+
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: kWhite),
+                          color: const Color.fromARGB(40, 189, 183, 183),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var i = 0; i < displayedMissions.length; i++)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
+                                  style: kBodyFont.copyWith(fontSize: 14),
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 30.0),
+                                    child: Image.asset(
+                                      'assets/austronaut.png',
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AstronautPetScreen(),
+                                        ),
+                                      );
+                                    },
+                                    label: Text(
+                                      'Visit your\nAstronaut >>',
+                                      style:
+                                          noGlowHeading.copyWith(fontSize: 14),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            );
           },
-        ));
+        ),
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 0,
+      ),
+    );
   }
 
   Widget sectionTitle(String title) {
@@ -376,7 +484,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget studyGoalTile(String title, String buttonText, Id goalId,
+  Widget studyGoalTile(String title, String buttonText,
       {String? date, bool isToday = false}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -440,9 +548,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => StudySessionCamera(goalId: goalId,)));
-            },
+            onPressed: () {},
             child: Text(buttonText, style: kBodyFont),
           )
         ],
