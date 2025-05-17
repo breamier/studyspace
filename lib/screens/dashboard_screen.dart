@@ -4,9 +4,6 @@ import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
 import 'package:studyspace/services/isar_service.dart';
-import 'package:studyspace/screens/study_overview_screen.dart';
-import 'package:studyspace/screens/add_study_goal.dart';
-import 'package:studyspace/screens/analytics_screen.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
 import 'package:studyspace/item_manager.dart';
@@ -61,7 +58,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final ItemManager _itemManager = ItemManager();
   late Future<List<Goal>> _goalsFuture;
   late Future<List<Mission>> _missionsFuture;
-  int _selectedIndex = 0;
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
   late final ValueNotifier<bool> _itemChangeNotifier;
@@ -82,17 +78,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
     _getCurrentItems();
-    
+
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
   }
-  
+
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
     super.dispose();
   }
-  
+
   void _handleItemChanged() {
     if (mounted) {
       _getCurrentItems();
@@ -105,29 +101,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _currentSpaceship = _itemManager.getCurrentSpaceship();
     });
   }
-  
+
   String _getDisplayImage() {
     if (_currentAstronaut == null && _currentSpaceship == null) {
       return 'assets/moon_with_astronaut.png';
     }
-    
+
     final astronaut = _currentAstronaut;
     final spaceship = _currentSpaceship;
-    
-    String? astronautColor = astronaut != null && astronaut['current'] == true ? 
-        astronaut['name'].split(' ')[0].toLowerCase() : null;
-    
-    String? spaceshipColor = spaceship != null && spaceship['current'] == true ? 
-        spaceship['name'].split(' ')[0].toLowerCase() : null;
-    
+
+    String? astronautColor = astronaut != null && astronaut['current'] == true
+        ? astronaut['name'].split(' ')[0].toLowerCase()
+        : null;
+
+    String? spaceshipColor = spaceship != null && spaceship['current'] == true
+        ? spaceship['name'].split(' ')[0].toLowerCase()
+        : null;
+
     if (spaceshipColor != null) {
       return 'assets/moon_with_${spaceshipColor}_spaceship.png';
     }
-    
+
     if (astronautColor != null) {
       return 'assets/moon_with_${astronautColor}_astronaut.png';
     }
-    
+
     return 'assets/moon_with_astronaut.png';
   }
 
@@ -231,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         studyGoalTile(
                           '📖 ${goal.goalName}',
                           'View',
-                           goal.id,
+                          goal.id,
                           date: DateFormat('dd / MM / yyyy').format(goal.start),
                         ),
                     ] else ...[
@@ -322,11 +320,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: 0,
-          onTap: (index) {
-            if (index != 3) {
-              Navigator.pop(context);
-            }
-          },
         ));
   }
 
@@ -405,7 +398,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => StudySessionCamera(goalId: goalId,)));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => StudySessionCamera(
+                            goalId: goalId,
+                          )));
             },
             child: Text(buttonText, style: kBodyFont),
           )
