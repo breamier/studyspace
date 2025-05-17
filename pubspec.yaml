@@ -46,6 +46,7 @@ dependencies:
   flutter_cube: ^0.1.1
   flutter_local_notifications: ^19.1.0
   image: ^4.5.4
+  lucide_icons: ^0.257.0
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +86,7 @@ flutter:
     - assets/mascot6.png
     - assets/rocket_icon.png
     - assets/astronaut_icon.png
+    - assets/austronaut.png
     - assets/moon_with_astronaut.png
     - assets/planet_icon.png
     - assets/Satellite_icon.png
@@ -119,7 +121,6 @@ flutter:
     - assets/black_spaceship.png
     - assets/blue_spaceship.png
     - assets/purple_spaceship.png
-
 
     - assets/choco1.jpg
     - assets/choco2.jpg
