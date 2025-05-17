@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
