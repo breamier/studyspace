@@ -279,23 +279,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               const SizedBox(height: 10),
                               Align(
                                 alignment: Alignment.bottomRight,
-                                child: TextButton.icon(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const AstronautPetScreen()),
-                                    );
-                                  },
-                                  icon: const Icon(
-                                      Icons.emoji_emotions_outlined,
-                                      color: kWhite,
-                                      size: 18),
-                                  label: Text(
-                                    'Visit your Astronaut >>',
-                                    style: kBodyFont.copyWith(fontSize: 14),
-                                  ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 30.0),
+                                      child: Image.asset(
+                                        'assets/austronaut.png',
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const AstronautPetScreen(),
+                                          ),
+                                        );
+                                      },
+                                      label: Text(
+                                        'Visit your\nAstronaut >>',
+                                        style: noGlowHeading.copyWith(
+                                            fontSize: 14),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
