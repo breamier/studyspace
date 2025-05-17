@@ -47,13 +47,12 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   }
 
   Future<void> _loadGoal() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = false);
     try {
       final goal = await _isarService.getGoalById(widget.goalId);
       if (mounted) {
         setState(() {
           _goal = goal;
-          setState(() => _isLoading = false);
         });
       }
     } catch (e) {
@@ -115,7 +114,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
             // Mission Board
             Spacer(),
             Padding(
-                padding: EdgeInsets.symmetric(horizontal:  MediaQuery.of(context).size.width * 0.045),
+                padding: EdgeInsets.symmetric(horizontal: MediaQuery.sizeOf(context).width * 0.045),
                 child: FutureBuilder<List<Mission>>(
                   future: _missionsFuture,
                   builder: (context, snapshot) {

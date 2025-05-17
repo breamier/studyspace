@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:studyspace/models/goal.dart';
-import 'package:studyspace/models/mission.dart';
-import 'package:studyspace/models/session.dart';
+import '../models/mission.dart';
+import '../models/session.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -72,6 +72,13 @@ class IsarService extends ChangeNotifier {
   Future<void> updateGoal(Goal goal) async {
     final isar = await db;
     await isar.writeTxn(() => isar.goals.put(goal));
+    notifyListeners();
+  }
+
+  Future<void> updateSubtopic(Goal goal, Subtopic subtopic) async {
+    goal.subtopics.where((sub) => sub.id == subtopic.id).elementAt(0).name =
+        subtopic.name;
+    updateGoal(goal);
     notifyListeners();
   }
 
@@ -145,9 +152,29 @@ class IsarService extends ChangeNotifier {
   }
 
   // Session Methods
-  Future<void> addSession(Session newSession) async {
+  Future<Session> createSessionObj(DateTime start, DateTime end, int duration,
+      String imgPath, String difficulty, Goal goal) async {
+    Session newSession = Session()
+      ..difficulty = difficulty
+      ..imgPath = imgPath
+      ..duration = duration
+      ..start = start
+      ..end = end;
+    return newSession;
+  }
+
+  Future<void> addSession(Session newSession, Goal goal) async {
     final isar = await db;
-    isar.writeTxnSync<int>(() => isar.sessions.putSync(newSession));
+    print(newSession.difficulty);
+    print(newSession.imgPath);
+    goal.sessions.add(newSession);
+    await isar.writeTxn(() async {
+      await isar.goals.put(goal);
+      await isar.   sessions.put(newSession);
+      await newSession.goal.save();
+      await goal.sessions.save();
+    });
+    // update next session here
     print("Session added successfully!");
   }
 }
