@@ -12,6 +12,7 @@ import 'services/scheduler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // await AndroidAlarmManager.initialize();
   await NotifService().initNotification();
   runApp(const StudySpaceApp());
 }
@@ -51,14 +52,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: <Widget>[
               ElevatedButton(
                 onPressed: () {
-                  NotifService().scheduleNotification(
-                    title: "Study Space",
-                    body: "Learn Now!",
-                    hour: 18,
-                    minute: 9,
-                  );
+                  NotifService().scheduleDailyCustomNotifications();
                 },
                 child: const Text('Schedule Notification'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().scheduleNotification(
+                      title: "TEST",
+                      body: "Scheduled",
+                      dateTime:
+                          DateTime(2025, 5, 17, 22, 54)); // change time to test
+                },
+                child: const Text('Schedule single Notification'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().printScheduledNotifications();
+                },
+                child: const Text('Show Scheduled Notifications'),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -157,7 +169,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   NotifService().showNotification(
-                      title: "Study Space", body: "Learn Now!");
+                    title: "Study Space 🌌",
+                    body: "🌠 Study stars are aligning just for you!",
+                  );
                 },
                 child: const Text('Show Notification'),
               ),

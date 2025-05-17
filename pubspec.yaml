@@ -49,6 +49,7 @@ dependencies:
   lucide_icons: ^0.257.0
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
+  android_alarm_manager_plus: ^4.0.7
 
 dev_dependencies:
   flutter_test:

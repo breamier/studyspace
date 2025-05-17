@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io' as io;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:studyspace/constants/custom_notifications.dart';
 
 class NotifService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -73,26 +75,24 @@ class NotifService {
   }
 
   // Scheduled Notification
-  Future<void> scheduleNotification(
-      {int id = 1,
-      required String title,
-      required String body,
-      required int hour,
-      required int minute}) async {
+  Future<void> scheduleNotification({
+    int id = 1,
+    required String title,
+    required String body,
+    required DateTime dateTime,
+  }) async {
     if (!_isInitialized) {
       await initNotification();
     }
     // Get current DateTime
     final now = tz.TZDateTime.now(tz.local);
 
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
+    final scheduledDate = tz.TZDateTime.from(dateTime, tz.local);
+
+    if (scheduledDate.isBefore(now)) {
+      print("Scheduled time is in the past. Skip");
+      return;
+    }
 
     // Schedule Notification
     await notificationsPlugin.zonedSchedule(
@@ -100,16 +100,67 @@ class NotifService {
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time);
 
-    if (scheduledDate.isBefore(now)) {
-      print("Scheduled time is in the past. Skipping...");
-      return;
-    } else {
-      print("_________Scheduled Notif_______$hour:$minute ____");
-    }
+    print("_________Scheduled Notif_______$scheduledDate ____");
   }
 
   // Cancel Notification
   Future<void> cancelAllNotifications() async {
     await notificationsPlugin.cancelAll();
   }
+
+  Future<void> printScheduledNotifications() async {
+    final notifications =
+        await notificationsPlugin.pendingNotificationRequests();
+    for (var notif in notifications) {
+      print('🔔 ID: ${notif.id}, Title: ${notif.title}, Body: ${notif.body}');
+    }
+  }
+
+  Future<void> scheduleDailyCustomNotifications() async {
+    await cancelAllNotifications();
+
+    final now = DateTime.now();
+    final random = Random();
+
+    for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
+      final date = now.add(Duration(days: dayOffset));
+
+      // 8:00 AM Notification
+      await scheduleNotification(
+        id: dayOffset * 2,
+        title: "Study Space 🛰️",
+        body: customNotificationMessages[
+            random.nextInt(customNotificationMessages.length)],
+        dateTime: DateTime(date.year, date.month, date.day, 23, 30),
+      );
+
+      // Random Time Notification (between 10AM and 8PM)
+      final randomHour = 10 + random.nextInt(10);
+      await scheduleNotification(
+        id: dayOffset * 2 + 1,
+        title: "Study Space 🌌",
+        body: customNotificationMessages[
+            random.nextInt(customNotificationMessages.length)],
+        dateTime: DateTime(date.year, date.month, date.day, randomHour),
+      );
+    }
+  }
+
+  static void scheduleDailyNotifStatic() {
+    scheduleDailyNotifCallback();
+  }
+}
+
+@pragma('vm:entry-point') // For background notif
+void scheduleDailyNotifCallback() async {
+  final service = NotifService();
+  await service.initNotification();
+  await service.scheduleDailyCustomNotifications();
+
+  print("Scheduling notifications...");
+
+  await service.showNotification(
+    title: "Test Notification",
+    body: "Alarm triggered at ${DateTime.now()}",
+  );
 }
