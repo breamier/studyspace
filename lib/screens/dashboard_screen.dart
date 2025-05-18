@@ -47,14 +47,14 @@ const Color kOnyx = Color(0xFF0E0E0E);
 const Color kWhite = Colors.white;
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final IsarService isar;
+  const DashboardScreen({super.key, required this.isar});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final IsarService _isarService = IsarService();
   final ItemManager _itemManager = ItemManager();
   late Future<List<Goal>> _goalsFuture;
   late Future<List<Mission>> _missionsFuture;
@@ -75,8 +75,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _refreshGoals();
-    _isarService.initializeDailyMissions(_allMissions);
-    _missionsFuture = _isarService.getMissions();
+    widget.isar.initializeDailyMissions(_allMissions);
+    _missionsFuture = widget.isar.getMissions();
     _getCurrentItems();
 
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
@@ -130,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<List<Goal>> _fetchGoals() async {
-    final isar = await _isarService.db;
+    final isar = await widget.isar.db;
     return await isar.goals.where().findAll();
   }
 
@@ -299,7 +299,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                const AstronautPetScreen(),
+                                                AstronautPetScreen(
+                                                    isar: widget.isar),
                                           ),
                                         );
                                       },
@@ -334,6 +335,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: 0,
+          isar: widget.isar,
         ));
   }
 

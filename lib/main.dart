@@ -33,7 +33,7 @@ class StudySpaceApp extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
-  final service = IsarService();
+  final isar = IsarService();
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -108,7 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const DashboardScreen()),
+                        builder: (context) =>
+                            DashboardScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Dashboard'),
@@ -117,7 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => SplashScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => SplashScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Splash Screen'),
@@ -140,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const AstronautPetScreen()),
+                        builder: (context) =>
+                            AstronautPetScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Astronaut Pet Screen'),
@@ -150,7 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const AstronautTravelScreen()),
+                        builder: (context) =>
+                            AstronautTravelScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Astronaut Traveling Screen'),
@@ -177,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  widget.service.clearDb();
+                  widget.isar.clearDb();
                 },
                 child: const Text('Clear Database'),
               )

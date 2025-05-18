@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/widgets/navbar.dart';
 import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 
 class AstronautTravelScreen extends StatefulWidget {
-  const AstronautTravelScreen({Key? key}) : super(key: key);
+  final IsarService isar;
+  const AstronautTravelScreen({Key? key, required this.isar}) : super(key: key);
 
   @override
   State<AstronautTravelScreen> createState() => _AstronautTravelScreenState();
@@ -87,6 +89,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> {
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: -1,
+        isar: widget.isar,
       ),
     );
   }

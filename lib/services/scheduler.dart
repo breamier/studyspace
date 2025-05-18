@@ -170,17 +170,18 @@ class Scheduler {
     final middleDates = goal.upcomingSessionDates
         .sublist(1, goal.upcomingSessionDates.length - 1);
 
-    final postponedDate = todayDate.add(const Duration(days: 1));
-
     if (todayDate.isBefore(middleDates.first)) {
       // Case 1: today < first middle session
+      final postponedDate = middleDates.first.add(const Duration(days: 1));
       middleDates[0] = postponedDate;
     } else if (todayDate.isAfter(middleDates.first)) {
       // Case 2: today > first middle session
+      final postponedDate = todayDate.add(const Duration(days: 1));
       middleDates.removeWhere((d) => d.isBefore(todayDate));
       middleDates.insert(0, postponedDate);
     } else {
       // Case 3: today == first middle session
+      final postponedDate = todayDate.add(const Duration(days: 1));
       middleDates.add(postponedDate);
     }
 

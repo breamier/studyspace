@@ -6,14 +6,14 @@ import 'package:studyspace/widgets/navbar.dart';
 import './topic_overview_screen.dart';
 
 class StudyOverview extends StatefulWidget {
-  const StudyOverview({super.key});
+  final IsarService isar;
+  const StudyOverview({super.key, required this.isar});
 
   @override
   State<StudyOverview> createState() => _StudyOverviewState();
 }
 
 class _StudyOverviewState extends State<StudyOverview> {
-  final IsarService _isarService = IsarService();
   // get list of goals in isar
   late Future<List<Goal>> _goals;
   final TextEditingController _searchController = TextEditingController();
@@ -35,7 +35,7 @@ class _StudyOverviewState extends State<StudyOverview> {
 
   void _refreshGoals() {
     setState(() {
-      _goals = _isarService.getAllGoals();
+      _goals = widget.isar.getAllGoals();
     });
   }
 
@@ -209,9 +209,8 @@ class _StudyOverviewState extends State<StudyOverview> {
           ),
         ),
       ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 1,
-      ),
+      bottomNavigationBar:
+          CustomBottomNavBar(currentIndex: 1, isar: widget.isar),
     );
   }
 }
