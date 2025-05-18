@@ -60,6 +60,7 @@ class NotifService {
       'study_space_id',
       'Study Space',
       channelDescription: 'Study Space',
+      icon: 'ic_stat_logo',
       importance: Importance.high,
       priority: Priority.high,
       ticker: 'ticker',

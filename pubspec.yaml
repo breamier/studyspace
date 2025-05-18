@@ -50,6 +50,12 @@ dependencies:
   timezone: ^0.10.1
   flutter_timezone: ^4.1.0
   android_alarm_manager_plus: ^4.0.7
+  flutter_launcher_icons: ^0.14.3
+
+flutter_icons:
+  android: true
+  image_path: "assets/logo.png"
+  adaptive_icon_foreground: "assets/logo_foreground.png"
 
 dev_dependencies:
   flutter_test:
