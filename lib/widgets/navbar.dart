@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:studyspace/screens/dashboard_screen.dart'; // index 0
 import 'package:studyspace/screens/study_overview_screen.dart'; // index 1
 import 'package:studyspace/screens/add_study_goal.dart'; // index 2 (FAB)
-import 'package:studyspace/screens/analytics_screen.dart'; // index 3
+import 'package:studyspace/screens/analytics_screen.dart';
+import 'package:studyspace/services/isar_service.dart'; // index 3
 // import 'package:studyspace/screens/settings_screen.dart';       // index 4
 
 const Color kPurple = Color(0xFF6C44DD);
@@ -12,10 +13,12 @@ const Color kDarkGray = Color(0xFF161616);
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
+  final IsarService isar;
 
   const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
+    required this.isar,
   });
 
   void _handleNavigation(BuildContext context, int index) {
@@ -23,22 +26,22 @@ class CustomBottomNavBar extends StatelessWidget {
 
     switch (index) {
       case 0:
-        screen = const DashboardScreen();
+        screen = DashboardScreen(isar: isar);
         break;
       case 1:
-        screen = const StudyOverview();
+        screen = StudyOverview(isar: isar);
         break;
       case 2:
         screen = const AddStudyGoal();
         break;
       case 3:
-        screen = const AnalyticsScreen();
+        screen = AnalyticsScreen(isar: isar);
         break;
       // case 4:
       //   screen = const SettingsScreen();
       //   break;
       default:
-        screen = const DashboardScreen();
+        screen = DashboardScreen(isar: isar);
     }
 
     Navigator.pushReplacement(
@@ -74,8 +77,7 @@ class CustomBottomNavBar extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.book), label: 'Study Goals'),
+                BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Goals'),
                 BottomNavigationBarItem(icon: SizedBox.shrink(), label: ''),
                 BottomNavigationBarItem(
                     icon: Icon(Icons.analytics), label: 'Analytics'),

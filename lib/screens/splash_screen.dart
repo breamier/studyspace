@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/services/isar_service.dart';
 import 'tutorial_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final IsarService isar;
+  const SplashScreen({super.key, required this.isar});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -40,8 +42,10 @@ class _SplashScreenState extends State<SplashScreen> {
                         borderRadius: BorderRadius.circular(12)),
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                   ),
-                  onPressed: () => Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => TutorialScreen())),
+                  onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => TutorialScreen(isar: widget.isar))),
                   child: Text('Get Started', style: TextStyle(fontSize: 16)),
                 ),
             ],

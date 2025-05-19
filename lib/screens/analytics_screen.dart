@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/services/analytics.dart';
+import 'package:studyspace/services/isar_service.dart';
 import 'completed_tasks_screen.dart';
 import '../widgets/navbar.dart';
 
@@ -28,7 +30,9 @@ final TextStyle kBodyFont = TextStyle(
 );
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({super.key});
+  final IsarService isar;
+
+  const AnalyticsScreen({super.key, required this.isar});
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -108,6 +112,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final analytics = Analytics(widget.isar);
+
     return Scaffold(
       backgroundColor: kOnyx,
       appBar: AppBar(
@@ -140,7 +146,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           children: [
             daySection(),
             const SizedBox(height: 20),
-            statsGrid(),
+            statsGrid(analytics),
             const SizedBox(height: 24),
             seeFinishedGoalsButton(),
           ],
@@ -148,6 +154,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: 3,
+        isar: widget.isar,
       ),
     );
   }
@@ -275,28 +282,33 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Wrap(children: chips);
   }
 
-  Widget statsGrid() {
-    final stats = [
-      ['Total Learning Goals', '5'],
-      ['Sessions Completed', '9'],
-      ['Total Study Time', '14h 34m'],
-      ['Avg Session Duration', '1h 35m'],
-      ['Focus Streak', '4 days'],
-      ['Longest Study Session', '3h 20m'],
-    ];
+  Widget statsGrid(Analytics analytics) {
+    return FutureBuilder<List<List<String>>>(
+      future: analytics.getStatsSummary(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
 
-    double cardWidth = MediaQuery.of(context).size.width * 0.44;
+        final stats = snapshot.data!;
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: stats.map((s) {
-        return SizedBox(
-          width: cardWidth,
-          height: 100,
-          child: statCard(s[0], s[1]),
-        );
-      }).toList(),
+        return LayoutBuilder(builder: (context, constraints) {
+          double cardWidth = (constraints.maxWidth - 12) / 2;
+
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: stats.map((s) {
+              return SizedBox(
+                width: cardWidth,
+                child: statCard(s[0], s[1]),
+              );
+            }).toList(),
+          );
+        });
+      },
     );
   }
 
@@ -336,7 +348,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const CompletedTasksScreen(),
+              builder: (context) => CompletedTasksScreen(isar: widget.isar),
             ),
           );
         },

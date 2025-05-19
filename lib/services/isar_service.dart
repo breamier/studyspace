@@ -170,11 +170,16 @@ class IsarService extends ChangeNotifier {
     goal.sessions.add(newSession);
     await isar.writeTxn(() async {
       await isar.goals.put(goal);
-      await isar.   sessions.put(newSession);
+      await isar.sessions.put(newSession);
       await newSession.goal.save();
       await goal.sessions.save();
     });
     // update next session here
     print("Session added successfully!");
+  }
+
+  Future<List<Session>> getAllSessions() async {
+    final isar = await db;
+    return await isar.sessions.where().sortByEnd().findAll();
   }
 }

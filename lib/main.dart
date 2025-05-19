@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:studyspace/screens/add_study_goal.dart';
 import 'package:studyspace/services/notif_service.dart';
 import 'package:studyspace/screens/replenished_astronaut_screen.dart';
 import 'package:studyspace/screens/splash_screen.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/study_overview_screen.dart';
-import 'screens/information_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
-import 'screens/analytics_screen.dart';
 import 'screens/astronaut_pet_screen.dart';
 import 'screens/astronaut_traveling_screen.dart';
 import 'services/scheduler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // await AndroidAlarmManager.initialize();
   await NotifService().initNotification();
   runApp(const StudySpaceApp());
 }
@@ -36,7 +33,7 @@ class StudySpaceApp extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
-  final service = IsarService();
+  final isar = IsarService();
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -53,6 +50,28 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().scheduleDailyCustomNotifications();
+                },
+                child: const Text('Schedule Notification'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().scheduleNotification(
+                      title: "TEST",
+                      body: "Scheduled",
+                      dateTime:
+                          DateTime(2025, 5, 17, 22, 54)); // change time to test
+                },
+                child: const Text('Schedule single Notification'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotifService().printScheduledNotifications();
+                },
+                child: const Text('Show Scheduled Notifications'),
+              ),
               ElevatedButton(
                 onPressed: () async {
                   final goal = await IsarService().getFirstGoal();
@@ -89,7 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const DashboardScreen()),
+                        builder: (context) =>
+                            DashboardScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Dashboard'),
@@ -98,47 +118,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => StudyOverview()),
-                  );
-                },
-                child: const Text('Go to Study Overview'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SplashScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => SplashScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Splash Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddStudyGoal()),
-                  );
-                },
-                child: const Text('Add Study Goal'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AnalyticsScreen()),
-                  );
-                },
-                child: const Text('Go to Analytics Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const InformationScreen()),
-                  );
-                },
-                child: const Text('Go to Information Screen'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -158,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const AstronautPetScreen()),
+                        builder: (context) =>
+                            AstronautPetScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Astronaut Pet Screen'),
@@ -168,7 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const AstronautTravelScreen()),
+                        builder: (context) =>
+                            AstronautTravelScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Astronaut Traveling Screen'),
@@ -187,13 +173,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   NotifService().showNotification(
-                      title: "Study Space", body: "Learn Now!");
+                    title: "Study Space 🌌",
+                    body: "🌠 Study stars are aligning just for you!",
+                  );
                 },
                 child: const Text('Show Notification'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  widget.service.clearDb();
+                  widget.isar.clearDb();
                 },
                 child: const Text('Clear Database'),
               )

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/screens/dashboard_screen.dart';
+import 'package:studyspace/services/isar_service.dart';
 
 class TutorialScreen extends StatefulWidget {
-  const TutorialScreen({super.key});
+  final IsarService isar;
+  const TutorialScreen({super.key, required this.isar});
 
   @override
   _TutorialScreenState createState() => _TutorialScreenState();
@@ -24,8 +26,8 @@ class _TutorialScreenState extends State<TutorialScreen> {
     fontFamily: 'Arimo',
   );
 
-  void _goToDashboard() => Navigator.pushReplacement(
-      context, MaterialPageRoute(builder: (_) => DashboardScreen()));
+  void _goToDashboard() => Navigator.pushReplacement(context,
+      MaterialPageRoute(builder: (_) => DashboardScreen(isar: widget.isar)));
 
   @override
   Widget build(BuildContext context) {
