@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/services/isar_service.dart';
 import '../widgets/navbar.dart';
+import 'dart:io';
 
 final Color kPurple = Color(0xFF9B59B6);
 
@@ -21,29 +22,29 @@ final TextStyle kBodyFont = TextStyle(
   color: Colors.white,
 );
 
-final List<Map<String, dynamic>> completedTasks = [
+final List<Map<String, dynamic>> CompletedGoals = [
   {
     'date': 'April 29, 2025',
     'tasks': [
       {
         'title': 'Pumping Lemma',
-        'subject': 'Automata Theory',
         'timeSpent': '5h 56m',
         'subtopics': [
           {
             'title': 'Algebraic laws for regular expressions',
-            'time': '3h 2m',
           },
           {
             'title': 'Pumping lemma for regular languages',
-            'time': '2h 54m',
           },
+        ],
+        'sessions': [
+          {'date': 'April 29, 2025', 'time': "2h 54m"},
+          {'date': 'April 29, 2025', 'time': "2h 54m"}
         ],
         'images': ['choco1.jpg', 'choco2.jpg', 'choco3.jpg'],
       },
       {
         'title': 'DFA Minimization',
-        'subject': 'Automata Theory',
         'timeSpent': '2h 15m',
       },
     ]
@@ -53,16 +54,29 @@ final List<Map<String, dynamic>> completedTasks = [
     'tasks': [
       {
         'title': 'Turing Machines',
-        'subject': 'Automata Theory',
         'timeSpent': '4h 10m',
       },
     ]
   }
 ];
 
-class CompletedTasksScreen extends StatelessWidget {
+class CompletedGoalsScreen extends StatefulWidget {
   final IsarService isar;
-  const CompletedTasksScreen({super.key, required this.isar});
+  const CompletedGoalsScreen({super.key, required this.isar});
+
+  @override
+  State<CompletedGoalsScreen> createState() => _CompletedGoalsScreenState();
+}
+
+class _CompletedGoalsScreenState extends State<CompletedGoalsScreen> {
+  late Future<List<Map<String, dynamic>>> _completedGoalsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final isarService = IsarService();
+    _completedGoalsFuture = isarService.getCompletedGoals();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,28 +96,33 @@ class CompletedTasksScreen extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: ListView(
-              children: completedTasks.map((day) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(day['date'], style: kHeadingFont),
-                    const SizedBox(height: 12),
-                    Column(
-                      children: (day['tasks'] as List).map<Widget>((task) {
-                        return CompletedTaskCard(task: task);
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _completedGoalsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child:
+                          Text('Error: ${snapshot.error}', style: kBodyFont));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                      child: Text('No completed goals yet.', style: kBodyFont));
+                }
+
+                final completedGoals = snapshot.data!;
+                return ListView(
+                  children: completedGoals.map((goal) {
+                    return CompletedTaskCard(task: goal);
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
           ),
         ),
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: 3,
-          isar: isar,
+          isar: widget.isar,
         ));
   }
 }
@@ -140,27 +159,18 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: title, subject
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Top row: title, time
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and time
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(task['title'],
-                        style: kBodyFont.copyWith(
-                            fontWeight: FontWeight.bold, fontSize: 15)),
-                    const SizedBox(height: 4),
-                    Text('Total study time: ${task['timeSpent']}',
-                        style: kBodyFont.copyWith(fontSize: 13)),
-                  ],
-                ),
-                // Subject
-                Text(task['subject'], style: kBodyFont.copyWith(fontSize: 13)),
+                Text(task['title'],
+                    style: kBodyFont.copyWith(
+                        fontWeight: FontWeight.bold, fontSize: 15)),
+                const SizedBox(height: 4),
+                Text('Total study time: ${task['timeSpent']}',
+                    style: kBodyFont.copyWith(fontSize: 13)),
               ],
             ),
-
             // Expanded content
             if (showDetails &&
                 task['subtopics'] != null &&
@@ -168,9 +178,39 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
               const SizedBox(height: 12),
               Divider(color: Colors.white30, thickness: 0.8),
               const SizedBox(height: 12),
-              Text('Subtopics:',
+              Text('Sessions:',
                   style: kBodyFont.copyWith(
                       fontSize: 13, fontStyle: FontStyle.italic)),
+              const SizedBox(height: 8),
+              Column(
+                children: (task['sessions'] as List).map<Widget>((sesh) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Text(sesh['time'], style: kBodyFont),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 20,
+                          width: 1,
+                          color: Colors.white38,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(sesh['date'],
+                              textAlign: TextAlign.left, style: kBodyFont),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+              Divider(color: Colors.white30, thickness: 0.8),
+              const SizedBox(height: 12),
+
+              // Subtopics
+              Text('Subtopics Learned:', style: kBodyFont),
               const SizedBox(height: 8),
               Column(
                 children: (task['subtopics'] as List).map<Widget>((sub) {
@@ -178,13 +218,11 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       children: [
-                        Text(sub['time'], style: kBodyFont),
-                        const SizedBox(width: 8),
-                        Container(
-                          height: 20,
-                          width: 1,
-                          color: Colors.white38,
+                        const Icon(
+                          Icons.track_changes,
+                          color: Colors.white,
                         ),
+                        const SizedBox(width: 8),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(sub['title'],
@@ -198,37 +236,42 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
               const SizedBox(height: 12),
               Divider(color: Colors.white30, thickness: 0.8),
               const SizedBox(height: 12),
+
+              // Photos
               Text('Photos:', style: kBodyFont),
               const SizedBox(height: 8),
-              Row(
-                children: (task['images'] as List).map<Widget>((img) {
-                  return GestureDetector(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => Dialog(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child:
-                                Image.asset('assets/$img', fit: BoxFit.cover),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: (task['images'] as List).map<Widget>((img) {
+                    final file = File(img);
+                    return GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => Dialog(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.file(file, fit: BoxFit.cover),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(file),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          image: AssetImage('assets/$img'),
-                          fit: BoxFit.cover,
-                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
             ],
           ],

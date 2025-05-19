@@ -182,4 +182,140 @@ class IsarService extends ChangeNotifier {
     final isar = await db;
     return await isar.sessions.where().sortByEnd().findAll();
   }
+
+  // Future<List<Map<String, dynamic>>> getCompletedGoals() async {
+  //   final isar = await db;
+  //   final goals = await isar.goals.where().findAll();
+  //   final now = DateTime.now();
+  //   final Map<String, List<Map<String, dynamic>>> grouped = {};
+  //   final formatter = DateFormat('MMMM d, y');
+
+  //   for (final goal in goals) {
+  //     if (goal.completedSessionDates.isEmpty) continue;
+
+  //     // Load sessions linked to the goal
+  //     await goal.sessions.load();
+  //     final sessions = goal.sessions.toList();
+
+  //     for (final date in goal.completedSessionDates) {
+  //       if (date.isAfter(now)) continue;
+
+  //       final dateStr = formatter.format(date);
+
+  //       // Get sessions matching this completed date
+  //       final matchingSessions = sessions
+  //           .where((s) => isSameDate(s.start, date))
+  //           .map((s) => {
+  //                 'date': formatter.format(s.start),
+  //                 'time': formatDuration(Duration(minutes: s.duration)),
+  //               })
+  //           .toList();
+
+  //       final task = {
+  //         'title': goal.goalName,
+  //         'timeSpent': sumDurations(matchingSessions),
+  //         'subtopics': goal.subtopics.map((t) => {'title': t.name}).toList(),
+  //         if (sessions.isNotEmpty)
+  //           'images': sessions
+  //               .map((s) => s.imgPath)
+  //               .where((p) => p.isNotEmpty)
+  //               .toList(),
+  //         if (matchingSessions.isNotEmpty) 'sessions': matchingSessions,
+  //       };
+  //       print(task['title']);
+  //       print(task['timeSpent']);
+  //       print(task["subtopics"]);
+  //       print(task['images']);
+  //       print(task['sessions']);
+
+  //       grouped.putIfAbsent(dateStr, () => []).add(task);
+  //     }
+  //   }
+
+  //   final List<Map<String, dynamic>> completedTasks = grouped.entries.map((e) {
+  //     return {'date': e.key, 'tasks': e.value};
+  //   }).toList();
+
+  //   // Sort by date descending
+  //   completedTasks.sort((a, b) =>
+  //       formatter.parse(b['date']).compareTo(formatter.parse(a['date'])));
+
+  //   return completedTasks;
+  // }
+
+  Future<List<Map<String, dynamic>>> getCompletedGoals() async {
+    final isar = await db;
+    final goals = await isar.goals.where().findAll();
+    final now = DateTime.now();
+    final formatter = DateFormat('MMMM d, y');
+
+    List<Map<String, dynamic>> completed = [];
+
+    for (final goal in goals) {
+      if (goal.completedSessionDates.isEmpty) continue;
+
+      // Load sessions
+      await goal.sessions.load();
+      final sessions = goal.sessions.toList();
+
+      // Filter completed sessions
+      final completedSessions = sessions
+          .where((s) =>
+              goal.completedSessionDates.any((d) => isSameDate(s.start, d)) &&
+              s.start.isBefore(now))
+          .toList();
+
+      if (completedSessions.isEmpty) continue;
+
+      final sessionDetails = completedSessions
+          .map((s) => {
+                'date': formatter.format(s.start),
+                'time': formatDuration(Duration(minutes: s.duration)),
+              })
+          .toList();
+
+      final totalTime = sumDurations(sessionDetails);
+
+      final goalMap = {
+        'title': goal.goalName,
+        'dateCompleted':
+            formatter.format(goal.completedSessionDates.last), // last session
+        'timeSpent': totalTime,
+        'subtopics':
+            goal.subtopics.map((t) => {'title': t.name}).toList() ?? [],
+        'images': completedSessions.map((s) => s.imgPath).toList(),
+        'sessions': sessionDetails,
+      };
+
+      completed.add(goalMap);
+    }
+
+    return completed;
+  }
+
+  // Helper to check if two DateTime objects are the same day
+  bool isSameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  // Format duration like '1h 45m'
+  String formatDuration(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    return '${h > 0 ? '${h}h ' : ''}${m}m'.trim();
+  }
+
+  // Sum session durations into a formatted string
+  String sumDurations(List<Map<String, dynamic>> sessions) {
+    int totalMinutes = 0;
+    for (final s in sessions) {
+      final time = s['time'] as String;
+      final match = RegExp(r'(?:(\d+)h)?\s*(\d+)m').firstMatch(time);
+      if (match != null) {
+        final h = int.tryParse(match.group(1) ?? '0') ?? 0;
+        final m = int.tryParse(match.group(2) ?? '0') ?? 0;
+        totalMinutes += h * 60 + m;
+      }
+    }
+    return formatDuration(Duration(minutes: totalMinutes));
+  }
 }

@@ -111,80 +111,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   bool _isExpanded = false;
 
-  // Widget daySection() {
-  //   // final displayedDays =
-  //   //     _isExpanded ? studySchedule : studySchedule.take(2).toList();
-
-  //   return GestureDetector(
-  //     onTap: () {
-  //       setState(() {
-  //         _isExpanded = !_isExpanded;
-  //       });
-  //     },
-  //     child: AnimatedContainer(
-  //       duration: const Duration(milliseconds: 300),
-  //       padding: const EdgeInsets.all(12),
-  //       decoration: BoxDecoration(
-  //         border: Border.all(color: kPurple),
-  //         borderRadius: BorderRadius.circular(12),
-  //       ),
-  //       child: _isExpanded
-  //           ? Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: displayedDays.map((day) {
-  //                 return Container(
-  //                   margin: const EdgeInsets.only(bottom: 12),
-  //                   child: Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       sectionTitle(day['label']),
-  //                       const SizedBox(height: 8),
-  //                       wrapChips(
-  //                           (day['lessons'] as List).map<Widget>((lesson) {
-  //                         return lessonChip(
-  //                           lesson['title'],
-  //                           lesson['date'],
-  //                           lesson['color'],
-  //                           progress: lesson['progress'],
-  //                         );
-  //                       }).toList()),
-  //                     ],
-  //                   ),
-  //                 );
-  //               }).toList(),
-  //             )
-  //           : SingleChildScrollView(
-  //               scrollDirection: Axis.horizontal,
-  //               child: Row(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: displayedDays.map((day) {
-  //                   return Container(
-  //                     width: 200,
-  //                     margin: const EdgeInsets.only(right: 16),
-  //                     child: Column(
-  //                       crossAxisAlignment: CrossAxisAlignment.start,
-  //                       children: [
-  //                         sectionTitle(day['label']),
-  //                         const SizedBox(height: 8),
-  //                         wrapChips(
-  //                             (day['lessons'] as List).map<Widget>((lesson) {
-  //                           return lessonChip(
-  //                             lesson['title'],
-  //                             lesson['date'],
-  //                             lesson['color'],
-  //                             progress: lesson['progress'],
-  //                           );
-  //                         }).toList()),
-  //                       ],
-  //                     ),
-  //                   );
-  //                 }).toList(),
-  //               ),
-  //             ),
-  //     ),
-  //   );
-  // }
-
   Widget daySectionFromSchedule(List<Map<String, dynamic>> displayedDays) {
     return GestureDetector(
       onTap: () {
@@ -371,7 +297,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CompletedTasksScreen(isar: widget.isar),
+              builder: (context) => CompletedGoalsScreen(isar: widget.isar),
             ),
           );
         },
