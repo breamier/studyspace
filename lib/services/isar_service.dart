@@ -278,4 +278,60 @@ class IsarService extends ChangeNotifier {
     }
     return formatDuration(Duration(seconds: totalSeconds));
   }
+
+  // ASTRONAUT PET METHODS
+
+  // Default Pet
+  Future<void> initializeDefaultPet() async {
+    final isar = await db;
+    final existingPets = await isar.astronautPets.where().findAll();
+
+    if (existingPets.isEmpty) {
+      await createPet(name: 'Astro', skinType: 'default', shipType: 'default');
+      debugPrint('Created default pet');
+    }
+  }
+
+  // get the current pet
+  Future<AstronautPet?> getCurrentPet() async {
+    final isar = await db;
+    return await isar.astronautPets.where().findFirst();
+  }
+
+  // update pet in database
+  Future<void> updatePet(AstronautPet pet) async {
+    final isar = await db;
+    print('Updating pet ${pet.id} with HP: ${pet.hp}');
+    await isar.writeTxn(() async {
+      await isar.astronautPets.put(pet);
+      print('Pet updated in transaction');
+    });
+    print('Transaction completed');
+    notifyListeners();
+  }
+
+  // get pet by ID
+  Future<AstronautPet?> getPetById(Id id) async {
+    final isar = await db;
+    return await isar.astronautPets.get(id);
+  }
+
+  // create new pet
+  Future<AstronautPet> createPet({
+    String name = 'Astro',
+    String skinType = 'default',
+    String shipType = 'default',
+  }) async {
+    final isar = await db;
+    final newPet = AstronautPet.create(
+      name: name,
+      skinType: skinType,
+      shipType: shipType,
+    );
+
+    await isar.writeTxn(() async {
+      await isar.astronautPets.put(newPet);
+    });
+    return newPet;
+  }
 }
