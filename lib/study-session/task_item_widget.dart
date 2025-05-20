@@ -81,7 +81,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
-        initialValue: "Enter a subtopic.",
+
         readOnly: widget.deleteMode,
         controller: _textEditingController,
         decoration: InputDecoration(
