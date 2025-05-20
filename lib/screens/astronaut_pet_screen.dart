@@ -3,6 +3,9 @@ import 'package:studyspace/widgets/navbar.dart';
 import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
+import 'package:studyspace/services/astro_hp_service.dart';
+import 'package:studyspace/services/isar_service.dart';
+import '../models/astronaut_pet.dart';
 
 class AstronautPetScreen extends StatefulWidget {
   const AstronautPetScreen({Key? key}) : super(key: key);
@@ -13,16 +16,17 @@ class AstronautPetScreen extends StatefulWidget {
 
 class _AstronautPetScreenState extends State<AstronautPetScreen> {
   final ItemManager _itemManager = ItemManager();
+  final IsarService _isarService = IsarService();
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
-
+  late Future<AstronautPet?> _currentPet;
   late final ValueNotifier<bool> _itemChangeNotifier;
 
   @override
   void initState() {
     super.initState();
+    _currentPet = _isarService.getCurrentPet();
     _getCurrentItems();
-
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
   }
@@ -35,7 +39,10 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
 
   void _handleItemChanged() {
     if (mounted) {
-      _getCurrentItems();
+      setState(() {
+        _getCurrentItems();
+        _currentPet = _isarService.getCurrentPet();
+      });
     }
   }
 
@@ -51,7 +58,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.7),
+        backgroundColor: Colors.black.withValues(),
         automaticallyImplyLeading: false,
         leadingWidth: 56,
         leading: Padding(
@@ -112,13 +119,12 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
             child: Image.asset('assets/stars.png', fit: BoxFit.cover),
           ),
           Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildProgressBar('assets/astronaut_icon.png', 'HP', 0.75,
-                      Colors.red.shade700, Colors.red.shade400, Colors.white),
+                  _buildHpProgressBar(),
                   const SizedBox(height: 12),
                   _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
                       Colors.grey.shade500, Colors.grey.shade400, Colors.black),
@@ -147,6 +153,34 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: -1,
       ),
+    );
+  }
+
+  Widget _buildHpProgressBar() {
+    return FutureBuilder<AstronautPet?>(
+      future: _currentPet,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Text("No pet found", style: TextStyle(color: Colors.white));
+        }
+
+        final pet = snapshot.data!;
+        final hpPercent = pet.hp / 100.0;
+        final hpColor = AstroHpService.getHpColor(hpPercent);
+
+        return _buildProgressBar(
+          'assets/astronaut_icon.png',
+          'HP: ${pet.hp.toStringAsFixed(0)}%',
+          hpPercent,
+          hpColor.withValues(),
+          hpColor.withValues(),
+          Colors.white,
+        );
+      },
     );
   }
 

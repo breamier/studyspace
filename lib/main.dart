@@ -13,10 +13,12 @@ import 'screens/analytics_screen.dart';
 import 'screens/astronaut_pet_screen.dart';
 import 'screens/astronaut_traveling_screen.dart';
 import 'services/scheduler.dart';
+import 'services/astro_hp_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotifService().initNotification();
+
   runApp(const StudySpaceApp());
 }
 
@@ -36,13 +38,24 @@ class StudySpaceApp extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
-  final service = IsarService();
+  // final service = IsarService();
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final service = IsarService();
+
+  @override
+  void initState() {
+    super.initState();
+    IsarService().initializeDefaultPet();
+    final hpService = AstroHpService(service);
+    _checkCompletedSessions();
+    hpService.checkMissedSessions();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,6 +85,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: Text("Simulate Study Session"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  // Initialize test data
+                  await IsarService().initializeTestGoals();
+
+                  // Run HP check
+                  final hpService = AstroHpService(IsarService());
+                  await hpService.checkMissedSessions();
+
+                  // Verify results
+                  final pet = await IsarService().getCurrentPet();
+                  print('Final HP: ${pet?.hp}');
+                },
+                child: Text('Test HP Reduction'),
               ),
               ElevatedButton(
                   onPressed: () {
@@ -193,10 +221,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  widget.service.clearDb();
+                  final service = IsarService();
+                  service.clearDb();
                 },
                 child: const Text('Clear Database'),
               )
             ])));
+  }
+
+  Future<void> _checkCompletedSessions() async {
+    final hpService = AstroHpService(service);
+    final isar = await service.db;
+    final goals = await service.getAllGoals();
+
+    for (final goal in goals) {
+      if (goal.completedSessionDates.isNotEmpty) {
+        // Load the goal's sessions
+        await goal.sessions.load();
+
+        // Process each session
+        for (final session in goal.sessions) {
+          if (session.end.isBefore(DateTime.now())) {
+            await hpService.applyStudySessionHp(
+              session: session,
+              goal: goal,
+            );
+          }
+        }
+      }
+    }
   }
 }
