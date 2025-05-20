@@ -22,44 +22,6 @@ final TextStyle kBodyFont = TextStyle(
   color: Colors.white,
 );
 
-final List<Map<String, dynamic>> CompletedGoals = [
-  {
-    'date': 'April 29, 2025',
-    'tasks': [
-      {
-        'title': 'Pumping Lemma',
-        'timeSpent': '5h 56m',
-        'subtopics': [
-          {
-            'title': 'Algebraic laws for regular expressions',
-          },
-          {
-            'title': 'Pumping lemma for regular languages',
-          },
-        ],
-        'sessions': [
-          {'date': 'April 29, 2025', 'time': "2h 54m"},
-          {'date': 'April 29, 2025', 'time': "2h 54m"}
-        ],
-        'images': ['choco1.jpg', 'choco2.jpg', 'choco3.jpg'],
-      },
-      {
-        'title': 'DFA Minimization',
-        'timeSpent': '2h 15m',
-      },
-    ]
-  },
-  {
-    'date': 'April 30, 2025',
-    'tasks': [
-      {
-        'title': 'Turing Machines',
-        'timeSpent': '4h 10m',
-      },
-    ]
-  }
-];
-
 class CompletedGoalsScreen extends StatefulWidget {
   final IsarService isar;
   const CompletedGoalsScreen({super.key, required this.isar});
@@ -83,9 +45,23 @@ class _CompletedGoalsScreenState extends State<CompletedGoalsScreen> {
     return Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: Text('Completed Tasks', style: kHeadingFont),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
+          backgroundColor: kOnyx,
+          elevation: 0,
+          title: Text('Completed Goals',
+              style: kHeadingFont.copyWith(fontSize: 18)),
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white54, width: 1),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -171,6 +147,7 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
                     style: kBodyFont.copyWith(fontSize: 13)),
               ],
             ),
+
             // Expanded content
             if (showDetails &&
                 task['subtopics'] != null &&
@@ -182,29 +159,32 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
                   style: kBodyFont.copyWith(
                       fontSize: 13, fontStyle: FontStyle.italic)),
               const SizedBox(height: 8),
-              Column(
-                children: (task['sessions'] as List).map<Widget>((sesh) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        Text(sesh['time'], style: kBodyFont),
-                        const SizedBox(width: 8),
-                        Container(
-                          height: 20,
-                          width: 1,
-                          color: Colors.white38,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(sesh['date'],
-                              textAlign: TextAlign.left, style: kBodyFont),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+              if ((task['sessions'] as List).isEmpty)
+                Text('No sessions recorded', style: kBodyFont)
+              else
+                Column(
+                  children: (task['sessions'] as List).map<Widget>((sesh) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Text(sesh['time'], style: kBodyFont),
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 20,
+                            width: 1,
+                            color: Colors.white38,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(sesh['date'],
+                                textAlign: TextAlign.left, style: kBodyFont),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
               const SizedBox(height: 12),
               Divider(color: Colors.white30, thickness: 0.8),
               const SizedBox(height: 12),
@@ -212,27 +192,30 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
               // Subtopics
               Text('Subtopics Learned:', style: kBodyFont),
               const SizedBox(height: 8),
-              Column(
-                children: (task['subtopics'] as List).map<Widget>((sub) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.track_changes,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 8),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(sub['title'],
-                              textAlign: TextAlign.left, style: kBodyFont),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+              if ((task['subtopics'] as List).isEmpty)
+                Text('No subtopics recorded', style: kBodyFont)
+              else
+                Column(
+                  children: (task['subtopics'] as List).map<Widget>((sub) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.track_changes,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 8),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(sub['title'],
+                                textAlign: TextAlign.left, style: kBodyFont),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
               const SizedBox(height: 12),
               Divider(color: Colors.white30, thickness: 0.8),
               const SizedBox(height: 12),
@@ -240,39 +223,42 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
               // Photos
               Text('Photos:', style: kBodyFont),
               const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: (task['images'] as List).map<Widget>((img) {
-                    final file = File(img);
-                    return GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => Dialog(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(file, fit: BoxFit.cover),
+              if ((task['images'] as List).isEmpty)
+                Text('No photos recorded', style: kBodyFont)
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: (task['images'] as List).map<Widget>((img) {
+                      final file = File(img);
+                      return GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => Dialog(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(file, fit: BoxFit.cover),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            image: DecorationImage(
+                              image: FileImage(file),
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: FileImage(file),
-                            fit: BoxFit.cover,
-                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ),
             ],
           ],
         ),
