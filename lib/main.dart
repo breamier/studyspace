@@ -179,12 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: const Text('Show Notification'),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  widget.isar.clearDb();
-                },
-                child: const Text('Clear Database'),
-              )
             ])));
   }
 }
