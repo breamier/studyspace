@@ -262,11 +262,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
               onPressed: () {
                 setState(() {
                   //update data and send data
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HomeScreen()));
-                });
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);});
               },
               style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.deepPurple),

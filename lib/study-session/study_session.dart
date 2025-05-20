@@ -27,7 +27,7 @@ class _StateStudySession extends State<StudySession> {
   final IsarService _isarService = IsarService();
   late Future<Goal?> goal;
   Timer? timer;
-  int time = 0;
+  int time = 3599;
   late String goalName;
   bool isActive = true;
   bool _isLoading = true;
@@ -309,8 +309,8 @@ class _StateStudySession extends State<StudySession> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 140,
-                        height: 40,
+                        width: MediaQuery.sizeOf(context).width * 0.4,
+                        height: MediaQuery.sizeOf(context).width * 0.1,
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
@@ -330,8 +330,8 @@ class _StateStudySession extends State<StudySession> {
                       ),
                       SizedBox(height: 10),
                       SizedBox(
-                        width: 140,
-                        height: 40,
+                        width: MediaQuery.sizeOf(context).width * 0.4,
+                        height: MediaQuery.sizeOf(context).width * 0.1,
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
@@ -428,7 +428,9 @@ class _StateStudySession extends State<StudySession> {
                       style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.deepPurple,
-                          minimumSize: const Size(120, 40),
+                          minimumSize: Size(
+                              MediaQuery.sizeOf(context).width * 0.4,
+                              MediaQuery.sizeOf(context).width * 0.1),
                           elevation: 3),
                       child: Text(
                         "Yes",
@@ -439,7 +441,9 @@ class _StateStudySession extends State<StudySession> {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.grey,
                           foregroundColor: Colors.white,
-                          minimumSize: const Size(120, 40),
+                          minimumSize: Size(
+                              MediaQuery.sizeOf(context).width * 0.4,
+                              MediaQuery.sizeOf(context).width * 0.1),
                           elevation: 3),
                       child: Text(
                         "Cancel",
