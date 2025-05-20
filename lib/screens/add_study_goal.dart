@@ -227,6 +227,14 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
 
   Future<void> _previewGoal() async {
     if (_formKey.currentState!.validate()) {
+      bool hasEmptySubtopic =
+          subtopics.any((controller) => controller.text.trim().isEmpty);
+      if (hasEmptySubtopic) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Subtopics cannot be empty.')),
+        );
+        return;
+      }
       final subtopicList = subtopics
           .map((controller) => Subtopic()..name = controller.text)
           .toList();
