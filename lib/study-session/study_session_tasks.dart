@@ -24,10 +24,10 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   late Goal? current;
   bool _isLoading = true;
   bool _deleteMode = false;
-  void callback(Subtopic subtopic){
+  void callback(int index) async {
+    await _isarService.deleteSubtopicAtIndex(current!, index);
     setState(() {
-      _isarService.deleteSubtopic(current!, subtopic);
-
+      goal = _isarService.getGoalById(widget.goalId);
     });
   }
   @override
@@ -64,7 +64,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
             future: goal,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center();
               }
               final subtopics = snapshot.data?.subtopics.toList();
               return Column(

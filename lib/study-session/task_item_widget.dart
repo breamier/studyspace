@@ -10,15 +10,15 @@ class TaskItemWidget extends StatefulWidget {
   final Id goalId;
   final bool deleteMode;
   final int index;
-  final Function(Subtopic subtopic) notifyParent;
+  final Function(int index) notifyParent;
 
   const TaskItemWidget(
       {super.key,
-      required this.subtopic,
-      required this.goalId,
-      required this.deleteMode,
-      required this.notifyParent,
-      required this.index});
+        required this.subtopic,
+        required this.goalId,
+        required this.deleteMode,
+        required this.notifyParent,
+        required this.index});
 
   @override
   State<TaskItemWidget> createState() {
@@ -64,18 +64,18 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
       children: [
         widget.deleteMode
             ? IconButton(
-                onPressed: () {
-                  _deleteSubtopic();
-                  setState(() {});
-                },
-                icon: Icon(Icons.remove_circle))
+            onPressed: () {
+              _deleteSubtopic();
+              setState(() {});
+            },
+            icon: Icon(Icons.remove_circle))
             : Checkbox(
-                value: widget.subtopic.completed,
-                onChanged: (value) {
-                  setState(() {
-                    widget.subtopic.completed = value!;
-                  });
-                }),
+            value: widget.subtopic.completed,
+            onChanged: (value) {
+              setState(() {
+                widget.subtopic.completed = value!;
+              });
+            }),
         Expanded(child: activityInputField()),
       ],
     );
@@ -112,7 +112,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   }
 
   _deleteSubtopic() {
-    widget.notifyParent(widget.subtopic);
+    widget.notifyParent(widget.index);
   }
 
   void setDeleteMode() {

@@ -82,6 +82,14 @@ class IsarService extends ChangeNotifier {
     await isar.writeTxn(() => isar.goals.put(goal));
     notifyListeners();
   }
+  Future<void> deleteSubtopicAtIndex(Goal goal, int index)async {
+    final isar = db;
+    var updated = goal.subtopics.toList();
+    updated = updated.sublist(0, index) + updated.sublist(index + 1);
+    goal.subtopics = updated;
+    await isar.then((value) => value.writeTxn(() => value.goals.put(goal)));
+    notifyListeners();
+  }
   Future<void> deleteSubtopic(Goal goal, Subtopic subtopic) async{
 
     final isar = await db;
