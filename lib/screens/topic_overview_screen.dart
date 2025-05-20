@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:isar/isar.dart';
@@ -255,6 +257,21 @@ class _TopicOverviewState extends State<TopicOverview> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<String> _getTotalStudyTime() async {
+    if (_goal == null) return "00:00";
+    await _goal!.sessions.load();
+    final sessions = _goal!.sessions.toList();
+    int totalSeconds = sessions.fold(0, (sum, s) => sum + (s.duration ?? 0));
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+    } else {
+      return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
     }
   }
 
@@ -570,14 +587,19 @@ class _TopicOverviewState extends State<TopicOverview> {
                           fontFamily: 'BrunoAceSC',
                         ),
                       ),
-                      Text(
-                        "00:00",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: deviceWidth * 0.1,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Arimo',
-                        ),
+                      FutureBuilder<String>(
+                        future: _getTotalStudyTime(),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data ?? "00:00",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: deviceWidth * 0.1,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Arimo',
+                            ),
+                          );
+                        },
                       ),
                       SizedBox(height: deviceHeight * 0.04),
                       _buildPhotoCard(),
@@ -702,14 +724,6 @@ class _TopicOverviewState extends State<TopicOverview> {
                               width: deviceWidth * 0.03,
                               height: deviceWidth * 0.09,
                               child: Container(
-                                // decoration: BoxDecoration(
-                                //   borderRadius: BorderRadius.circular(5),
-                                //   border: Border.all(
-                                //     color: const Color.fromARGB(
-                                //         187, 187, 187, 187),
-                                //     width: 1.5,
-                                //   ),
-                                // ),
                                 child: IconButton(
                                   padding: EdgeInsets.zero,
                                   icon: Icon(
@@ -780,42 +794,254 @@ class _TopicOverviewState extends State<TopicOverview> {
     );
   }
 
+  // Widget _buildPhotoCard() {
+  //   final sessions = _goal?.sessions.toList() ?? [];
+  //   final images = sessions
+  //       .map((s) => s.imgPath)
+  //       .where((path) => path != null && path.isNotEmpty)
+  //       .toList();
+
+  //   return Card(
+  //     // color: const Color.fromRGBO(176, 152, 228, 1),
+  //     color: const Color.fromARGB(255, 83, 23, 107),
+  //     margin: EdgeInsets.symmetric(horizontal: deviceWidth * 0.04),
+  //     child: Padding(
+  //       padding: EdgeInsets.all(deviceWidth * 0.04),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Text(
+  //             "Photos",
+  //             style: TextStyle(
+  //               color: Colors.white,
+  //               fontSize: deviceWidth * 0.045,
+  //               fontWeight: FontWeight.bold,
+  //               fontFamily: 'Arimo',
+  //             ),
+  //           ),
+  //           Text(
+  //             "${images.length} photos",
+  //             style: TextStyle(
+  //               color: Colors.white,
+  //               fontSize: deviceWidth * 0.035,
+  //               fontFamily: 'Arimo',
+  //             ),
+  //           ),
+  //           SizedBox(height: deviceHeight * 0.01),
+  //           Container(
+  //             height: deviceHeight * 0.25,
+  //             width: double.infinity,
+  //             decoration: BoxDecoration(
+  //               color: const Color.fromARGB(255, 68, 67, 67),
+  //               borderRadius: BorderRadius.circular(4),
+  //             ),
+  //             child: images.isEmpty
+  //                 ? Center(
+  //                     child: Text(
+  //                       "No photos yet.",
+  //                       style: TextStyle(
+  //                         color: Colors.white70,
+  //                         fontFamily: 'Arimo',
+  //                         fontSize: deviceWidth * 0.04,
+  //                       ),
+  //                     ),
+  //                   )
+  //                 : GridView.builder(
+  //                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+  //                       crossAxisCount: deviceWidth > 600 ? 4 : 2,
+  //                       crossAxisSpacing: 8,
+  //                       mainAxisSpacing: 8,
+  //                       childAspectRatio: 1.2,
+  //                     ),
+  //                     itemCount: images.length,
+  //                     itemBuilder: (context, index) {
+  //                       final imgPath = images[index];
+  //                       return GestureDetector(
+  //                         onTap: () {
+  //                           showDialog(
+  //                             context: context,
+  //                             barrierColor: Colors.black.withOpacity(0.4),
+  //                             barrierDismissible: true,
+  //                             builder: (_) => Dialog(
+  //                               backgroundColor: Colors.transparent,
+  //                               child: Stack(
+  //                                 children: [
+  //                                   BackdropFilter(
+  //                                     filter: ImageFilter.blur(
+  //                                         sigmaX: 8, sigmaY: 8),
+  //                                     child: Container(
+  //                                       color: Colors.transparent,
+  //                                     ),
+  //                                   ),
+  //                                   GestureDetector(
+  //                                     behavior: HitTestBehavior.opaque,
+  //                                     onTap: () => Navigator.of(context).pop(),
+  //                                     child: Center(
+  //                                       child: GestureDetector(
+  //                                         onTap: () {},
+  //                                         child: InteractiveViewer(
+  //                                           child: ClipRRect(
+  //                                             borderRadius:
+  //                                                 BorderRadius.circular(16),
+  //                                             child: Image.file(
+  //                                               File(imgPath),
+  //                                               fit: BoxFit.contain,
+  //                                             ),
+  //                                           ),
+  //                                         ),
+  //                                       ),
+  //                                     ),
+  //                                   ),
+  //                                 ],
+  //                               ),
+  //                             ),
+  //                           );
+  //                         },
+  //                         child: ClipRRect(
+  //                           borderRadius: BorderRadius.circular(8),
+  //                           child: Image.file(
+  //                             File(imgPath),
+  //                             fit: BoxFit.cover,
+  //                           ),
+  //                         ),
+  //                       );
+  //                     },
+  //                   ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildPhotoCard() {
-    return Card(
-      color: const Color.fromRGBO(176, 152, 228, 1),
+    final sessions = _goal?.sessions.toList() ?? [];
+    final images = sessions
+        .map((s) => s.imgPath)
+        .where((path) => path != null && path.isNotEmpty)
+        .toList();
+
+    return Container(
       margin: EdgeInsets.symmetric(horizontal: deviceWidth * 0.04),
-      child: Padding(
-        padding: EdgeInsets.all(deviceWidth * 0.04),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Photos",
-              style: TextStyle(
-                color: const Color.fromARGB(255, 68, 67, 67),
-                fontSize: deviceWidth * 0.045,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Arimo',
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            blurRadius: 16,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: EdgeInsets.all(deviceWidth * 0.04),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Photos",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: deviceWidth * 0.045,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Arimo',
+                ),
               ),
-            ),
-            Text(
-              "# photos, # videos",
-              style: TextStyle(
-                color: const Color.fromARGB(255, 68, 67, 67),
-                fontSize: deviceWidth * 0.035,
-                fontFamily: 'Arimo',
+              Text(
+                "${images.length} photos",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: deviceWidth * 0.035,
+                  fontFamily: 'Arimo',
+                ),
               ),
-            ),
-            SizedBox(height: deviceHeight * 0.01),
-            Container(
-              height: deviceHeight * 0.25,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 68, 67, 67),
-                borderRadius: BorderRadius.circular(4),
+              SizedBox(height: deviceHeight * 0.01),
+              Container(
+                height: deviceHeight * 0.25,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple[200]?.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: images.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No photos yet.",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontFamily: 'Arimo',
+                            fontSize: deviceWidth * 0.04,
+                          ),
+                        ),
+                      )
+                    : GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: deviceWidth > 600 ? 4 : 2,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 1.2,
+                        ),
+                        itemCount: images.length,
+                        itemBuilder: (context, index) {
+                          final imgPath = images[index];
+                          return GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                barrierColor: Colors.black.withOpacity(0.4),
+                                barrierDismissible: true,
+                                builder: (_) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: Stack(
+                                    children: [
+                                      BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 8, sigmaY: 8),
+                                        child: Container(
+                                          color: Colors.transparent,
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Center(
+                                          child: GestureDetector(
+                                            onTap: () {},
+                                            child: InteractiveViewer(
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                child: Image.file(
+                                                  File(imgPath),
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                File(imgPath),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
