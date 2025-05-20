@@ -258,7 +258,7 @@ class _StateStudySession extends State<StudySession> {
         time++;
       });
     }
-    if (dontShowCheckIns && time % 3600 == 0 && !showPopUp && isActive) {
+    if (!dontShowCheckIns && time % 3600 == 0 && !showPopUp && isActive) {
       setState(() {
         isActive = false;
         promptIndex = Random().nextInt(3);
