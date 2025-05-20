@@ -290,4 +290,8 @@ class IsarService extends ChangeNotifier {
     }
     return formatDuration(Duration(seconds: totalSeconds));
   }
+  Stream<Goal?> watchGoalById(Id id) async* {
+    final isar = await db;
+    yield* isar.goals.watchObject(id, fireImmediately: true);
+  }
 }
