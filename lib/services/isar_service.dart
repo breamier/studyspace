@@ -7,7 +7,9 @@ import 'package:studyspace/models/astronaut_pet.dart';
 import 'package:studyspace/models/goal.dart';
 import '../models/mission.dart';
 import '../models/session.dart';
+
 import 'astro_hp_service.dart';
+import 'astro_missions_service.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -120,38 +122,47 @@ class IsarService extends ChangeNotifier {
     return Future.value(Isar.getInstance());
   }
 
-  // MISSION METHODS
+  // // MISSION METHODS
 
-  Future<List<Mission>> getMissions() async {
-    final isar = await db;
-    return await isar.missions.where().findAll();
+  late MissionService _missionService;
+  bool _servicesInitialized = false;
+
+  // Initialize services after DB is opened
+  Future<void> initializeServices() async {
+    final database = await db;
+    _missionService = MissionService(database);
+    _servicesInitialized = true;
   }
 
-  Future<void> initializeDailyMissions(List<String> allMissions) async {
-    final isar = await db;
-    // randomize every day
-    final todayKey = DateFormat('yyyyMMdd').format(DateTime.now());
+  // Call this from your app initialization
+  Future<void> initializeDailyMissions() async {
+    await initializeServices();
+    await _missionService.initializeDailyMissions();
+  }
 
-    // check if we already have missions for today
-    final existingMissions = await isar.missions.where().findAll();
+  // Get today's missions
+  Future<List<Mission>> getMissions() async {
+    await initializeServices();
+    return await _missionService.getTodaysMissions();
+  }
 
-    if (existingMissions.isEmpty ||
-        existingMissions.first.dailyKey != todayKey) {
-      // clear mission for new day
-      await isar.writeTxn(() => isar.missions.clear());
+  // Complete a mission
+  Future<void> completeMission(Id missionId) async {
+    await initializeServices();
+    await _missionService.completeMission(missionId);
+    notifyListeners();
+  }
 
-      // randomize daily mission
-      final random = Random(
-          DateTime.now().millisecondsSinceEpoch ~/ 86400000); // seed value
-      final shuffled = List.from(allMissions)..shuffle(random);
-      final dailyMissions = shuffled.take(3).toList();
+  // Fail a mission
+  Future<void> failMission(Id missionId) async {
+    await initializeServices();
+    await _missionService.failMission(missionId);
+  }
 
-      await isar.writeTxn(() async {
-        for (final text in dailyMissions) {
-          await isar.missions.put(Mission(text: text)..dailyKey = todayKey);
-        }
-      });
-    }
+  // Get mission completion percentage
+  Future<double> getMissionCompletionPercentage() async {
+    await initializeServices();
+    return await _missionService.getMissionCompletionPercentage();
   }
 
   // Session Methods
@@ -237,91 +248,8 @@ class IsarService extends ChangeNotifier {
     return newPet;
   }
 
-  Future<void> initializeTestGoals() async {
-    final isar = await db;
-
-    // Clear existing data for clean test
-    await isar.writeTxn(() async {
-      await isar.goals.clear();
-      await isar.sessions.clear();
-    });
-
-    // Create test goal 3 (due today - increases health when completed)
-    final goal3 = Goal()
-      ..goalName = "Health Booster"
-      ..start = DateTime.now().subtract(Duration(days: 2))
-      ..end = DateTime.now().add(Duration(days: 5))
-      ..difficulty = "Easy"
-      ..reps = 1
-      ..interval = 2
-      ..easeFactor = 2.5
-      ..upcomingSessionDates = [DateTime.now()]; // Due today
-
-    // Create test goal 4 (already completed - should add HP)
-    final goal4 = Goal()
-      ..goalName = "Completed Goal"
-      ..start = DateTime.now().subtract(Duration(days: 7))
-      ..end = DateTime.now().add(Duration(days: 1))
-      ..difficulty = "Medium"
-      ..reps = 2
-      ..interval = 3
-      ..easeFactor = 2.0
-      ..completedSessionDates = [DateTime.now().subtract(Duration(days: 1))]
-      ..upcomingSessionDates = []; // No upcoming sessions since it's completed
-
-    // Create a completed session for goal4
-    final completedSession = Session()
-      ..difficulty = "Medium"
-      ..imgPath = "test_path"
-      ..duration = 60 // 60 minutes
-      ..start = DateTime.now().subtract(Duration(days: 1, hours: 1))
-      ..end = DateTime.now().subtract(Duration(days: 1))
-      ..goal.value = goal4;
-
-    await isar.writeTxn(() async {
-      await isar.goals.putAll([goal3, goal4]);
-      await isar.sessions.put(completedSession);
-      await completedSession.goal.save();
-    });
-
-    print("Created 2 test goals with:"
-        "\n- 1 goal due today"
-        "\n- 1 completed goal with session"
-        "\nHP will increase when the app processes completed sessions");
-  }
-
   Future<List<Session>> getAllSessions() async {
     final isar = await db;
     return await isar.sessions.where().sortByEnd().findAll();
   }
 }
-
-
-
-
-
-
-
-
-
-// // Create test goal 1 (missed by 1 day)
-    // final goal1 = Goal()
-    //   ..goalName = "Math Study"
-    //   ..start = DateTime.now().subtract(Duration(days: 3))
-    //   ..end = DateTime.now().add(Duration(days: 3))
-    //   ..difficulty = "Medium"
-    //   ..reps = 2
-    //   ..interval = 3
-    //   ..easeFactor = 2.3
-    //   ..upcomingSessionDates = [DateTime.now().subtract(Duration(days: 1))];
-
-    // // Create test goal 2 (missed by 2 days)
-    // final goal2 = Goal()
-    //   ..goalName = "Physics Review"
-    //   ..start = DateTime.now().subtract(Duration(days: 5))
-    //   ..end = DateTime.now().add(Duration(days: 1))
-    //   ..difficulty = "Hard"
-    //   ..reps = 3
-    //   ..interval = 5
-    //   ..easeFactor = 1.8
-    //   ..upcomingSessionDates = [DateTime.now().subtract(Duration(days: 2))];

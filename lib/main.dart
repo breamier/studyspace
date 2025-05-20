@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:studyspace/services/notif_service.dart';
 import 'package:studyspace/screens/replenished_astronaut_screen.dart';
 import 'package:studyspace/screens/splash_screen.dart';
@@ -11,10 +12,15 @@ import 'screens/astronaut_traveling_screen.dart';
 import 'services/scheduler.dart';
 import 'services/astro_hp_service.dart';
 
+import './models/goal.dart';
+import './models/session.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final isarService = IsarService();
   // await AndroidAlarmManager.initialize();
   await NotifService().initNotification();
+  await isarService.initializeDailyMissions();
 
   runApp(const StudySpaceApp());
 }
@@ -49,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     IsarService().initializeDefaultPet();
     final hpService = AstroHpService(service);
-    _checkCompletedSessions();
+    //_checkCompletedSessions();
     hpService.checkMissedSessions();
   }
 
@@ -106,19 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text("Simulate Study Session"),
               ),
               ElevatedButton(
-                onPressed: () async {
-                  // Initialize test data
-                  await IsarService().initializeTestGoals();
-
-                  // Run HP check
-                  final hpService = AstroHpService(IsarService());
-                  await hpService.checkMissedSessions();
-
-                  // Verify results
-                  final pet = await IsarService().getCurrentPet();
-                  print('Final HP: ${pet?.hp}');
-                },
-                child: Text('Test HP Reduction'),
+                onPressed: _testHpSystem,
+                child: Text('Test HP System'),
               ),
               ElevatedButton(
                   onPressed: () {
@@ -216,26 +211,74 @@ class _HomeScreenState extends State<HomeScreen> {
             ])));
   }
 
-  Future<void> _checkCompletedSessions() async {
-    final hpService = AstroHpService(service);
-    final isar = await service.db;
-    final goals = await service.getAllGoals();
+  Future<void> _testHpSystem() async {
+    final isarService = IsarService();
+    final hpService = AstroHpService(isarService);
 
-    for (final goal in goals) {
-      if (goal.completedSessionDates.isNotEmpty) {
-        // Load the goal's sessions
-        await goal.sessions.load();
-
-        // Process each session
-        for (final session in goal.sessions) {
-          if (session.end.isBefore(DateTime.now())) {
-            await hpService.applyStudySessionHp(
-              session: session,
-              goal: goal,
-            );
-          }
-        }
-      }
+    // DON'T reset the database - we want to keep existing state
+    // Only initialize pet if it doesn't exist
+    var pet = await isarService.getCurrentPet();
+    if (pet == null) {
+      await isarService.initializeDefaultPet();
+      pet = await isarService.getCurrentPet();
     }
+
+    print('Current HP before test: ${pet?.hp}');
+
+    final now = DateTime.now();
+    final testId = now.millisecondsSinceEpoch;
+
+    // TEST 1: HP INCREASE - Create and complete a session
+    final goal = Goal()
+      ..goalName = "Test Goal $testId"
+      ..start = now.subtract(Duration(days: 1))
+      ..end = now.add(Duration(days: 7))
+      ..difficulty = "Medium"
+      ..reps = 1
+      ..interval = 1
+      ..easeFactor = 2.5
+      ..upcomingSessionDates = [now];
+
+    final session = Session()
+      ..difficulty = "Medium"
+      ..duration = 45
+      ..start = now.subtract(Duration(minutes: 45))
+      ..end = now
+      ..imgPath = "test_path_$testId"
+      ..goal.value = goal;
+
+    // Save to database
+    final isar = await isarService.db;
+    await isar.writeTxn(() async {
+      await isar.goals.put(goal);
+      await isar.sessions.put(session);
+      await session.goal.save();
+      await goal.sessions.save();
+    });
+
+    // Apply HP increase
+    await hpService.applyStudySessionHp(session: session, goal: goal);
+
+    /* START: COMMENT THIS IF YOU WANT TO TEST HP INCREASE */
+
+    // // TEST 2: HP DECREASE - Create a missed session
+    // final missedGoal = Goal()
+    //   ..goalName = "Missed Goal $testId"
+    //   ..start = now.subtract(Duration(days: 3))
+    //   ..end = now.add(Duration(days: 5))
+    //   ..difficulty = "Medium"
+    //   ..reps = 2
+    //   ..interval = 2
+    //   ..easeFactor = 2.3
+    //   ..upcomingSessionDates = [now.subtract(Duration(days: 1))];
+
+    // await isar.writeTxn(() => isar.goals.put(missedGoal));
+    // await hpService.checkMissedSessions();
+
+    /* END: COMMENT THIS IF YOU WANT TO TEST HP INCREASE */
+
+    // Get updated pet
+    pet = await isarService.getCurrentPet();
+    print('New HP after test: ${pet?.hp}');
   }
 }

@@ -1,11 +1,20 @@
 import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
+import 'package:studyspace/models/session.dart';
 import 'package:studyspace/services/sm.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/services/sm_response.dart';
 import 'package:studyspace/services/isar_service.dart';
+import '../services/astro_hp_service.dart';
 
 class Scheduler {
+  final IsarService _isarService;
+  final AstroHpService _hpService;
+
+  Scheduler()
+      : _isarService = IsarService(),
+        _hpService = AstroHpService(IsarService());
+
   Future<List<DateTime>> initializeSessions(Goal goal) async {
     Scheduler scheduler = Scheduler();
 
@@ -97,7 +106,7 @@ class Scheduler {
         quality = 2;
         break;
       default:
-        quality = 4; // Default: EASY
+        quality = 4;
     }
 
     Sm sm = Sm();
@@ -115,6 +124,19 @@ class Scheduler {
     }
 
     return nextReviewDate;
+  }
+
+  int _calculateSessionDuration(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return 30; // 30 minutes
+      case 'medium':
+        return 45; // 45 minutes
+      case 'difficult':
+        return 60; // 60 minutes
+      default:
+        return 30;
+    }
   }
 
   Future<void> completeStudySession({
@@ -139,6 +161,21 @@ class Scheduler {
     goal.interval = response.interval;
     goal.easeFactor = response.easeFactor;
     goal.difficulty = newDifficulty;
+
+    final session = Session()
+      ..difficulty = newDifficulty
+      ..duration = _calculateSessionDuration(newDifficulty)
+      ..start = completedDate
+          .subtract(Duration(minutes: _calculateSessionDuration(newDifficulty)))
+      ..end = completedDate
+      ..goal.value = goal;
+
+    await _hpService.applyStudySessionHp(
+      session: session,
+      goal: goal,
+    );
+
+    await _isarService.addSession(session, goal);
 
     final scheduler = Scheduler();
     goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
