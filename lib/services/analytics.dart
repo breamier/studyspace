@@ -1,7 +1,15 @@
 import 'package:studyspace/services/isar_service.dart';
-// import 'package:studyspace/models/goal.dart';
-// import 'package:studyspace/models/session.dart';
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+const Color kPurple = Color(0xFF6C44DD);
+const Color kOnyx = Color(0xFF0E0E0E);
+const Color kWhite = Colors.white;
+const Color kYellow = Color(0x55C2A400);
+const Color kGreen = Color(0x5540973A);
+const Color kRed = Color(0x5443020C);
+const Color kBrown = Color(0x554D372E);
 
 class Analytics {
   final IsarService isar;
@@ -128,5 +136,87 @@ class Analytics {
       ['Focus Streak', formatStreak(streak)],
       ['Longest Study Session', formatTimeHourAndMinutes(longest)],
     ];
+  }
+
+  Future<List<Map<String, dynamic>>> getStudySchedule() async {
+    final goals = await isar.getAllGoals();
+    final now = DateTime.now();
+    final schedule = <Map<String, dynamic>>[];
+
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+
+    for (final goal in goals) {
+      for (final date in goal.upcomingSessionDates) {
+        if (date.isBefore(now)) continue;
+
+        final label = getDateLabel(date);
+        grouped.putIfAbsent(label, () => []);
+
+        final totalSessions = goal.upcomingSessionDates.length +
+            goal.completedSessionDates.length;
+        final completed = goal.completedSessionDates.length;
+        final progress = totalSessions > 0 ? completed / totalSessions : 0.0;
+
+        print("Progress: $progress");
+
+        final title = goal.goalName;
+
+        grouped[label]!.add({
+          'title': title,
+          'date': formatDate(goal.end),
+          'color': colorForGoal(title),
+          'progress': progress,
+        });
+      }
+    }
+    grouped.forEach((label, lessons) {
+      schedule.add({'label': label, 'lessons': lessons});
+    });
+
+    return schedule;
+  }
+
+  getDateLabel(DateTime date) {
+    DateTime now = DateTime.now();
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
+      return 'TODAY';
+    } else if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day + 1) {
+      return 'TOMORROW';
+    }
+    return '${monthAbbrev(date.month)} ${date.day}';
+  }
+
+  String monthAbbrev(int month) {
+    const months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC'
+    ];
+    return months[month - 1];
+  }
+
+  colorForGoal(String title) {
+    const colors = [kYellow, kGreen, kRed, kBrown, kPurple, kOnyx];
+    final hash = title.hashCode;
+    final index = hash.abs() % colors.length;
+    return colors[index];
+  }
+
+  String formatDate(DateTime date) {
+    final formatter = DateFormat('MMMM d, y');
+    return formatter.format(date);
   }
 }

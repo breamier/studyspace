@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:studyspace/models/astronaut_pet.dart';
 import 'package:studyspace/models/goal.dart';
 import '../models/mission.dart';
 import '../models/session.dart';
+import '../models/astronaut_pet.dart';
 
-import 'astro_hp_service.dart';
 import 'astro_missions_service.dart';
 
 class IsarService extends ChangeNotifier {
@@ -112,8 +111,7 @@ class IsarService extends ChangeNotifier {
     final dir = await getApplicationDocumentsDirectory();
     print('ISAR DB path: ${dir.path}');
     if (Isar.instanceNames.isEmpty) {
-      final isar = await Isar.open(
-          [GoalSchema, MissionSchema, SessionSchema, AstronautPetSchema],
+      final isar = await Isar.open([GoalSchema, MissionSchema, SessionSchema],
           directory: dir.path, inspector: true);
       print('ISAR DB opened: ${isar.name}');
       return isar;
@@ -188,11 +186,96 @@ class IsarService extends ChangeNotifier {
       await newSession.goal.save();
       await goal.sessions.save();
     });
-    // update next session here
-    debugPrint("Session added successfully!");
+    print("Session added successfully!");
   }
 
-  // ASTRONAUT PET METHODS
+  Future<List<Session>> getAllSessions() async {
+    final isar = await db;
+    return await isar.sessions.where().sortByEnd().findAll();
+  }
+
+  Future<List<Map<String, dynamic>>> getCompletedGoals() async {
+    final isar = await db;
+    final goals = await isar.goals.where().findAll();
+    final now = DateTime.now();
+    final formatter = DateFormat('MMMM d, y');
+
+    List<Map<String, dynamic>> completed = [];
+
+    for (final goal in goals) {
+      if (goal.completedSessionDates.isEmpty) continue;
+
+      // Load sessions
+      await goal.sessions.load();
+      final sessions = goal.sessions.toList();
+
+      // Filter completed sessions
+      final completedSessions = sessions
+          .where((s) =>
+              goal.completedSessionDates.any((d) => isSameDate(s.start, d)) &&
+              s.start.isBefore(now))
+          .toList();
+
+      if (completedSessions.isEmpty) continue;
+
+      final sessionDetails = completedSessions
+          .map((s) => {
+                'date': formatter.format(s.start),
+                'time': formatDuration(Duration(seconds: s.duration)),
+              })
+          .toList();
+
+      final totalTime = sumDurations(sessionDetails);
+
+      final goalMap = {
+        'title': goal.goalName,
+        'dateCompleted':
+            formatter.format(goal.completedSessionDates.last), // last session
+        'timeSpent': totalTime,
+        'subtopics': goal.subtopics.map((t) => {'title': t.name}).toList(),
+        'images': completedSessions.map((s) => s.imgPath).toList(),
+        'sessions': sessionDetails,
+      };
+
+      completed.add(goalMap);
+    }
+
+    return completed;
+  }
+
+  // Helper to check if two DateTime objects are the same day
+  bool isSameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  // Format duration like '1h 45m'
+  String formatDuration(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    if (h > 0) {
+      return '${h}h ${m}m ${s}s';
+    } else if (m > 0) {
+      return '${m}m ${s}s';
+    } else {
+      return '${s}s';
+    }
+  }
+
+  String sumDurations(List<Map<String, dynamic>> sessions) {
+    int totalSeconds = 0;
+    for (final s in sessions) {
+      final time = s['time'] as String;
+      final match =
+          RegExp(r'(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?').firstMatch(time);
+      if (match != null) {
+        final h = int.tryParse(match.group(1) ?? '0') ?? 0;
+        final m = int.tryParse(match.group(2) ?? '0') ?? 0;
+        final sec = int.tryParse(match.group(3) ?? '0') ?? 0;
+        totalSeconds += h * 3600 + m * 60 + sec;
+      }
+    }
+    return formatDuration(Duration(seconds: totalSeconds));
+  }
 
   // Default Pet
   Future<void> initializeDefaultPet() async {
@@ -246,10 +329,5 @@ class IsarService extends ChangeNotifier {
       await isar.astronautPets.put(newPet);
     });
     return newPet;
-  }
-
-  Future<List<Session>> getAllSessions() async {
-    final isar = await db;
-    return await isar.sessions.where().sortByEnd().findAll();
   }
 }
