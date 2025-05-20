@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               GestureDetector(
                 onTap: () => setState(() => _showGetStarted = true),
-                child: Image.asset('assets/logo.png', height: 120),
+                child: Image.asset('assets/astronaut_logo.png', height: 120),
               ),
               SizedBox(height: 60),
               if (_showGetStarted)
