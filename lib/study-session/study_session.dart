@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,9 +29,37 @@ class _StateStudySession extends State<StudySession> {
   Timer? timer;
   int time = 0;
   late String goalName;
-  bool isActive = false;
+  bool isActive = true;
   bool _isLoading = true;
   DateTime start = DateTime.now();
+  bool showPopUp = false;
+  bool showCheckIns = true;
+  bool showEndSession = false;
+  String headerText = "";
+  String questionText = "";
+  String yesButtonText = "";
+  String noButtonText = "";
+  int promptIndex = 0;
+  List<String> headers = [
+    'Just Checking In....',
+    'Hey human!',
+    "You've been studying so long!",
+  ];
+  List<String> questions = [
+    'Are you still studying?',
+    'Are ya still there?',
+    "Take a break?",
+  ];
+  List<String> yesButtons = [
+    'Yes, I am',
+    'Yes, I am',
+    "Sure!",
+  ];
+  List<String> noButtons = [
+    'End Session',
+    'End Session',
+    "No, Thanks",
+  ];
 
   @override
   void dispose() {
@@ -51,14 +81,20 @@ class _StateStudySession extends State<StudySession> {
 
   @override
   Widget build(BuildContext context) {
-    if(_isLoading){
+    if (_isLoading) {
       return CircularProgressIndicator();
     }
     timer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleTick();
     });
     return Scaffold(
-      body: _buildUI(),
+      body: Stack(
+        children: [
+          _buildUI(),
+          if (showPopUp) _buildPopUp(),
+          if (showEndSession) _buildEndSessionNotif()
+        ],
+      ),
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
@@ -89,11 +125,14 @@ class _StateStudySession extends State<StudySession> {
                     fontFamily: "Amino",
                     fontSize: 18,
                   )),
-              Text(goalName,style: TextStyle(
-                fontFamily: "Amino",
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-              ),),
+              Text(
+                goalName,
+                style: TextStyle(
+                  fontFamily: "Amino",
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               StudySessionTasks(
                 goalId: widget.goalId,
               ),
@@ -106,17 +145,8 @@ class _StateStudySession extends State<StudySession> {
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        timer?.cancel();
                         isActive = false;
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => StudySessionEnd(
-                                      goalId: widget.goalId,
-                                      duration: time,
-                                      imgLoc: widget.imgLoc, start: start,
-                                  end:DateTime.now()
-                                    )));
+                        showEndSession = true;
                       });
                     },
                     style: ButtonStyle(
@@ -228,5 +258,200 @@ class _StateStudySession extends State<StudySession> {
         time++;
       });
     }
+    if (showCheckIns && time % 3600 == 0 && !showPopUp && isActive) {
+      setState(() {
+        isActive = false;
+        promptIndex = Random().nextInt(3);
+        headerText = headers[promptIndex];
+        questionText = questions[promptIndex];
+        yesButtonText = yesButtons[promptIndex];
+        noButtonText = noButtons[promptIndex];
+        showPopUp = true;
+      });
+    }
+  }
+
+  Widget _buildPopUp() {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.7),
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.90,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            border: Border.symmetric(
+                vertical: BorderSide(width: 1, color: Colors.white),
+                horizontal: BorderSide(width: 1, color: Colors.white)),
+            color: Colors.grey[800],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(headerText,
+                  style: TextStyle(fontFamily: "BrunoAceSC", fontSize: 12)),
+              Text(
+                questionText,
+                style: TextStyle(fontFamily: "Amino", fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Image.asset(
+                    "assets/austronaut.png",
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 140,
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              showPopUp = false;
+                              if (promptIndex == 2) {
+                                isActive = false;
+                              }
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            elevation: 3,
+                          ),
+                          child: Text(yesButtonText),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      SizedBox(
+                        width: 140,
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              showPopUp = false;
+                              if (promptIndex == 0 || promptIndex == 1) {
+                                showEndSession = true;
+                              } else if (promptIndex == 2) {
+                                isActive = true;
+                              }
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey,
+                            foregroundColor: Colors.white,
+                            elevation: 3,
+                          ),
+                          child: Text(noButtonText),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: showCheckIns,
+                            onChanged: (value) {
+                              setState(() {
+                                showCheckIns = value!;
+                              });
+                            },
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          Text("Don't show again for this session.",
+                              style: TextStyle(
+                                  fontFamily: "Amino",
+                                  fontSize: 10,
+                                  color: Colors.white)),
+                        ],
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndSessionNotif() {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.7),
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.grey[800],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Thanks for studying with me",
+                  style: TextStyle(fontFamily: "BrunoAceSC", fontSize: 12)),
+              Text(
+                "End the session?",
+                style: TextStyle(fontFamily: "Amino", fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Image.asset(
+                    "assets/austronaut.png",
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                  Column(children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        timer?.cancel();
+                        isActive = false;
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => StudySessionEnd(
+                                    goalId: widget.goalId,
+                                    duration: time,
+                                    imgLoc: widget.imgLoc,
+                                    start: start,
+                                    end: DateTime.now())));
+                      },
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.deepPurple,
+                          minimumSize: const Size(120, 40),
+                          elevation: 3),
+                      child: Text(
+                        "Yes",
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => showEndSession = false),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(120, 40),
+                          elevation: 3),
+                      child: Text(
+                        "Cancel",
+                      ),
+                    ),
+                  ])
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
