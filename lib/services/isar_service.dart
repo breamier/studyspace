@@ -75,15 +75,28 @@ class IsarService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateSubtopic(Goal goal, Subtopic subtopic) async {
-    goal.subtopics.where((sub) => sub.id == subtopic.id).elementAt(0).name =
-        subtopic.name;
-    updateGoal(goal);
+  Future<void> updateSubtopic(Goal goal, int index,Subtopic subtopic) async {
+    final isar = await db;
+    print(goal.subtopics);
+    goal.subtopics[index] = subtopic;
+    await isar.writeTxn(() => isar.goals.put(goal));
     notifyListeners();
   }
-  Future<void> deleteSubtopicById(Goal goal, Subtopic subtopic) async{
-    goal.subtopics.removeWhere((sub)=>sub.id==subtopic.id);
-    updateGoal(goal);
+  Future<void> deleteSubtopic(Goal goal, Subtopic subtopic) async{
+
+    final isar = await db;
+    final updatedSubtopics = goal.subtopics
+        .where((sub) => sub.name != subtopic.name)
+        .toList();
+
+    int duplicateCount = goal.subtopics.where((sub)=> sub.name == subtopic.name).length;
+    while(duplicateCount>1){
+      updatedSubtopics.add(subtopic);
+      print(subtopic.name);
+      duplicateCount--;
+    }
+    goal.subtopics = updatedSubtopics;
+    await isar.writeTxn(() => isar.goals.put(goal));
     notifyListeners();
   }
 

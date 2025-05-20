@@ -26,7 +26,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   bool _deleteMode = false;
   void callback(Subtopic subtopic){
     setState(() {
-      _isarService.deleteSubtopicById(current!, subtopic);
+      _isarService.deleteSubtopic(current!, subtopic);
 
     });
   }
@@ -70,8 +70,10 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
               return Column(
                 children:
                   [
-                    for(final sub in subtopics!)
-                      _deleteMode? TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:true, notifyParent:callback,): TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:false,notifyParent:callback)
+
+                    for(int i = 0; i < subtopics!.length; i++)
+
+                      _deleteMode? TaskItemWidget(subtopic: subtopics![i], goalId: widget.goalId,deleteMode:true, notifyParent:callback,index:i): TaskItemWidget(subtopic: subtopics![i], goalId: widget.goalId,deleteMode:false,notifyParent:callback,index:i)
 
                   ]
                 ,

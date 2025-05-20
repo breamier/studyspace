@@ -9,6 +9,7 @@ class TaskItemWidget extends StatefulWidget {
   final Subtopic subtopic;
   final Id goalId;
   final bool deleteMode;
+  final int index;
   final Function(Subtopic subtopic) notifyParent;
 
   const TaskItemWidget(
@@ -16,7 +17,8 @@ class TaskItemWidget extends StatefulWidget {
       required this.subtopic,
       required this.goalId,
       required this.deleteMode,
-      required this.notifyParent});
+      required this.notifyParent,
+      required this.index});
 
   @override
   State<TaskItemWidget> createState() {
@@ -100,9 +102,13 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   }
 
   _updateGoal(String old, String updated, bool completed) async {
+    print("UPDATE INDEX IS ");
+    print(widget.index);
+
+    goal = _isarService.getGoalById(widget.goalId);
     widget.subtopic.name = updated;
-    _isarService.updateSubtopic(current!, widget.subtopic);
-    _isarService.updateGoal(current!);
+    _isarService.updateSubtopic(await goal.then((g) => g!), widget.index, widget.subtopic);
+
   }
 
   _deleteSubtopic() {
