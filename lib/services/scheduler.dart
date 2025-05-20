@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:isar/isar.dart';
 import 'package:studyspace/services/sm.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/services/sm_response.dart';
@@ -150,5 +151,46 @@ class Scheduler {
     for (final d in goal.upcomingSessionDates) {
       print(d.toIso8601String());
     }
+  }
+
+  Future<void> postponeStudySession({required Id goalId}) async {
+    final goal = await IsarService().getGoalById(goalId);
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
+    if (goal!.upcomingSessionDates.length <= 2) {
+      return;
+    }
+
+    goal.upcomingSessionDates.sort((a, b) => a.compareTo(b));
+
+    final firstDate = goal.upcomingSessionDates.first;
+    final lastDate = goal.upcomingSessionDates.last;
+
+    final middleDates = goal.upcomingSessionDates
+        .sublist(1, goal.upcomingSessionDates.length - 1);
+
+    if (todayDate.isBefore(middleDates.first)) {
+      // Case 1: today < first middle session
+      final postponedDate = middleDates.first.add(const Duration(days: 1));
+      middleDates[0] = postponedDate;
+    } else if (todayDate.isAfter(middleDates.first)) {
+      // Case 2: today > first middle session
+      final postponedDate = todayDate.add(const Duration(days: 1));
+      middleDates.removeWhere((d) => d.isBefore(todayDate));
+      middleDates.insert(0, postponedDate);
+    } else {
+      // Case 3: today == first middle session
+      final postponedDate = todayDate.add(const Duration(days: 1));
+      middleDates.add(postponedDate);
+    }
+
+    final updated = <DateTime>[firstDate, ...middleDates.toSet(), lastDate];
+    updated.sort((a, b) => a.compareTo(b));
+    goal.upcomingSessionDates = updated;
+
+    await IsarService().updateGoal(goal);
+
+    print("Postponed: updated upcoming dates: ${goal.upcomingSessionDates}");
   }
 }

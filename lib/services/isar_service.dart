@@ -289,6 +289,11 @@ class IsarService extends ChangeNotifier {
         "\n- 1 completed goal with session"
         "\nHP will increase when the app processes completed sessions");
   }
+
+  Future<List<Session>> getAllSessions() async {
+    final isar = await db;
+    return await isar.sessions.where().sortByEnd().findAll();
+  }
 }
 
 

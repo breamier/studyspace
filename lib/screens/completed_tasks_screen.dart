@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/services/isar_service.dart';
 import '../widgets/navbar.dart';
 
 final Color kPurple = Color(0xFF9B59B6);
@@ -60,7 +61,8 @@ final List<Map<String, dynamic>> completedTasks = [
 ];
 
 class CompletedTasksScreen extends StatelessWidget {
-  const CompletedTasksScreen({super.key});
+  final IsarService isar;
+  const CompletedTasksScreen({super.key, required this.isar});
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +103,7 @@ class CompletedTasksScreen extends StatelessWidget {
         ),
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: 3,
+          isar: isar,
         ));
   }
 }

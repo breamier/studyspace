@@ -7,6 +7,8 @@ import 'package:studyspace/services/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 
+import 'package:studyspace/study-session/study_session_camera.dart';
+
 class TopicOverview extends StatefulWidget {
   final Id goalId;
 
@@ -258,6 +260,9 @@ class _TopicOverviewState extends State<TopicOverview> {
 
   // postpone dialog
   void _postponeNotification() {
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final formattedDate = DateFormat('MM/dd/yyyy').format(tomorrow);
+
     showPopupCard(
       context: context,
       alignment: const Alignment(0, -0.20),
@@ -298,7 +303,7 @@ class _TopicOverviewState extends State<TopicOverview> {
                           ),
                           SizedBox(height: deviceHeight * 0.02),
                           Text(
-                            "I'll move your mission to --/--/--",
+                            "I'll move your mission to $formattedDate",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: deviceWidth * 0.035,
@@ -322,7 +327,11 @@ class _TopicOverviewState extends State<TopicOverview> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Scheduler().postponeStudySession(
+                                          goalId: widget.goalId);
+                                      Navigator.pop(context);
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color.fromARGB(
                                         194,
@@ -736,7 +745,15 @@ class _TopicOverviewState extends State<TopicOverview> {
                             _buildActionButton(
                               text: "Start Session",
                               color: const Color.fromARGB(194, 109, 68, 221),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            StudySessionCamera(
+                                              goalId: widget.goalId,
+                                            )));
+                              },
                               deviceWidth: deviceWidth,
                               deviceHeight: deviceHeight,
                             ),
