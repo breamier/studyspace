@@ -33,7 +33,7 @@ class _StateStudySession extends State<StudySession> {
   bool _isLoading = true;
   DateTime start = DateTime.now();
   bool showPopUp = false;
-  bool showCheckIns = true;
+  bool dontShowCheckIns = false;
   bool showEndSession = false;
   String headerText = "";
   String questionText = "";
