@@ -30,8 +30,6 @@ class Goal {
 }
 
 @embedded
-
-
 @embedded
 class Subtopic {
   late String name;
