@@ -242,7 +242,6 @@ class StudyGoalCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Image.asset("assets/asset-book.png", width: 32, height: 32),
               Text("📖", style: TextStyle(fontSize: 32)),
               const SizedBox(width: 16),
               Expanded(
