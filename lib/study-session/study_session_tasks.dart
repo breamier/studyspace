@@ -25,9 +25,8 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   bool _isLoading = true;
   bool _deleteMode = false;
   void callback(Subtopic subtopic){
-    print("parent callback");
     setState(() {
-      _isarService.deleteSubtopics(current!, [subtopic]);
+      _isarService.deleteSubtopicById(current!, subtopic);
 
     });
   }

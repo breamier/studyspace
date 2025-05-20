@@ -81,6 +81,11 @@ class IsarService extends ChangeNotifier {
     updateGoal(goal);
     notifyListeners();
   }
+  Future<void> deleteSubtopicById(Goal goal, Subtopic subtopic) async{
+    goal.subtopics.removeWhere((sub)=>sub.id==subtopic.id);
+    updateGoal(goal);
+    notifyListeners();
+  }
 
   Future<void> deleteSubtopics(
       Goal goal, List<Subtopic> subtopicsToDelete) async {
