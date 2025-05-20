@@ -268,6 +268,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         final missions = missionsSnapshot.data ?? [];
                         final displayedMissions = missions.take(3).toList();
 
+                        if (missions.isEmpty) {
+                          return Column(
+                            children: [
+                              Icon(Icons.flag_outlined,
+                                  color: Colors.white54, size: 48),
+                              const SizedBox(height: 12),
+                              Text(
+                                "No missions yet.",
+                                style: kBodyFont.copyWith(
+                                    fontSize: 16, color: Colors.white54),
+                              ),
+                            ],
+                          );
+                        }
+
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
