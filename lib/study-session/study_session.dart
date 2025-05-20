@@ -258,7 +258,7 @@ class _StateStudySession extends State<StudySession> {
         time++;
       });
     }
-    if (showCheckIns && time % 3600 == 0 && !showPopUp && isActive) {
+    if (dontShowCheckIns && time % 3600 == 0 && !showPopUp && isActive) {
       setState(() {
         isActive = false;
         promptIndex = Random().nextInt(3);
@@ -354,10 +354,10 @@ class _StateStudySession extends State<StudySession> {
                       Row(
                         children: [
                           Checkbox(
-                            value: showCheckIns,
+                            value: dontShowCheckIns,
                             onChanged: (value) {
                               setState(() {
-                                showCheckIns = value!;
+                                dontShowCheckIns = value!;
                               });
                             },
                             visualDensity: VisualDensity.compact,
