@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import 'package:studyspace/services/astro_hp_service.dart';
 import 'package:studyspace/study-session/study-session-rewards.dart';
 import '../models/goal.dart';
-import '../models/session.dart';
 import '../services/isar_service.dart';
 import '../services/scheduler.dart';
 
@@ -97,14 +96,8 @@ class _StudySessionEndState extends State<StudySessionEnd>
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_circle_left_outlined,
-            color: Colors.white,
-          ),
-        ),
         backgroundColor: Colors.black,
+        automaticallyImplyLeading: false,
       ),
       backgroundColor: Colors.black,
     );
