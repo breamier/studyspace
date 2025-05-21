@@ -173,7 +173,10 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => StudySession(goalId: widget.goalId,imgLoc: imgFile!.path,)));
+                                      builder: (context) => StudySession(
+                                            goalId: widget.goalId,
+                                            imgLoc: imgFile!.path,
+                                          )));
                             },
                             style: ButtonStyle(
                                 backgroundColor:
