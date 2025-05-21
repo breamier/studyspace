@@ -62,23 +62,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _currentSpaceship;
   late final ValueNotifier<bool> _itemChangeNotifier;
 
-  final List<String> _allMissions = [
-    'Study 30 minutes straight',
-    'Take a picture',
-    'Study a total of 1 hour',
-    'Drink water every 30 mins',
-    'Study after 9 PM',
-    'Complete 3 study sessions',
-  ];
-
   @override
   void initState() {
     super.initState();
     _refreshGoals();
-    widget.isar.initializeDailyMissions(_allMissions);
-    _missionsFuture = widget.isar.getMissions();
+    _refreshMissions();
     _getCurrentItems();
-
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
   }
@@ -140,6 +129,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  // missions
+  Future<List<Mission>> _loadMissions() async {
+    // Initialize daily missions if needed
+    await widget.isar.initializeDailyMissions();
+    // Get today's missions
+    return await widget.isar.getMissions();
+  }
+
+  Future<void> _refreshMissions() async {
+    setState(() {
+      _missionsFuture = _loadMissions();
+    });
+  }
+
+  Future<void> _completeMission(int missionId) async {
+    await widget.isar.completeMission(missionId);
+    _refreshMissions();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,9 +161,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh, color: kWhite),
-              onPressed: _refreshGoals,
-            ),
+                icon: const Icon(Icons.refresh, color: kWhite),
+                onPressed: () {
+                  _refreshGoals();
+                  _refreshMissions();
+                }),
             IconButton(
               icon: const Icon(Icons.help_outline, color: kWhite),
               onPressed: () {
@@ -248,15 +258,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Mission>>(
                       future: _missionsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
+                      builder: (context, missionsSnapshot) {
+                        if (missionsSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
                               child: CircularProgressIndicator());
                         }
 
-                        final missions = snapshot.data ?? [];
+                        final missions = missionsSnapshot.data ?? [];
                         final displayedMissions = missions.take(3).toList();
+
+                        if (missions.isEmpty) {
+                          return Column(
+                            children: [
+                              Icon(Icons.flag_outlined,
+                                  color: Colors.white54, size: 48),
+                              const SizedBox(height: 12),
+                              Text(
+                                "No missions yet.",
+                                style: kBodyFont.copyWith(
+                                    fontSize: 16, color: Colors.white54),
+                              ),
+                            ],
+                          );
+                        }
 
                         return Container(
                           padding: const EdgeInsets.all(16),
@@ -269,13 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               for (var i = 0; i < displayedMissions.length; i++)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Text(
-                                    '${'Mission'} ${i + 1}: ${displayedMissions[i].text}',
-                                    style: kBodyFont.copyWith(fontSize: 14),
-                                  ),
-                                ),
+                                missionTile(displayedMissions[i], i + 1),
                               const SizedBox(height: 10),
                               Align(
                                 alignment: Alignment.bottomRight,
@@ -423,6 +442,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             child: Text(buttonText, style: kBodyFont),
           )
+        ],
+      ),
+    );
+  }
+
+  Widget missionTile(Mission mission, int index) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Mission $index: ${mission.text}',
+              style: kBodyFont.copyWith(
+                fontSize: 14,
+                color: mission.completed ? Colors.green : Colors.white,
+              ),
+            ),
+          ),
+          if (mission.completed)
+            const Icon(Icons.check, size: 20, color: Colors.green),
         ],
       ),
     );

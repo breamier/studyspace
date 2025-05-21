@@ -6,6 +6,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:studyspace/models/goal.dart';
 import '../models/mission.dart';
 import '../models/session.dart';
+import '../models/astronaut_pet.dart';
+
+import 'astro_missions_service.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -143,38 +146,47 @@ class IsarService extends ChangeNotifier {
     return Future.value(Isar.getInstance());
   }
 
-  // MISSION METHODS
+  // // MISSION METHODS
 
-  Future<List<Mission>> getMissions() async {
-    final isar = await db;
-    return await isar.missions.where().findAll();
+  late MissionService _missionService;
+  bool _servicesInitialized = false;
+
+  // Initialize services after DB is opened
+  Future<void> initializeServices() async {
+    final database = await db;
+    _missionService = MissionService(database);
+    _servicesInitialized = true;
   }
 
-  Future<void> initializeDailyMissions(List<String> allMissions) async {
-    final isar = await db;
-    // randomize every day
-    final todayKey = DateFormat('yyyyMMdd').format(DateTime.now());
+  // Call this from your app initialization
+  Future<void> initializeDailyMissions() async {
+    await initializeServices();
+    await _missionService.initializeDailyMissions();
+  }
 
-    // check if we already have missions for today
-    final existingMissions = await isar.missions.where().findAll();
+  // Get today's missions
+  Future<List<Mission>> getMissions() async {
+    await initializeServices();
+    return await _missionService.getTodaysMissions();
+  }
 
-    if (existingMissions.isEmpty ||
-        existingMissions.first.dailyKey != todayKey) {
-      // clear mission for new day
-      await isar.writeTxn(() => isar.missions.clear());
+  // Complete a mission
+  Future<void> completeMission(Id missionId) async {
+    await initializeServices();
+    await _missionService.completeMission(missionId);
+    notifyListeners();
+  }
 
-      // randomize daily mission
-      final random = Random(
-          DateTime.now().millisecondsSinceEpoch ~/ 86400000); // seed value
-      final shuffled = List.from(allMissions)..shuffle(random);
-      final dailyMissions = shuffled.take(3).toList();
+  // Fail a mission
+  Future<void> failMission(Id missionId) async {
+    await initializeServices();
+    await _missionService.failMission(missionId);
+  }
 
-      await isar.writeTxn(() async {
-        for (final text in dailyMissions) {
-          await isar.missions.put(Mission(text: text)..dailyKey = todayKey);
-        }
-      });
-    }
+  // Get mission completion percentage
+  Future<double> getMissionCompletionPercentage() async {
+    await initializeServices();
+    return await _missionService.getMissionCompletionPercentage();
   }
 
   // Session Methods
@@ -200,7 +212,9 @@ class IsarService extends ChangeNotifier {
       await newSession.goal.save();
       await goal.sessions.save();
     });
-    print("Session added successfully!");
+
+    // update next session here
+    debugPrint("Session added successfully!");
   }
 
   Future<List<Session>> getAllSessions() async {
@@ -293,5 +307,61 @@ class IsarService extends ChangeNotifier {
   Stream<Goal?> watchGoalById(Id id) async* {
     final isar = await db;
     yield* isar.goals.watchObject(id, fireImmediately: true);
+  }
+
+  // ASTRONAUT PET METHODS
+
+  // Default Pet
+  Future<void> initializeDefaultPet() async {
+    final isar = await db;
+    final existingPets = await isar.astronautPets.where().findAll();
+
+    if (existingPets.isEmpty) {
+      await createPet(name: 'Astro', skinType: 'default', shipType: 'default');
+      debugPrint('Created default pet');
+    }
+  }
+
+  // get the current pet
+  Future<AstronautPet?> getCurrentPet() async {
+    final isar = await db;
+    return await isar.astronautPets.where().findFirst();
+  }
+
+  // update pet in database
+  Future<void> updatePet(AstronautPet pet) async {
+    final isar = await db;
+    print('Updating pet ${pet.id} with HP: ${pet.hp}');
+    await isar.writeTxn(() async {
+      await isar.astronautPets.put(pet);
+      print('Pet updated in transaction');
+    });
+    print('Transaction completed');
+    notifyListeners();
+  }
+
+  // get pet by ID
+  Future<AstronautPet?> getPetById(Id id) async {
+    final isar = await db;
+    return await isar.astronautPets.get(id);
+  }
+
+  // create new pet
+  Future<AstronautPet> createPet({
+    String name = 'Astro',
+    String skinType = 'default',
+    String shipType = 'default',
+  }) async {
+    final isar = await db;
+    final newPet = AstronautPet.create(
+      name: name,
+      skinType: skinType,
+      shipType: shipType,
+    );
+
+    await isar.writeTxn(() async {
+      await isar.astronautPets.put(newPet);
+    });
+    return newPet;
   }
 }

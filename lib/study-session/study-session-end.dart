@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
+import 'package:studyspace/services/astro_hp_service.dart';
 import 'package:studyspace/study-session/study-session-rewards.dart';
 import '../models/goal.dart';
-import '../models/session.dart';
 import '../services/isar_service.dart';
 import '../services/scheduler.dart';
 
@@ -35,9 +35,12 @@ class _StudySessionEndState extends State<StudySessionEnd>
   bool _isLoading = true;
   late double sizeQuery;
 
+  late AstroHpService _hpService;
+
   @override
   void initState() {
     super.initState();
+    _hpService = AstroHpService(_isarService);
     _loadGoal();
   }
 
@@ -59,23 +62,25 @@ class _StudySessionEndState extends State<StudySessionEnd>
   }
 
   Future<void> saveSession() async {
-    _isarService.addSession(
-        await _isarService.createSessionObj(widget.start, widget.end,
-            widget.duration, widget.imgLoc, _difficulty, _goal!),
-        _goal!);
-    print("DONE");
+    // store in session variable the create session object
+    final session = await _isarService.createSessionObj(widget.start,
+        widget.end, widget.duration, widget.imgLoc, _difficulty, _goal!);
 
+    // add to database
+    await _isarService.addSession(session, _goal!);
 
-      if (_goal == null || _goal!.upcomingSessionDates.isEmpty) {
-        print("Goal or sessions not found.");
-        return;
-      }
-      await Scheduler().completeStudySession(
-        goal: _goal!,
-        completedDate: widget.end,
-        newDifficulty: _difficulty,
-      );
+    // apply HP changes using the same session variable
+    await _hpService.applyStudySessionHp(session: session, goal: _goal!);
 
+    if (_goal == null || _goal!.upcomingSessionDates.isEmpty) {
+      print("Goal or sessions not found.");
+      return;
+    }
+    await Scheduler().completeStudySession(
+      goal: _goal!,
+      completedDate: widget.end,
+      newDifficulty: _difficulty,
+    );
   }
 
   @override
@@ -91,14 +96,8 @@ class _StudySessionEndState extends State<StudySessionEnd>
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_circle_left_outlined,
-            color: Colors.white,
-          ),
-        ),
         backgroundColor: Colors.black,
+        automaticallyImplyLeading: false,
       ),
       backgroundColor: Colors.black,
     );
