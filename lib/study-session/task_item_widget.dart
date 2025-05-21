@@ -9,14 +9,16 @@ class TaskItemWidget extends StatefulWidget {
   final Subtopic subtopic;
   final Id goalId;
   final bool deleteMode;
-  final Function(Subtopic subtopic) notifyParent;
+  final int index;
+  final Function(int index) notifyParent;
 
   const TaskItemWidget(
       {super.key,
-      required this.subtopic,
-      required this.goalId,
-      required this.deleteMode,
-      required this.notifyParent});
+        required this.subtopic,
+        required this.goalId,
+        required this.deleteMode,
+        required this.notifyParent,
+        required this.index});
 
   @override
   State<TaskItemWidget> createState() {
@@ -26,7 +28,7 @@ class TaskItemWidget extends StatefulWidget {
 
 class _StateTaskItemWidget extends State<TaskItemWidget> {
   bool showTextField = false;
-  String subtopic = 'Enter an activity name';
+  String subtopic = '';
   final TextEditingController _textEditingController = TextEditingController();
   final IsarService _isarService = IsarService();
   late Future<Goal?> goal;
@@ -62,18 +64,18 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
       children: [
         widget.deleteMode
             ? IconButton(
-                onPressed: () {
-                  _deleteSubtopic();
-                  setState(() {});
-                },
-                icon: Icon(Icons.remove_circle))
+            onPressed: () {
+              _deleteSubtopic();
+              setState(() {});
+            },
+            icon: Icon(Icons.remove_circle))
             : Checkbox(
-                value: widget.subtopic.completed,
-                onChanged: (value) {
-                  setState(() {
-                    widget.subtopic.completed = value!;
-                  });
-                }),
+            value: widget.subtopic.completed,
+            onChanged: (value) {
+              setState(() {
+                widget.subtopic.completed = value!;
+              });
+            }),
         Expanded(child: activityInputField()),
       ],
     );
@@ -81,6 +83,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
+
         readOnly: widget.deleteMode,
         controller: _textEditingController,
         decoration: InputDecoration(
@@ -99,21 +102,22 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   }
 
   _updateGoal(String old, String updated, bool completed) async {
+    print("UPDATE INDEX IS ");
+    print(widget.index);
+
+    goal = _isarService.getGoalById(widget.goalId);
     widget.subtopic.name = updated;
-    _isarService.updateSubtopic(current!, widget.subtopic);
-    _isarService.updateGoal(current!);
+    _isarService.updateSubtopic(await goal.then((g) => g!), widget.index, widget.subtopic);
+
   }
 
   _deleteSubtopic() {
-    widget.notifyParent(widget.subtopic);
-    print("child callback");
+    widget.notifyParent(widget.index);
   }
 
   void setDeleteMode() {
     setState(() {
       _deleteMode = !_deleteMode;
     });
-    // widget.notifyParent(widget.subtopic);
-    print("child callback");
   }
 }

@@ -78,10 +78,36 @@ class IsarService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateSubtopic(Goal goal, Subtopic subtopic) async {
-    goal.subtopics.where((sub) => sub.id == subtopic.id).elementAt(0).name =
-        subtopic.name;
-    updateGoal(goal);
+  Future<void> updateSubtopic(Goal goal, int index,Subtopic subtopic) async {
+    final isar = await db;
+    print(goal.subtopics);
+    goal.subtopics[index] = subtopic;
+    await isar.writeTxn(() => isar.goals.put(goal));
+    notifyListeners();
+  }
+  Future<void> deleteSubtopicAtIndex(Goal goal, int index)async {
+    final isar = db;
+    var updated = goal.subtopics.toList();
+    updated = updated.sublist(0, index) + updated.sublist(index + 1);
+    goal.subtopics = updated;
+    await isar.then((value) => value.writeTxn(() => value.goals.put(goal)));
+    notifyListeners();
+  }
+  Future<void> deleteSubtopic(Goal goal, Subtopic subtopic) async{
+
+    final isar = await db;
+    final updatedSubtopics = goal.subtopics
+        .where((sub) => sub.name != subtopic.name)
+        .toList();
+
+    int duplicateCount = goal.subtopics.where((sub)=> sub.name == subtopic.name).length;
+    while(duplicateCount>1){
+      updatedSubtopics.add(subtopic);
+      print(subtopic.name);
+      duplicateCount--;
+    }
+    goal.subtopics = updatedSubtopics;
+    await isar.writeTxn(() => isar.goals.put(goal));
     notifyListeners();
   }
 
@@ -111,7 +137,7 @@ class IsarService extends ChangeNotifier {
     final dir = await getApplicationDocumentsDirectory();
     print('ISAR DB path: ${dir.path}');
     if (Isar.instanceNames.isEmpty) {
-      final isar = await Isar.open([GoalSchema, MissionSchema, SessionSchema],
+      final isar = await Isar.open([AstronautPetSchema,GoalSchema, MissionSchema, SessionSchema],
           directory: dir.path, inspector: true);
       print('ISAR DB opened: ${isar.name}');
       return isar;
@@ -277,6 +303,10 @@ class IsarService extends ChangeNotifier {
       }
     }
     return formatDuration(Duration(seconds: totalSeconds));
+  }
+  Stream<Goal?> watchGoalById(Id id) async* {
+    final isar = await db;
+    yield* isar.goals.watchObject(id, fireImmediately: true);
   }
 
   // ASTRONAUT PET METHODS

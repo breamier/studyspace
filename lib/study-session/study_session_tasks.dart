@@ -24,11 +24,13 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   late Goal? current;
   bool _isLoading = true;
   bool _deleteMode = false;
-  void callback(Subtopic subtopic){
-    print("parent callback");
+  void callback(int index) async {
+    await _isarService.deleteSubtopicAtIndex(current!, index);
+    final updatedGoal = _isarService.getGoalById(widget.goalId);
+    final updatedCurrent = await updatedGoal;
     setState(() {
-      _isarService.deleteSubtopics(current!, [subtopic]);
-
+      goal = updatedGoal;
+      current = updatedCurrent;
     });
   }
   @override
@@ -71,8 +73,10 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
               return Column(
                 children:
                   [
-                    for(final sub in subtopics!)
-                      _deleteMode? TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:true, notifyParent:callback,): TaskItemWidget(subtopic: sub, goalId: widget.goalId,deleteMode:false,notifyParent:callback)
+
+                    for(int i = 0; i < subtopics!.length; i++)
+
+                      _deleteMode? TaskItemWidget(subtopic: subtopics![i], goalId: widget.goalId,deleteMode:true, notifyParent:callback,index:i): TaskItemWidget(subtopic: subtopics![i], goalId: widget.goalId,deleteMode:false,notifyParent:callback,index:i)
 
                   ]
                 ,
