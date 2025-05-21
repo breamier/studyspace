@@ -137,7 +137,7 @@ class IsarService extends ChangeNotifier {
     final dir = await getApplicationDocumentsDirectory();
     print('ISAR DB path: ${dir.path}');
     if (Isar.instanceNames.isEmpty) {
-      final isar = await Isar.open([GoalSchema, MissionSchema, SessionSchema],
+      final isar = await Isar.open([AstronautPetSchema,GoalSchema, MissionSchema, SessionSchema],
           directory: dir.path, inspector: true);
       print('ISAR DB opened: ${isar.name}');
       return isar;
