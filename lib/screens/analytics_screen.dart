@@ -89,6 +89,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 }
 
                 final schedule = snapshot.data!;
+
+                if (schedule.isEmpty) {
+                  return Column(
+                    children: [
+                      Icon(Icons.hourglass_empty,
+                          color: Colors.white54, size: 48),
+                      const SizedBox(height: 12),
+                      Text(
+                        "No study schedule yet.",
+                        style: kBodyFont.copyWith(
+                            fontSize: 16, color: Colors.white54),
+                      ),
+                    ],
+                  );
+                }
                 final displayedDays =
                     _isExpanded ? schedule : schedule.take(2).toList();
 
