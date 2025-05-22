@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ElevatedButton(
                   onPressed: _testHpSystem,
-                  child: Text('Test HP System'),
+                  child: Text('Test HP'),
                 ),
                 ElevatedButton(
                     onPressed: () async {
@@ -200,14 +200,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Text('Go to Study Session'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                  onPressed: () async {
+                    final pet = await widget.isar.getCurrentPet();
+                    if (pet == null || pet.planetsCount == 0) {
+                      // Go to pet screen if no planets visited yet
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
                           builder: (context) =>
-                              AstronautPetScreen(isar: widget.isar)),
-                    ).then((_) => setState(
-                        () {})); // to rebuild and refresh astro pet data
+                              AstronautPetScreen(isar: widget.isar),
+                        ),
+                      ).then((_) => setState(() {}));
+                    } else {
+                      // Go to traveling screen and force arrived view
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AstronautTravelScreen(
+                            isar: widget.isar,
+                            forceArrived: true,
+                          ),
+                        ),
+                      );
+                    }
                   },
                   child: const Text('Go to Astronaut Pet Screen'),
                 ),

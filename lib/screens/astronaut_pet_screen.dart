@@ -6,7 +6,9 @@ import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
 import 'package:studyspace/services/astro_hp_service.dart';
 import 'package:studyspace/services/isar_service.dart';
+
 import '../models/astronaut_pet.dart';
+import 'astronaut_traveling_screen.dart';
 
 class AstronautPetScreen extends StatefulWidget {
   final IsarService isar;
@@ -16,7 +18,8 @@ class AstronautPetScreen extends StatefulWidget {
   State<AstronautPetScreen> createState() => _AstronautPetScreenState();
 }
 
-class _AstronautPetScreenState extends State<AstronautPetScreen> with TickerProviderStateMixin {
+class _AstronautPetScreenState extends State<AstronautPetScreen>
+    with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
   final IsarService _isarService = IsarService();
   Map<String, dynamic>? _currentAstronaut;
@@ -57,7 +60,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> with TickerProv
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
-_floatingController.dispose();
+    _floatingController.dispose();
     super.dispose();
   }
 
@@ -169,22 +172,22 @@ _floatingController.dispose();
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-child: AnimatedBuilder(
+                      child: AnimatedBuilder(
                         animation: _floatingController,
                         builder: (context, child) {
                           return Transform.translate(
                             offset: Offset(0, _floatingAnimation.value),
                             child: Transform.rotate(
                               angle: _rotationAnimation.value,
-                      child: Hero(
-                        tag: 'selected-image',
-                        child: Image.asset(
-                          _getDisplayImage(),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-);
+                              child: Hero(
+                                tag: 'selected-image',
+                                child: Image.asset(
+                                  _getDisplayImage(),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -220,7 +223,7 @@ child: AnimatedBuilder(
 
         return _buildProgressBar(
           'assets/astronaut_icon.png',
-          'HP: ${pet.hp.toStringAsFixed(0)}%',
+          'HP: ${(pet.hp).toStringAsFixed(0)}%',
           hpPercent,
           hpColor.withValues(),
           hpColor.withValues(),
@@ -237,17 +240,53 @@ child: AnimatedBuilder(
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         }
-
         if (!snapshot.hasData || snapshot.data == null) {
           return Text("No pet found", style: TextStyle(color: Colors.white));
         }
-
         final pet = snapshot.data!;
-        final progress = pet.progress; // This is a double between 0 and 1
+        final progress = pet.progress;
 
+        // If pet is traveling, always go to traveling screen
+        if (pet.isTraveling) {
+          Future.microtask(() {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AstronautTravelScreen(isar: widget.isar),
+                ),
+              );
+            }
+          });
+          // Optionally, return a placeholder while navigating
+          return SizedBox.shrink();
+        }
+
+        // If progress is full and not already traveling/arrived, trigger travel
+        if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
+          Future.microtask(() async {
+            pet.progress = 0.0;
+            pet.isTraveling = true;
+            pet.hasArrived = false;
+            pet.planetsCount += 1;
+            await widget.isar.updatePet(pet);
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AstronautTravelScreen(isar: widget.isar),
+                ),
+              );
+            }
+          });
+        }
+
+        // If pet has arrived, just show the progress bar (no navigation)
         return _buildProgressBar(
           'assets/rocket_icon.png',
-          'Progress: ${(progress * 100).toStringAsFixed(1)}%',
+          'Progress: ${(progress * 100).toStringAsFixed(0)}%',
           progress,
           Colors.blue,
           Colors.green,

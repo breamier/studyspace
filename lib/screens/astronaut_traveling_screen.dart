@@ -5,45 +5,83 @@ import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
 
+import '../services/astro_hp_service.dart';
+import '../models/astronaut_pet.dart';
+import '../services/isar_service.dart';
+
 enum TravelState { initial, traveling, arrived }
 
 class AstronautTravelScreen extends StatefulWidget {
   final IsarService isar;
-  const AstronautTravelScreen({Key? key, required this.isar}) : super(key: key);
+  final bool forceArrived;
+  const AstronautTravelScreen(
+      {Key? key, required this.isar, this.forceArrived = false})
+      : super(key: key);
 
   @override
   State<AstronautTravelScreen> createState() => _AstronautTravelScreenState();
 }
 
-class _AstronautTravelScreenState extends State<AstronautTravelScreen> with TickerProviderStateMixin {
+class _AstronautTravelScreenState extends State<AstronautTravelScreen>
+    with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
-  TravelState _travelState = TravelState.initial;
+  TravelState _travelState = TravelState.arrived;
   late final ValueNotifier<bool> _itemChangeNotifier;
-  
+
   late AnimationController _sizeController;
   late AnimationController _positionController;
   late Animation<double> _sizeAnimation;
   late Animation<double> _positionAnimation;
   late Animation<double> _rotationAnimation;
-  
+
   // Controller for arrival animation
   late AnimationController _arrivalController;
   late Animation<double> _flagWaveAnimation;
   late Animation<double> _bounceAnimation;
 
+  final IsarService _isarService = IsarService();
+  late Future<AstronautPet?> _currentPet;
+
   @override
   void initState() {
     super.initState();
-    
+
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
-    
-    // Animation for astronaut size 
+
+    _currentPet = widget.isar.getCurrentPet();
+    // load pet and set the travel state
+    _currentPet.then((pet) {
+      if (pet != null) {
+        setState(() {
+          if (widget.forceArrived) {
+            _travelState = TravelState.arrived;
+          } else if (pet.isTraveling) {
+            _travelState = TravelState.traveling;
+            Future.delayed(const Duration(seconds: 5), () async {
+              if (mounted) {
+                setState(() {
+                  _travelState = TravelState.arrived;
+                });
+                pet.hasArrived = true;
+                pet.isTraveling = false;
+                await widget.isar.updatePet(pet);
+              }
+            });
+          } else {
+            // Default to arrived if not traveling
+            _travelState = TravelState.arrived;
+          }
+        });
+      }
+    });
+
+    // Animation for astronaut size
     _sizeController = AnimationController(
       duration: const Duration(seconds: 8),
       vsync: this,
     );
-    
+
     _sizeAnimation = TweenSequence<double>([
       TweenSequenceItem(
         tween: Tween<double>(begin: 0.0, end: 0.8)
@@ -56,37 +94,37 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
         weight: 60.0,
       ),
     ]).animate(_sizeController);
-    
+
     _sizeController.forward();
-    
+
     // Animation for astronaut movement
     _positionController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _positionAnimation = Tween<double>(begin: -20.0, end: 20.0)
         .chain(CurveTween(curve: Curves.easeInOutBack))
         .animate(_positionController);
-        
+
     _rotationAnimation = Tween<double>(begin: -0.05, end: 0.05)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(_positionController);
-        
+
     // Animation for arrival effects
     _arrivalController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _flagWaveAnimation = Tween<double>(begin: -0.1, end: 0.1)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(_arrivalController);
-    
+
     _bounceAnimation = Tween<double>(begin: 0.0, end: 10.0)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(_arrivalController);
-    
+
     // Automatically transition to arrived state after traveling
     if (_travelState == TravelState.traveling) {
       Future.delayed(const Duration(seconds: 5), () {
@@ -112,6 +150,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
     if (mounted) {
       setState(() {
         // Trigger rebuild to update user points display
+        _currentPet = _isarService.getCurrentPet();
       });
     }
   }
@@ -189,10 +228,12 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
         ],
       ),
       // Only show bottom navigation bar when not in "arrived" state
-      bottomNavigationBar: _travelState != TravelState.arrived ? CustomBottomNavBar(
-        currentIndex: -1,
-        isar: widget.isar,
-      ) : null,
+      bottomNavigationBar: _travelState != TravelState.arrived
+          ? CustomBottomNavBar(
+              currentIndex: -1,
+              isar: widget.isar,
+            )
+          : null,
     );
   }
 
@@ -213,11 +254,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildProgressBar('assets/astronaut_icon.png', 'HP', 1.0,
-              Colors.red.shade700, Colors.red.shade400, Colors.white),
-          const SizedBox(height: 12),
-          _buildProgressBar('assets/rocket_icon.png', 'Progress', 1.0,
-              Colors.grey.shade500, Colors.grey.shade400, Colors.black),
+          _buildProgressSection(),
           _buildStatsSection(),
           const SizedBox(height: 24),
           const Center(
@@ -240,13 +277,19 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
               onTap: () {
                 setState(() {
                   _travelState = TravelState.traveling;
-                  
+
                   // Auto transition to arrived state after 5 seconds
-                  Future.delayed(const Duration(seconds: 5), () {
+                  Future.delayed(const Duration(seconds: 5), () async {
                     if (mounted) {
                       setState(() {
                         _travelState = TravelState.arrived;
                       });
+                      final pet = await widget.isar.getCurrentPet();
+                      if (pet != null) {
+                        pet.hasArrived = true;
+                        pet.isTraveling = false;
+                        await widget.isar.updatePet(pet);
+                      }
                     }
                   });
                 });
@@ -261,6 +304,75 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProgressSection() {
+    return FutureBuilder<AstronautPet?>(
+      future: widget.isar.getCurrentPet(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return SizedBox();
+        }
+        final pet = snapshot.data!;
+        final hpPercent = pet.hp / 100.0;
+        final progress = pet.progress;
+        pet.planetsCount += 1;
+        widget.isar.updatePet(pet);
+
+        // --- NEW: If in arrived state and progress is full, trigger travel ---
+        if (_travelState == TravelState.arrived && progress >= 1.0) {
+          Future.microtask(() async {
+            pet.progress = 0.0;
+            pet.isTraveling = true;
+            pet.hasArrived = false;
+            await widget.isar.updatePet(pet);
+            if (mounted) {
+              setState(() {
+                _travelState = TravelState.traveling;
+              });
+              // Optionally, auto-transition to arrived after 5s
+              Future.delayed(const Duration(seconds: 5), () async {
+                if (mounted) {
+                  setState(() {
+                    _travelState = TravelState.arrived;
+                  });
+                  final updatedPet = await widget.isar.getCurrentPet();
+                  if (updatedPet != null) {
+                    updatedPet.hasArrived = true;
+                    updatedPet.isTraveling = false;
+                    await widget.isar.updatePet(updatedPet);
+                  }
+                }
+              });
+            }
+          });
+          // Optionally, show a placeholder while transitioning
+          return SizedBox.shrink();
+        }
+
+        return Column(
+          children: [
+            _buildProgressBar(
+              'assets/astronaut_icon.png',
+              'HP: ${pet.hp.toStringAsFixed(0)}%',
+              hpPercent,
+              AstroHpService.getHpColor(hpPercent),
+              AstroHpService.getHpColor(hpPercent),
+              Colors.white,
+            ),
+            const SizedBox(height: 12),
+            _buildProgressBar(
+              'assets/rocket_icon.png',
+              'Progress: ${(progress * 100).toStringAsFixed(0)}%',
+              progress,
+              Colors.blue,
+              Colors.green,
+              Colors.white,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -285,10 +397,11 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
             alignment: Alignment.center,
             children: [
               _buildDistantStars(),
-              
+
               // Main astronaut animation
               AnimatedBuilder(
-                animation: Listenable.merge([_sizeController, _positionController]),
+                animation:
+                    Listenable.merge([_sizeController, _positionController]),
                 builder: (context, child) {
                   return Transform.translate(
                     offset: Offset(_positionAnimation.value, 0),
@@ -307,7 +420,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
                   height: MediaQuery.of(context).size.height * 0.5,
                 ),
               ),
-              
+
               _buildSpaceParticles(),
             ],
           ),
@@ -315,19 +428,15 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
       ),
     );
   }
-  
+
+  // NEW PLANET 2
   Widget _buildArrivedView() {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildProgressBar('assets/astronaut_icon.png', 'HP', 1.0,
-              Colors.red.shade700, Colors.red.shade400, Colors.white),
-          const SizedBox(height: 12),
-          _buildProgressBar('assets/rocket_icon.png', 'Progress', 1.0,
-              Colors.grey.shade500, Colors.grey.shade400, Colors.black),
+          _buildProgressSection(),
           _buildStatsSection(),
           const SizedBox(height: 24),
-        
           const Text(
             "YOUR ASTRONAUT HAS\nARRIVED ON A NEW PLANET!",
             textAlign: TextAlign.center,
@@ -339,7 +448,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
             ),
           ),
           const SizedBox(height: 24),
-          
           ConstrainedBox(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.4,
@@ -361,14 +469,14 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
       ),
     );
   }
-  
+
   Widget _buildDistantStars() {
     return AnimatedBuilder(
       animation: _sizeController,
       builder: (context, child) {
         final animValue = (_sizeController.value * 4) % 2;
         final scale = animValue < 1 ? animValue : 2 - animValue;
-        
+
         return Opacity(
           opacity: 0.7 * scale,
           child: Transform.scale(
@@ -388,7 +496,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
       },
     );
   }
-  
+
   Widget _buildSpaceParticles() {
     return AnimatedBuilder(
       animation: _positionController,
@@ -657,33 +765,33 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen> with Tick
 
 class SpaceParticlesPainter extends CustomPainter {
   final double animationValue;
-  
+
   SpaceParticlesPainter({required this.animationValue});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.white
       ..strokeCap = StrokeCap.round;
-      
+
     final random = DateTime.now().millisecondsSinceEpoch;
-    
+
     for (int i = 0; i < 100; i++) {
       final seed = (i * random) % 1000;
       final x = seed % size.width;
       final y = (seed * 0.7) % size.height;
       final speed = ((i % 5) + 1) * 0.2;
       final adjustedX = (x + (animationValue * 100 * speed)) % size.width;
-      
+
       paint.strokeWidth = (i % 3) * 0.8 + 0.5;
-      
+
       paint.color = Colors.white.withOpacity(0.3 + ((i % 5) * 0.14));
-      
+
       canvas.drawCircle(Offset(adjustedX, y), 0.8, paint);
     }
   }
-  
+
   @override
-  bool shouldRepaint(SpaceParticlesPainter oldDelegate) => 
+  bool shouldRepaint(SpaceParticlesPainter oldDelegate) =>
       oldDelegate.animationValue != animationValue;
 }

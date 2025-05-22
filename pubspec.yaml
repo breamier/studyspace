@@ -52,6 +52,7 @@ dependencies:
   android_alarm_manager_plus: ^4.0.7
   flutter_launcher_icons: ^0.14.3
   shared_preferences: ^2.5.3
+  flutter_lints: ^5.0.0
 
 flutter_icons:
   android: true
@@ -67,7 +68,6 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
   isar_generator: ^3.1.0+1
   build_runner: ^2.4.13
 
