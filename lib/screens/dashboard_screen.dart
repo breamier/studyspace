@@ -9,6 +9,7 @@ import 'package:studyspace/screens/astronaut_pet_screen.dart';
 import 'package:studyspace/item_manager.dart';
 import '../study-session/study_session_camera.dart';
 import '../widgets/navbar.dart';
+import 'package:studyspace/widgets/custom_toast.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
@@ -154,7 +155,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh, color: kWhite),
-              onPressed: _refreshGoals,
+              onPressed: () {
+                _refreshGoals();
+                showCustomToast(context, 'Goals refreshed successfully!');
+              },
             ),
             IconButton(
               icon: const Icon(Icons.help_outline, color: kWhite),
@@ -327,6 +331,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 80),
+
+// MOCK FOR TOASTS
+                    ElevatedButton(
+                      onPressed: () {
+                        showCustomToast(context, 'Rewards Claimed!');
+                      },
+                      child: const Text('Rewards Claimed!'),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        showCustomToast(context, 'Session Cancelled');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                      ),
+                      child: const Text('Session Cancelled'),
+                    ),
                   ],
                 ),
               );
@@ -422,7 +444,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           )));
             },
             child: Text(buttonText, style: kBodyFont),
-          )
+          ),
         ],
       ),
     );
@@ -443,4 +465,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
+
+void showCustomToast(BuildContext context, String message) {
+  final overlay = Overlay.of(context);
+  final overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Center(child: AnimatedToast(message: message)),
+    ),
+  );
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(const Duration(seconds: 3), () {
+    overlayEntry.remove();
+  });
 }
