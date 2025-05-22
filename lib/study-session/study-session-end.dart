@@ -8,6 +8,8 @@ import '../models/goal.dart';
 import '../services/isar_service.dart';
 import '../services/scheduler.dart';
 
+import '../models/mission.dart';
+
 class StudySessionEnd extends StatefulWidget {
   final Id goalId;
   final int duration;
@@ -35,7 +37,12 @@ class _StudySessionEndState extends State<StudySessionEnd>
   bool _isLoading = true;
   late double sizeQuery;
 
+  // HP service
   late AstroHpService _hpService;
+
+  // for missions fields
+  static int requiredMinutes = 1;
+  Mission? _completedStudy30MinMission;
 
   @override
   void initState() {
@@ -72,6 +79,9 @@ class _StudySessionEndState extends State<StudySessionEnd>
     // apply HP changes using the same session variable
     await _hpService.applyStudySessionHp(session: session, goal: _goal!);
 
+    // Check and complete the "Study 30 minutes straight" mission
+    _completedStudy30MinMission = await checkAndCompleteStudy30MinMission();
+
     if (_goal == null || _goal!.upcomingSessionDates.isEmpty) {
       print("Goal or sessions not found.");
       return;
@@ -81,6 +91,23 @@ class _StudySessionEndState extends State<StudySessionEnd>
       completedDate: widget.end,
       newDifficulty: _difficulty,
     );
+  }
+
+  Future<Mission?> checkAndCompleteStudy30MinMission() async {
+    final missions = await _isarService.getMissions();
+    try {
+      final mission = missions.firstWhere(
+        (m) => m.text == "Study 30 minutes straight" && !m.completed,
+      );
+      // check if session duration meets requirement
+      if (widget.duration >= requiredMinutes * 60) {
+        await _isarService.completeMission(mission.id);
+        return mission;
+      }
+    } catch (e) {
+      // mission not found or already completed
+    }
+    return null;
   }
 
   @override
@@ -169,19 +196,22 @@ class _StudySessionEndState extends State<StudySessionEnd>
                     ))),
             Spacer(),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
-                  //update data and send data
                   _goal!.difficulty = _difficulty;
                   _isarService.updateGoal(_goal!);
-                  saveSession();
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => StudySessionRewards(
-                                goalId: widget.goalId,
-                              )));
                 });
+                await saveSession(); // <-- Wait for this to finish!
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => StudySessionRewards(
+                      goalId: widget.goalId,
+                      study30MinReward:
+                          _completedStudy30MinMission?.rewardPoints,
+                    ),
+                  ),
+                );
               },
               style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.deepPurple),

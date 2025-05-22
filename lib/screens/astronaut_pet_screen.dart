@@ -21,13 +21,15 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
   final IsarService _isarService = IsarService();
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
+
+  // use to update pet for hp and mission progress
   late Future<AstronautPet?> _currentPet;
   late final ValueNotifier<bool> _itemChangeNotifier;
 
   @override
   void initState() {
     super.initState();
-    _currentPet = _isarService.getCurrentPet();
+    _currentPet = widget.isar.getCurrentPet();
     _getCurrentItems();
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
@@ -52,6 +54,16 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
     setState(() {
       _currentAstronaut = _itemManager.getCurrentAstronaut();
       _currentSpaceship = _itemManager.getCurrentSpaceship();
+    });
+  }
+
+  // object has changed value
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // refresh pet data every time the screen is shown
+    setState(() {
+      _currentPet = widget.isar.getCurrentPet();
     });
   }
 
@@ -128,8 +140,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                 children: [
                   _buildHpProgressBar(),
                   const SizedBox(height: 12),
-                  _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
-                      Colors.grey.shade500, Colors.grey.shade400, Colors.black),
+                  _buildMissionProgressBar(),
+                  const SizedBox(height: 12),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
                   ConstrainedBox(
@@ -181,6 +193,33 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
           hpPercent,
           hpColor.withValues(),
           hpColor.withValues(),
+          Colors.white,
+        );
+      },
+    );
+  }
+
+  Widget _buildMissionProgressBar() {
+    return FutureBuilder<AstronautPet?>(
+      future: _currentPet,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Text("No pet found", style: TextStyle(color: Colors.white));
+        }
+
+        final pet = snapshot.data!;
+        final progress = pet.progress; // This is a double between 0 and 1
+
+        return _buildProgressBar(
+          'assets/rocket_icon.png',
+          'Progress: ${(progress * 100).toStringAsFixed(1)}%',
+          progress,
+          Colors.blue,
+          Colors.green,
           Colors.white,
         );
       },

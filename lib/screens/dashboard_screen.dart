@@ -438,6 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   MaterialPageRoute(
                       builder: (context) => StudySessionCamera(
                             goalId: goalId,
+                            isarService: widget.isar,
                           )));
             },
             child: Text(buttonText, style: kBodyFont),

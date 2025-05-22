@@ -9,9 +9,16 @@ import 'package:image/image.dart' as img;
 import 'package:isar/isar.dart';
 import 'package:studyspace/study-session/study_session.dart';
 
+import '../mission_manager.dart';
+import '../widgets/mission_modal.dart';
+import '../services/isar_service.dart';
+import '../models/mission.dart';
+
 class StudySessionCamera extends StatefulWidget {
   final Id goalId;
-  const StudySessionCamera({super.key, required this.goalId});
+  final IsarService isarService;
+  const StudySessionCamera(
+      {super.key, required this.goalId, required this.isarService});
 
   @override
   State<StudySessionCamera> createState() => _StudySessionCameraState();
@@ -168,15 +175,75 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                         children: [
                           ElevatedButton(
                             onPressed: () async {
+                              debugPrint('Continue button pressed');
                               Gal.putImage(imgFile!.path);
-                              // go to study session
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => StudySession(
+
+                              // check and complete selfie mission
+
+                              final missionManager =
+                                  MissionManager(widget.isarService);
+                              debugPrint('About to check mission completion');
+                              final completedMission = await missionManager
+                                  .checkMissionCompletion(MissionType.selfie);
+                              debugPrint(
+                                  'Completed mission: $completedMission');
+
+                              if (completedMission != null && mounted) {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => MissionCompleteModal(
+                                    mission: completedMission,
+                                    onContinue: () async {
+                                      Navigator.of(context)
+                                          .pop(); // close the modal
+                                      // Fetch the goal from the database to ensure it exists
+                                      final goal = await widget.isarService
+                                          .getGoalById(widget.goalId);
+                                      if (goal == null) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                              content: Text(
+                                                  "Goal not found. Please create a goal first.")),
+                                        );
+                                        return;
+                                      }
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => StudySession(
                                             goalId: widget.goalId,
                                             imgLoc: imgFile!.path,
-                                          )));
+                                            isarService: widget.isarService,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              } else {
+                                // no mission to complet, just go to study session
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => StudySession(
+                                        goalId: widget.goalId,
+                                        imgLoc: imgFile!.path,
+                                        isarService: widget.isarService),
+                                  ),
+                                );
+                              }
+
+                              // go to study session
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) => StudySession(
+                              //               goalId: widget.goalId,
+                              //               imgLoc: imgFile!.path,
+                              //             )));
                             },
                             style: ButtonStyle(
                                 backgroundColor:
@@ -195,6 +262,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                           ElevatedButton(
                               onPressed: () {
                                 setState(() {
+                                  debugPrint('Setting picTaken to true');
                                   picTaken = false;
                                 });
                               },

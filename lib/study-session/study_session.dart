@@ -14,8 +14,12 @@ import '../services/isar_service.dart';
 class StudySession extends StatefulWidget {
   final Id goalId;
   final String imgLoc;
-
-  const StudySession({super.key, required this.goalId, required this.imgLoc});
+  final IsarService isarService;
+  const StudySession(
+      {super.key,
+      required this.goalId,
+      required this.imgLoc,
+      required this.isarService});
 
   @override
   State<StudySession> createState() {
@@ -69,20 +73,31 @@ class _StateStudySession extends State<StudySession> {
 
   @override
   void initState() {
+    super.initState();
     goal = _isarService.getGoalById(widget.goalId);
     goal.then((value) {
-      goalName = value!.goalName;
+      if (value == null) {
+        print("Goal not found for id: ${widget.goalId}");
+        setState(() {
+          _isLoading = false;
+        });
+        // Optionally, show an error dialog or navigate back
+        return;
+      }
+      goalName = value.goalName;
       setState(() {
         _isLoading = false;
       });
     });
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return CircularProgressIndicator();
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (goalName.isEmpty) {
+      return const Center(child: Text("Goal not found."));
     }
     timer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleTick();
