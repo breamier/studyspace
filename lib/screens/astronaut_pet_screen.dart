@@ -16,7 +16,7 @@ class AstronautPetScreen extends StatefulWidget {
   State<AstronautPetScreen> createState() => _AstronautPetScreenState();
 }
 
-class _AstronautPetScreenState extends State<AstronautPetScreen> {
+class _AstronautPetScreenState extends State<AstronautPetScreen> with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
   final IsarService _isarService = IsarService();
   Map<String, dynamic>? _currentAstronaut;
@@ -26,6 +26,11 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
   late Future<AstronautPet?> _currentPet;
   late final ValueNotifier<bool> _itemChangeNotifier;
 
+  // Animation controllers
+  late AnimationController _floatingController;
+  late Animation<double> _floatingAnimation;
+  late Animation<double> _rotationAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -33,11 +38,26 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
     _getCurrentItems();
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
+
+    // Initialize floating animation
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -6.0, end: 6.0)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
+
+    _rotationAnimation = Tween<double>(begin: -0.03, end: 0.03)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
   }
 
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
+_floatingController.dispose();
     super.dispose();
   }
 
@@ -149,12 +169,23 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> {
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
+child: AnimatedBuilder(
+                        animation: _floatingController,
+                        builder: (context, child) {
+                          return Transform.translate(
+                            offset: Offset(0, _floatingAnimation.value),
+                            child: Transform.rotate(
+                              angle: _rotationAnimation.value,
                       child: Hero(
                         tag: 'selected-image',
                         child: Image.asset(
                           _getDisplayImage(),
                           fit: BoxFit.contain,
                         ),
+                      ),
+                    ),
+);
+                        },
                       ),
                     ),
                   ),
