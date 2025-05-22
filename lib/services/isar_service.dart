@@ -9,6 +9,7 @@ import '../models/session.dart';
 import '../models/astronaut_pet.dart';
 
 import 'astro_missions_service.dart';
+import 'package:studyspace/models/hp_check_log.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -138,9 +139,13 @@ class IsarService extends ChangeNotifier {
     final dir = await getApplicationDocumentsDirectory();
     debugPrint('ISAR DB path: ${dir.path}');
     if (Isar.instanceNames.isEmpty) {
-      final isar = await Isar.open(
-          [AstronautPetSchema, GoalSchema, MissionSchema, SessionSchema],
-          directory: dir.path, inspector: true);
+      final isar = await Isar.open([
+        AstronautPetSchema,
+        GoalSchema,
+        MissionSchema,
+        SessionSchema,
+        HpCheckLogSchema
+      ], directory: dir.path, inspector: true);
       debugPrint('ISAR DB opened: ${isar.name}');
       return isar;
     }
@@ -175,8 +180,8 @@ class IsarService extends ChangeNotifier {
   // Complete a mission
   Future<void> completeMission(Id missionId) async {
     await initializeServices();
-    await _missionService.completeMission(
-        missionId); // This will update mission and pet progress!
+    await _missionService
+        .completeMission(missionId); // update mission and pet progress
   }
 
   // Fail a mission
@@ -385,5 +390,21 @@ class IsarService extends ChangeNotifier {
       await isar.astronautPets.put(newPet);
     });
     return newPet;
+  }
+
+  Future<DateTime?> getLastMissedSessionCheck() async {
+    final isar = await db;
+    final log = await isar.hpCheckLogs.get(0);
+    return log?.lastChecked;
+  }
+
+  Future<void> setLastMissedSessionCheck(DateTime date) async {
+    final isar = await db;
+    final log = HpCheckLog()
+      ..id = 0
+      ..lastChecked = date;
+    await isar.writeTxn(() async {
+      await isar.hpCheckLogs.put(log);
+    });
   }
 }

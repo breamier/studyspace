@@ -201,7 +201,7 @@ class _StudySessionEndState extends State<StudySessionEnd>
                   _goal!.difficulty = _difficulty;
                   _isarService.updateGoal(_goal!);
                 });
-                await saveSession(); // <-- Wait for this to finish!
+                await saveSession(); // need to wait to save session
                 Navigator.push(
                   context,
                   MaterialPageRoute(

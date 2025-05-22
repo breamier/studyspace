@@ -259,11 +259,11 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
               );
             }
           });
-          // Optionally, return a placeholder while navigating
+
           return SizedBox.shrink();
         }
 
-        // If progress is full and not already traveling/arrived, trigger travel
+        // If progress is full and not already traveling/arrived, go to traveling screen
         if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
           Future.microtask(() async {
             pet.progress = 0.0;
@@ -283,7 +283,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           });
         }
 
-        // If pet has arrived, just show the progress bar (no navigation)
+        // If pet has arrived, show the progress bar
         return _buildProgressBar(
           'assets/rocket_icon.png',
           'Progress: ${(progress * 100).toStringAsFixed(0)}%',

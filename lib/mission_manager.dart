@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:studyspace/models/mission.dart';
 import 'package:studyspace/services/isar_service.dart';
 
@@ -20,7 +19,7 @@ class MissionManager {
       );
       await isarService.completeMission(matchingMission.id);
 
-      // Fetch the updated mission from the database
+      // fetch the updated mission from the db
       final updatedMission =
           await isarService.getMissionById(matchingMission.id);
       print(

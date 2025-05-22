@@ -17,43 +17,53 @@ const AstronautPetSchema = CollectionSchema(
   name: r'AstronautPet',
   id: 8607012919912616147,
   properties: {
-    r'hp': PropertySchema(
+    r'hasArrived': PropertySchema(
       id: 0,
+      name: r'hasArrived',
+      type: IsarType.bool,
+    ),
+    r'hp': PropertySchema(
+      id: 1,
       name: r'hp',
       type: IsarType.double,
     ),
     r'isAlive': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'isAlive',
       type: IsarType.bool,
     ),
+    r'isTraveling': PropertySchema(
+      id: 3,
+      name: r'isTraveling',
+      type: IsarType.bool,
+    ),
     r'name': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'name',
       type: IsarType.string,
     ),
     r'planetsCount': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'planetsCount',
       type: IsarType.long,
     ),
     r'progress': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'progress',
       type: IsarType.double,
     ),
     r'progressPoints': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'progressPoints',
       type: IsarType.long,
     ),
     r'shipType': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'shipType',
       type: IsarType.string,
     ),
     r'skinType': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'skinType',
       type: IsarType.string,
     )
@@ -104,14 +114,16 @@ void _astronautPetSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDouble(offsets[0], object.hp);
-  writer.writeBool(offsets[1], object.isAlive);
-  writer.writeString(offsets[2], object.name);
-  writer.writeLong(offsets[3], object.planetsCount);
-  writer.writeDouble(offsets[4], object.progress);
-  writer.writeLong(offsets[5], object.progressPoints);
-  writer.writeString(offsets[6], object.shipType);
-  writer.writeString(offsets[7], object.skinType);
+  writer.writeBool(offsets[0], object.hasArrived);
+  writer.writeDouble(offsets[1], object.hp);
+  writer.writeBool(offsets[2], object.isAlive);
+  writer.writeBool(offsets[3], object.isTraveling);
+  writer.writeString(offsets[4], object.name);
+  writer.writeLong(offsets[5], object.planetsCount);
+  writer.writeDouble(offsets[6], object.progress);
+  writer.writeLong(offsets[7], object.progressPoints);
+  writer.writeString(offsets[8], object.shipType);
+  writer.writeString(offsets[9], object.skinType);
 }
 
 AstronautPet _astronautPetDeserialize(
@@ -121,15 +133,17 @@ AstronautPet _astronautPetDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = AstronautPet();
-  object.hp = reader.readDouble(offsets[0]);
+  object.hasArrived = reader.readBool(offsets[0]);
+  object.hp = reader.readDouble(offsets[1]);
   object.id = id;
-  object.isAlive = reader.readBool(offsets[1]);
-  object.name = reader.readString(offsets[2]);
-  object.planetsCount = reader.readLong(offsets[3]);
-  object.progress = reader.readDouble(offsets[4]);
-  object.progressPoints = reader.readLong(offsets[5]);
-  object.shipType = reader.readString(offsets[6]);
-  object.skinType = reader.readString(offsets[7]);
+  object.isAlive = reader.readBool(offsets[2]);
+  object.isTraveling = reader.readBool(offsets[3]);
+  object.name = reader.readString(offsets[4]);
+  object.planetsCount = reader.readLong(offsets[5]);
+  object.progress = reader.readDouble(offsets[6]);
+  object.progressPoints = reader.readLong(offsets[7]);
+  object.shipType = reader.readString(offsets[8]);
+  object.skinType = reader.readString(offsets[9]);
   return object;
 }
 
@@ -141,20 +155,24 @@ P _astronautPetDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDouble(offset)) as P;
-    case 1:
       return (reader.readBool(offset)) as P;
-    case 2:
-      return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readLong(offset)) as P;
-    case 4:
+    case 1:
       return (reader.readDouble(offset)) as P;
+    case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
+      return (reader.readBool(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readLong(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 7:
+      return (reader.readLong(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -355,6 +373,16 @@ extension AstronautPetQueryWhere
 
 extension AstronautPetQueryFilter
     on QueryBuilder<AstronautPet, AstronautPet, QFilterCondition> {
+  QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition>
+      hasArrivedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hasArrived',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition> hpEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -475,6 +503,16 @@ extension AstronautPetQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isAlive',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition>
+      isTravelingEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isTraveling',
         value: value,
       ));
     });
@@ -1073,6 +1111,19 @@ extension AstronautPetQueryLinks
 
 extension AstronautPetQuerySortBy
     on QueryBuilder<AstronautPet, AstronautPet, QSortBy> {
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> sortByHasArrived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasArrived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy>
+      sortByHasArrivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasArrived', Sort.desc);
+    });
+  }
+
   QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> sortByHp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hp', Sort.asc);
@@ -1094,6 +1145,19 @@ extension AstronautPetQuerySortBy
   QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> sortByIsAliveDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isAlive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> sortByIsTraveling() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isTraveling', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy>
+      sortByIsTravelingDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isTraveling', Sort.desc);
     });
   }
 
@@ -1175,6 +1239,19 @@ extension AstronautPetQuerySortBy
 
 extension AstronautPetQuerySortThenBy
     on QueryBuilder<AstronautPet, AstronautPet, QSortThenBy> {
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> thenByHasArrived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasArrived', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy>
+      thenByHasArrivedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasArrived', Sort.desc);
+    });
+  }
+
   QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> thenByHp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'hp', Sort.asc);
@@ -1208,6 +1285,19 @@ extension AstronautPetQuerySortThenBy
   QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> thenByIsAliveDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isAlive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> thenByIsTraveling() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isTraveling', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy>
+      thenByIsTravelingDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isTraveling', Sort.desc);
     });
   }
 
@@ -1289,6 +1379,12 @@ extension AstronautPetQuerySortThenBy
 
 extension AstronautPetQueryWhereDistinct
     on QueryBuilder<AstronautPet, AstronautPet, QDistinct> {
+  QueryBuilder<AstronautPet, AstronautPet, QDistinct> distinctByHasArrived() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasArrived');
+    });
+  }
+
   QueryBuilder<AstronautPet, AstronautPet, QDistinct> distinctByHp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'hp');
@@ -1298,6 +1394,12 @@ extension AstronautPetQueryWhereDistinct
   QueryBuilder<AstronautPet, AstronautPet, QDistinct> distinctByIsAlive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isAlive');
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QDistinct> distinctByIsTraveling() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isTraveling');
     });
   }
 
@@ -1350,6 +1452,12 @@ extension AstronautPetQueryProperty
     });
   }
 
+  QueryBuilder<AstronautPet, bool, QQueryOperations> hasArrivedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hasArrived');
+    });
+  }
+
   QueryBuilder<AstronautPet, double, QQueryOperations> hpProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hp');
@@ -1359,6 +1467,12 @@ extension AstronautPetQueryProperty
   QueryBuilder<AstronautPet, bool, QQueryOperations> isAliveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isAlive');
+    });
+  }
+
+  QueryBuilder<AstronautPet, bool, QQueryOperations> isTravelingProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isTraveling');
     });
   }
 

@@ -69,7 +69,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               }
             });
           } else {
-            // Default to arrived if not traveling
+            // default is the buildArrived state
             _travelState = TravelState.arrived;
           }
         });
@@ -331,7 +331,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               setState(() {
                 _travelState = TravelState.traveling;
               });
-              // Optionally, auto-transition to arrived after 5s
+              //  auto-transition to arrived after 5s
               Future.delayed(const Duration(seconds: 5), () async {
                 if (mounted) {
                   setState(() {
@@ -347,7 +347,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               });
             }
           });
-          // Optionally, show a placeholder while transitioning
+          // show a placeholder while transitioning
           return SizedBox.shrink();
         }
 

@@ -20,6 +20,7 @@ void main() async {
   final isarService = IsarService();
   // await AndroidAlarmManager.initialize();
   await NotifService().initNotification();
+
   await isarService.initializeDailyMissions();
 
   runApp(const StudySpaceApp());
@@ -55,7 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     IsarService().initializeDefaultPet();
     final hpService = AstroHpService(service);
-    hpService.checkMissedSessions();
+
+    // Should be run once a day to check for missed sessions || comment out to test
+    //hpService.checkMissedSessions();
   }
 
   @override
@@ -212,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ).then((_) => setState(() {}));
                     } else {
-                      // Go to traveling screen and force arrived view
+                      // go to traveling screen and force arrived view if planetCount is >=1
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -266,7 +269,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final hpService = AstroHpService(isarService);
 
     // DON'T reset the database - we want to keep existing state
-    // Only initialize pet if it doesn't exist
+
+    // only initialize pet if it doesn't exist
     var pet = await isarService.getCurrentPet();
     if (pet == null) {
       await isarService.initializeDefaultPet();
@@ -311,19 +315,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     /* START: COMMENT THIS IF YOU WANT TO TEST HP DECREASE */
 
-    // // TEST 2: HP DECREASE - Create a missed session
-    // final missedGoal = Goal()
-    //   ..goalName = "Missed Goal $testId"
-    //   ..start = now.subtract(Duration(days: 3))
-    //   ..end = now.add(Duration(days: 5))
-    //   ..difficulty = "Medium"
-    //   ..reps = 2
-    //   ..interval = 2
-    //   ..easeFactor = 2.3
-    //   ..upcomingSessionDates = [now.subtract(Duration(days: 1))];
+    // TEST 2: HP DECREASE - Create a missed session
+    final missedGoal = Goal()
+      ..goalName = "Missed Goal $testId"
+      ..start = now.subtract(Duration(days: 3))
+      ..end = now.add(Duration(days: 5))
+      ..difficulty = "Medium"
+      ..reps = 2
+      ..interval = 2
+      ..easeFactor = 2.3
+      ..upcomingSessionDates = [now.subtract(Duration(days: 1))];
 
-    // await isar.writeTxn(() => isar.goals.put(missedGoal));
-    // await hpService.checkMissedSessions();
+    await isar.writeTxn(() => isar.goals.put(missedGoal));
+    await hpService.checkMissedSessions();
 
     /* END: COMMENT THIS IF YOU WANT TO TEST HP DECREASE */
 

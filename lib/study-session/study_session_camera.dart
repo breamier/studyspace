@@ -197,6 +197,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                     onContinue: () async {
                                       Navigator.of(context)
                                           .pop(); // close the modal
+
                                       // Fetch the goal from the database to ensure it exists
                                       final goal = await widget.isarService
                                           .getGoalById(widget.goalId);
@@ -223,7 +224,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                   ),
                                 );
                               } else {
-                                // no mission to complet, just go to study session
+                                // no mission to complete, just go to study session
 
                                 Navigator.push(
                                   context,

@@ -37,7 +37,7 @@ class MissionService {
   Future<void> initializeDailyMissions() async {
     final todayKey = _getTodayKey();
 
-    // 1. Delete old missions that are not completed (in batches)
+    // delete old missions that are not completed (in batches)
     final oldMissions = await isar.missions
         .filter()
         .not()
@@ -55,7 +55,7 @@ class MissionService {
       });
     }
 
-    // 2. Delete all today's missions (so we can always add the latest 3)
+    // 2. Delete all today's missions
     final todayMissions =
         await isar.missions.filter().dailyKeyEqualTo(todayKey).findAll();
     if (todayMissions.isNotEmpty) {
