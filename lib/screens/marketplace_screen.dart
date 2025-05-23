@@ -2,9 +2,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
+import '../services/isar_service.dart';
 
 class MarketplaceScreen extends StatefulWidget {
-  const MarketplaceScreen({Key? key}) : super(key: key);
+  final IsarService isar;
+  const MarketplaceScreen({Key? key, required this.isar}) : super(key: key);
 
   @override
   State<MarketplaceScreen> createState() => _SpaceExpressMarketplaceState();
@@ -543,6 +545,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
       context,
       MaterialPageRoute(
         builder: (context) => EditAstronautScreen(
+          isar: widget.isar,
           unlockedItem: selectedItem,
         ),
       ),
@@ -567,7 +570,9 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
             () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const EditAstronautScreen()),
+                  builder: (context) => EditAstronautScreen(
+                        isar: widget.isar,
+                      )),
             ),
             backgroundColor: const Color(0xFF333333),
             borderColor: Colors.white,

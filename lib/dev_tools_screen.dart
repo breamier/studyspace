@@ -210,7 +210,7 @@ class _DevToolsScreenState extends State<DevToolsScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            const ReplenishedAstronautScreen()),
+                            ReplenishedAstronautScreen(isar: widget.isar)),
                   );
                 },
                 child: const Text('Go to Replenished Astronaut Screen'),

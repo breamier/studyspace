@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:studyspace/screens/astronaut_traveling_screen.dart';
 import 'marketplace_screen.dart';
 import 'package:studyspace/item_manager.dart';
 
+import '../models/astronaut_pet.dart';
+import '../services/astro_hp_service.dart';
+import '../services/isar_service.dart';
+
 class EditAstronautScreen extends StatefulWidget {
   final Map<String, dynamic>? unlockedItem;
-
-  const EditAstronautScreen({Key? key, this.unlockedItem}) : super(key: key);
+  final IsarService isar;
+  const EditAstronautScreen({Key? key, this.unlockedItem, required this.isar})
+      : super(key: key);
 
   @override
   State<EditAstronautScreen> createState() => _EditAstronautScreenState();
@@ -20,10 +26,13 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   late List<Map<String, dynamic>> _spaceships;
   final ItemManager _itemManager = ItemManager();
 
+  // use to update pet for hp and mission progress
+  late Future<AstronautPet?> _currentPet;
+
   @override
   void initState() {
     super.initState();
-
+    _currentPet = widget.isar.getCurrentPet();
     _astronauts = _itemManager.astronauts;
     _spaceships = _itemManager.spaceships;
 
@@ -194,11 +203,9 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             children: [
-              _buildProgressBar('assets/astronaut_icon.png', 'HP', 0.75,
-                  Colors.red.shade700, Colors.red.shade400, Colors.white),
+              _buildHpProgressBar(),
               const SizedBox(height: 12),
-              _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
-                  Colors.grey.shade500, Colors.grey.shade400, Colors.black),
+              _buildMissionProgressBar(),
               _buildStatsSection(),
               Expanded(
                 child: Stack(
@@ -408,6 +415,98 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     );
   }
 
+  Widget _buildHpProgressBar() {
+    return FutureBuilder<AstronautPet?>(
+      future: _currentPet,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Text("No pet found", style: TextStyle(color: Colors.white));
+        }
+
+        final pet = snapshot.data!;
+        final hpPercent = pet.hp / 100.0;
+        final hpColor = AstroHpService.getHpColor(hpPercent);
+
+        return _buildProgressBar(
+          'assets/astronaut_icon.png',
+          'HP: ${(pet.hp).toStringAsFixed(0)}%',
+          hpPercent,
+          hpColor.withValues(),
+          hpColor.withValues(),
+          Colors.white,
+        );
+      },
+    );
+  }
+
+  Widget _buildMissionProgressBar() {
+    return FutureBuilder<AstronautPet?>(
+      future: _currentPet,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Text("No pet found", style: TextStyle(color: Colors.white));
+        }
+        final pet = snapshot.data!;
+        final progress = pet.progress;
+
+        // If pet is traveling, always go to traveling screen
+        if (pet.isTraveling) {
+          Future.microtask(() {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AstronautTravelScreen(isar: widget.isar),
+                ),
+              );
+            }
+          });
+
+          return SizedBox.shrink();
+        }
+
+        // If progress is full and not already traveling/arrived, go to traveling screen
+        if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
+          Future.microtask(() async {
+            pet.progress = 0.0;
+            pet.isTraveling = true;
+            pet.hasArrived = false;
+            pet.planetsCount += 1;
+
+            await widget.isar.updatePet(pet);
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AstronautTravelScreen(isar: widget.isar),
+                ),
+              );
+            }
+          });
+        }
+
+        // If pet has arrived, show the progress bar
+        return _buildProgressBar(
+          'assets/rocket_icon.png',
+          'Progress: ${(progress * 100).toStringAsFixed(0)}%',
+          progress,
+          Colors.blue,
+          Colors.green,
+          Colors.white,
+        );
+      },
+    );
+  }
+
   Widget _buildStatsSection() {
     return Container(
       width: double.infinity,
@@ -428,7 +527,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                   () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MarketplaceScreen(),
+                        builder: (context) =>
+                            MarketplaceScreen(isar: widget.isar),
                       )),
                 ),
                 const SizedBox(height: 16),

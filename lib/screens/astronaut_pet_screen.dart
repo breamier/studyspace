@@ -394,8 +394,17 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatHeader(
-                    'assets/planet_icon.png', 'Planets Visited:', '2'),
+                FutureBuilder<AstronautPet?>(
+                  future: _currentPet,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data?.planetsCount ?? 0;
+                    return _buildStatHeader(
+                      'assets/planet_icon.png',
+                      'Planets Visited:',
+                      count.toString(),
+                    );
+                  },
+                ),
                 const SizedBox(height: 24),
                 _buildActionButton(
                   Icons.backpack,
@@ -403,7 +412,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MarketplaceScreen(),
+                        builder: (context) =>
+                            MarketplaceScreen(isar: widget.isar),
                       ),
                     ).then((_) => setState(() {}));
                   },
@@ -415,7 +425,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EditAstronautScreen(),
+                        builder: (context) =>
+                            EditAstronautScreen(isar: widget.isar),
                       ),
                     ).then((_) => setState(() {}));
                   },

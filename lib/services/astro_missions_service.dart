@@ -118,11 +118,9 @@ class MissionService {
   Future<void> _applyMissionReward(Mission mission) async {
     final pet = await isar.astronautPets.where().findFirst();
     if (pet != null) {
-      // Do NOT start a new transaction here!
       double progressIncrease = mission.rewardPoints / 100.0;
       pet.progress = min(1.0, pet.progress + progressIncrease);
-      await isar.astronautPets
-          .put(pet); // This is safe, because it's called inside the outer txn
+      await isar.astronautPets.put(pet);
     }
   }
 
@@ -130,7 +128,6 @@ class MissionService {
   Future<void> _applyMissionPenalty(Mission mission) async {
     final pet = await isar.astronautPets.where().findFirst();
     if (pet != null) {
-      // Do NOT start a new transaction here!
       pet.hp = max(0, pet.hp - mission.hpPenalty);
       double progressDecrease = mission.penaltyPoints / 1000.0;
       pet.progress = max(0, pet.progress - progressDecrease);
