@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:intl/intl.dart';
+import 'package:studyspace/screens/dashboard_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/services/scheduler.dart';
@@ -266,7 +267,14 @@ class PreviewStudyGoal extends StatelessWidget {
                     goal.upcomingSessionDates = sessionDates;
                     await IsarService().addGoal(goal);
                     if (context.mounted) {
-                      Navigator.popUntil(context, (route) => route.isFirst);
+                      // Navigator.popUntil(context, (route) => route.isFirst);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                DashboardScreen(isar: IsarService())),
+                        (route) => false,
+                      );
                     }
                   },
                   shape: RoundedRectangleBorder(
