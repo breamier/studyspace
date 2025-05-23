@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:studyspace/screens/dashboard_screen.dart';
 import 'package:studyspace/study-session/study-session-end.dart';
 import 'package:studyspace/study-session/study_session_tasks.dart';
 
@@ -24,7 +25,7 @@ class StudySession extends StatefulWidget {
   @override
   State<StudySession> createState() {
     return _StateStudySession();
-  }
+  } 
 }
 
 class _StateStudySession extends State<StudySession> {
@@ -39,6 +40,7 @@ class _StateStudySession extends State<StudySession> {
   bool showPopUp = false;
   bool dontShowCheckIns = false;
   bool showEndSession = false;
+  bool showCancelSession = false;
   String headerText = "";
   String questionText = "";
   String yesButtonText = "";
@@ -105,23 +107,28 @@ class _StateStudySession extends State<StudySession> {
     return Scaffold(
       body: Stack(
         children: [
+
           _buildUI(),
           if (showPopUp) _buildPopUp(),
-          if (showEndSession) _buildEndSessionNotif()
+          if (showEndSession) _buildEndSessionNotif(),
+          if(showCancelSession) _buildCancelSessionPopup()
         ],
       ),
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              setState(() {
+                showCancelSession = true;
+              });
             },
             icon: const Icon(
               Icons.arrow_circle_left_outlined,
               color: Colors.white,
             )),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.transparent, // transparent app bar
+        elevation: 0, // remove shadow
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0A001F), // darker background
     );
   }
 
@@ -200,56 +207,126 @@ class _StateStudySession extends State<StudySession> {
     String strHrs = hours.toString().padLeft(2, '0');
 
     String strDuration = '$strHrs:$strMin';
-    String secDuration = strSec;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        // Main timer (HH:MM)
         Text(
-          textAlign: TextAlign.center,
           strDuration,
-          textScaler:
-              TextScaler.linear(MediaQuery.of(context).size.width * 0.009),
-        ),
-        Text(
           textAlign: TextAlign.center,
-          secDuration,
-          textScaler:
-              TextScaler.linear(MediaQuery.of(context).size.width * 0.004),
-        )
+          style: TextStyle(
+            fontFamily: "Digital-7", // Use a digital font if available
+            fontSize: 64,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                blurRadius: 16,
+                color: Colors.deepPurpleAccent.withOpacity(0.7),
+                offset: Offset(0, 0),
+              ),
+            ],
+            letterSpacing: 2,
+          ),
+        ),
+        // Seconds, smaller and offset
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            strSec,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "Digital-7",
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  blurRadius: 8,
+                  color: Colors.deepPurpleAccent.withOpacity(0.7),
+                  offset: Offset(0, 0),
+                ),
+              ],
+              letterSpacing: 1,
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget timerContainer() {
     return Container(
-      width: 300.0,
-      height: 300.0,
+      width: MediaQuery.sizeOf(context).width * 0.75,
+      height:  MediaQuery.sizeOf(context).width * 0.75,
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        color: Colors.deepPurple,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.deepPurple.shade900,
+            Colors.deepPurple.shade700,
+            Colors.deepPurple,
+            Colors.deepPurpleAccent,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.5),
+            blurRadius: 32,
+            spreadRadius: 4,
+            offset: Offset(0, 8),
+          ),
+        ],
+
       ),
       child: studyTimer(),
     );
   }
 
   Widget timerButton() {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          isActive = !isActive;
-        });
-      },
-      style: ButtonStyle(
-        shape: WidgetStateProperty.all(CircleBorder()),
-        shadowColor: WidgetStateProperty.all(Color(Colors.white.hashCode)),
-        minimumSize: WidgetStateProperty.all(Size(
-            MediaQuery.sizeOf(context).width * 0.15,
-            MediaQuery.sizeOf(context).width * 0.15)),
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [Colors.deepPurpleAccent, Colors.purpleAccent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurpleAccent.withOpacity(0.5),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
-      child: Icon(isActive ? Icons.pause_rounded : Icons.play_arrow_rounded),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            isActive = !isActive;
+          });
+        },
+        style: ButtonStyle(
+          shape: WidgetStateProperty.all(CircleBorder()),
+          backgroundColor: WidgetStateProperty.all(Colors.transparent),
+          shadowColor: WidgetStateProperty.all(Colors.transparent),
+          elevation: WidgetStateProperty.all(0),
+          minimumSize: WidgetStateProperty.all(Size(
+              MediaQuery.sizeOf(context).width * 0.15,
+              MediaQuery.sizeOf(context).width * 0.15)),
+          overlayColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+        ),
+        child: Icon(
+          isActive ? Icons.pause_rounded : Icons.play_arrow_rounded,
+          color: Colors.white,
+          size: 40,
+        ),
+      ),
     );
   }
 
@@ -462,6 +539,79 @@ class _StateStudySession extends State<StudySession> {
                           elevation: 3),
                       child: Text(
                         "Cancel",
+                      ),
+                    ),
+                  ])
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildCancelSessionPopup() {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.7),
+      child: Center(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.grey[800],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Leaving so soon?",
+                  style: TextStyle(fontFamily: "BrunoAceSC", fontSize: 12)),
+              Text(
+                "Returning to main menu will cancel the session.",
+                style: TextStyle(fontFamily: "Amino", fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Image.asset(
+                    "assets/austronaut.png",
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                  Column(children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        timer?.cancel();
+                        isActive = false;
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DashboardScreen(isar:_isarService)));
+                      },
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.deepPurple,
+                          minimumSize: Size(
+                              MediaQuery.sizeOf(context).width * 0.4,
+                              MediaQuery.sizeOf(context).width * 0.1),
+                          elevation: 3),
+                      child: Text(
+                        "Main Menu",
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => showCancelSession = false),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          foregroundColor: Colors.white,
+                          minimumSize: Size(
+                              MediaQuery.sizeOf(context).width * 0.4,
+                              MediaQuery.sizeOf(context).width * 0.1),
+                          elevation: 3),
+                      child: Text(
+                        "Stay",
                       ),
                     ),
                   ])
