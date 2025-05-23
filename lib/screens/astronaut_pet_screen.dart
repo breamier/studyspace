@@ -18,6 +18,9 @@ class AstronautPetScreen extends StatefulWidget {
   State<AstronautPetScreen> createState() => _AstronautPetScreenState();
 }
 
+// track pet travel state
+enum PetTravelState { idle, readyToLaunch, traveling, arrived }
+
 class _AstronautPetScreenState extends State<AstronautPetScreen>
     with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
@@ -34,6 +37,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   late Animation<double> _floatingAnimation;
   late Animation<double> _rotationAnimation;
 
+  // default pet travel state is idle
+  PetTravelState _petTravelState = PetTravelState.idle;
   @override
   void initState() {
     super.initState();
@@ -214,7 +219,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("No finished study sessions yet!",
+          return Text("please add your first goal",
               style: TextStyle(color: Colors.white));
         }
 
@@ -242,7 +247,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return CircularProgressIndicator();
         }
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("Add a Study Goal/Study Now!",
+          return Text("please add your first goal",
               style: TextStyle(color: Colors.white));
         }
         final pet = snapshot.data!;
@@ -265,13 +270,13 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return SizedBox.shrink();
         }
 
-        // If progress is full and not already traveling/arrived, go to traveling screen
-        if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
+        // If progress is full , not travelling,
+        if (progress >= 1.0 && !pet.isTraveling) {
           Future.microtask(() async {
             pet.progress = 0.0;
             pet.isTraveling = true;
-            pet.hasArrived = false;
             pet.planetsCount += 1;
+
             await widget.isar.updatePet(pet);
             if (mounted) {
               Navigator.pushReplacement(
@@ -390,7 +395,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -434,35 +439,6 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
               ],
             ),
           ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row(
-                //   children: [
-                //     Container(
-                //       margin: const EdgeInsets.only(right: 10),
-                //       child: Image.asset(
-                //         'assets/Satellite_icon.png',
-                //         width: 24,
-                //         height: 24,
-                //       ),
-                //     ),
-                //     const Text(
-                //       "Missions:",
-                //       style: TextStyle(
-                //         fontFamily: 'BrunoAceSC',
-                //         color: Colors.white,
-                //         fontSize: 14,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // _buildMissionsBox(),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -470,36 +446,29 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          margin: const EdgeInsets.only(right: 10),
-          child: Image.asset(
-            iconPath,
-            width: 24,
-            height: 24,
+        Image.asset(
+          iconPath,
+          width: 24,
+          height: 24,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 14,
           ),
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 18,
           ),
         ),
       ],
@@ -526,55 +495,6 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMissionsBox() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12, left: 25),
-      padding: const EdgeInsets.all(12),
-      width: 200,
-      height: 150,
-      decoration: BoxDecoration(
-        color: const Color(0xFF333333),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMissionProgress("Mission 1", 0.9),
-          const SizedBox(height: 12),
-          _buildMissionProgress("Mission 2", 0.4),
-          const SizedBox(height: 12),
-          _buildMissionProgress("Mission 3", 0.6),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMissionProgress(String missionName, double progress) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          missionName,
-          style: const TextStyle(
-            fontFamily: 'Arimo',
-            color: Colors.white,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.black,
-            color: Colors.white,
-            minHeight: 6,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -474,12 +474,10 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         }
 
         // If progress is full and not already traveling/arrived, go to traveling screen
-        if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
+        if (progress >= 1.0 && !pet.isTraveling) {
           Future.microtask(() async {
             pet.progress = 0.0;
             pet.isTraveling = true;
-            pet.hasArrived = false;
-            pet.planetsCount += 1;
 
             await widget.isar.updatePet(pet);
             if (mounted) {
@@ -515,12 +513,22 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatHeader(
-                    'assets/planet_icon.png', 'Planets Visited:', '2'),
+                const SizedBox(height: 12),
+                FutureBuilder<AstronautPet?>(
+                  future: _currentPet,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data?.planetsCount ?? 0;
+                    return _buildStatHeader(
+                      'assets/planet_icon.png',
+                      'Planets Visited:',
+                      count.toString(),
+                    );
+                  },
+                ),
                 const SizedBox(height: 24),
                 _buildActionIcon(
                   Icons.backpack,
@@ -540,33 +548,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
               ],
             ),
           ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row(
-                //   children: [
-                //     Container(
-                //       margin: const EdgeInsets.only(right: 10),
-                //       child: Image.asset('assets/Satellite_icon.png',
-                //           width: 24, height: 24),
-                //     ),
-                //     const Text(
-                //       "Missions:",
-                //       style: TextStyle(
-                //         fontFamily: 'BrunoAceSC',
-                //         color: Colors.white,
-                //         fontSize: 14,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-
-                // _buildMissionsBox(),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -574,32 +555,29 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          margin: const EdgeInsets.only(right: 10),
-          child: Image.asset(iconPath, width: 24, height: 24),
+        Image.asset(
+          iconPath,
+          width: 24,
+          height: 24,
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 18,
           ),
         ),
       ],

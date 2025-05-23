@@ -25,6 +25,8 @@ class AstronautTravelScreen extends StatefulWidget {
 class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
+
+  // set pet travel state to has arrived
   TravelState _travelState = TravelState.arrived;
   late final ValueNotifier<bool> _itemChangeNotifier;
 
@@ -50,20 +52,22 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     _itemChangeNotifier.addListener(_handleItemChanged);
 
     _currentPet = widget.isar.getCurrentPet();
+
     // load pet and set the travel state
     _currentPet.then((pet) {
       if (pet != null) {
         setState(() {
           if (widget.forceArrived) {
             _travelState = TravelState.arrived;
+
+            // if pet.isTravelling is true, then set travelstate to initial.
           } else if (pet.isTraveling) {
-            _travelState = TravelState.traveling;
-            Future.delayed(const Duration(seconds: 5), () async {
+            _travelState = TravelState.initial;
+            Future.delayed(const Duration(seconds: 10), () async {
               if (mounted) {
                 setState(() {
                   _travelState = TravelState.arrived;
                 });
-                pet.hasArrived = true;
                 pet.isTraveling = false;
                 await widget.isar.updatePet(pet);
               }
@@ -279,14 +283,13 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   _travelState = TravelState.traveling;
 
                   // Auto transition to arrived state after 5 seconds
-                  Future.delayed(const Duration(seconds: 5), () async {
+                  Future.delayed(const Duration(seconds: 10), () async {
                     if (mounted) {
                       setState(() {
                         _travelState = TravelState.arrived;
                       });
                       final pet = await widget.isar.getCurrentPet();
                       if (pet != null) {
-                        pet.hasArrived = true;
                         pet.isTraveling = false;
                         await widget.isar.updatePet(pet);
                       }
@@ -317,15 +320,15 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         final pet = snapshot.data!;
         final hpPercent = pet.hp / 100.0;
         final progress = pet.progress;
-        pet.planetsCount += 1;
+
         widget.isar.updatePet(pet);
 
         // --- NEW: If in arrived state and progress is full, trigger travel ---
         if (_travelState == TravelState.arrived && progress >= 1.0) {
           Future.microtask(() async {
             pet.progress = 0.0;
-            pet.isTraveling = true;
-            pet.hasArrived = false;
+            pet.isTraveling = false;
+
             await widget.isar.updatePet(pet);
             if (mounted) {
               setState(() {
@@ -339,7 +342,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   });
                   final updatedPet = await widget.isar.getCurrentPet();
                   if (updatedPet != null) {
-                    updatedPet.hasArrived = true;
                     updatedPet.isTraveling = false;
                     await widget.isar.updatePet(updatedPet);
                   }
@@ -585,7 +587,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -665,36 +667,29 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          margin: const EdgeInsets.only(right: 10),
-          child: Image.asset(
-            iconPath,
-            width: 24,
-            height: 24,
+        Image.asset(
+          iconPath,
+          width: 24,
+          height: 24,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 14,
           ),
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 18,
           ),
         ),
       ],

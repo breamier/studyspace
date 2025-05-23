@@ -136,6 +136,7 @@ flutter:
     - assets/choco1.jpg
     - assets/choco2.jpg
     - assets/choco3.jpg
+    - assets/astro_mission.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
