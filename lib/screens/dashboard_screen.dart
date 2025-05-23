@@ -9,6 +9,7 @@ import 'package:studyspace/screens/astronaut_pet_screen.dart';
 import 'package:studyspace/item_manager.dart';
 import '../study-session/study_session_camera.dart';
 import '../widgets/navbar.dart';
+import '../dev_tools_screen.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
@@ -205,6 +206,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  DevToolsScreen(isar: widget.isar)),
+                        );
+                      },
+                      child: const Text('Go to Developer Tools'),
+                    ),
                     // Current Study Goals
                     if (currentGoals.isNotEmpty) ...[
                       const SizedBox(height: 10),

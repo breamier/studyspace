@@ -62,7 +62,6 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
         setState(() => _isLoading = false);
       }
     }
-
   }
 
   @override
@@ -77,11 +76,17 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_circle_left_outlined,
-            color: Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
         ),
         backgroundColor: Colors.black,

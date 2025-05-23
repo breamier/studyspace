@@ -42,9 +42,9 @@ class _InformationScreenState extends State<InformationScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              _buildSectionTitle('How can we help you?'),
-              _buildSearchBar(),
-              const SizedBox(height: 24),
+              // _buildSectionTitle('How can we help you?'),
+              // _buildSearchBar(),
+              // const SizedBox(height: 24),
               _buildSectionTitle('FAQs'),
               const SizedBox(height: 10),
               FAQItem(
@@ -184,7 +184,7 @@ Study Space takes this proven method to the next level by adapting the schedule 
       child: Padding(
         padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
         child: Image.asset(
-          'assets/logo.png',
+          'assets/astronaut_logo.png',
           height: 65,
           width: 200,
         ),
