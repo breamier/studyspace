@@ -44,17 +44,17 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   void initState() {
     super.initState();
     _loadGoal();
-    // _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
   }
 
   Future<void> _loadGoal() async {
-    setState(() => _isLoading = false);
+    setState(() => _isLoading = true);
     try {
       final goal = await _isarService.getGoalById(widget.goalId);
       if (mounted) {
         setState(() {
           _goal = goal;
+          setState(() => _isLoading = false);
         });
       }
     } catch (e) {
@@ -62,6 +62,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
         setState(() => _isLoading = false);
       }
     }
+
   }
 
   @override
