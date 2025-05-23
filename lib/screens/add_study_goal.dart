@@ -232,9 +232,6 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
       bool hasEmptySubtopic =
           subtopics.any((controller) => controller.text.trim().isEmpty);
       if (hasEmptySubtopic) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subtopics cannot be empty.')),
-        );
         showCustomToast(context, 'Subtopics cannot be empty.');
 
         return;
@@ -305,7 +302,7 @@ void showCustomToast(BuildContext context, String message) {
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
-      bottom: 0,
+      bottom: -50,
       left: 0,
       right: 0,
       child: Center(child: AnimatedToast(message: message)),
