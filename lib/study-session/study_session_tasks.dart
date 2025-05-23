@@ -78,8 +78,11 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
               return Column(
                 children:
                   [
-
-                    for(int i = 0; i < subtopics!.length; i++)
+                    if(subtopics.isEmpty && _deleteMode)
+                      const Center(
+                        child: Text("No subtopics to delete"),
+                      ),
+                    for(int i = 0; i < subtopics.length; i++)
 
                       _deleteMode? TaskItemWidget(subtopic: subtopics[i], goalId: widget.goalId,deleteMode:true, notifyParent:callback,index:i): TaskItemWidget(subtopic: subtopics![i], goalId: widget.goalId,deleteMode:false,notifyParent:callback,index:i)
 
@@ -88,11 +91,12 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
               );
               return Text("error");
             }),
-        TextFormField(
+
+        !_deleteMode? TextFormField(
           readOnly: true,
           onTap: () => setState(() {
             current!.subtopics =
-                current!.subtopics + [Subtopic()..name = "new subtopic"];
+                current!.subtopics + [Subtopic()..name = "\u200c"];
             _isarService.updateGoal(current!);
           }),
           decoration: InputDecoration(
@@ -100,7 +104,7 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
             prefixIcon: const Icon(Icons.add_box),
             border: InputBorder.none,
           ),
-        ),
+        ): Container(),
       ],
     );
   }
