@@ -83,6 +83,14 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
+      onChanged: (text)=> setState(() {
+        _updateGoal(widget.subtopic.name,text,
+            widget.subtopic.completed);
+        widget.subtopic.name =text;
+        if(_textEditingController.text == ""){
+          _deleteSubtopic();
+        }
+      }),
 
         readOnly: widget.deleteMode,
         controller: _textEditingController,
@@ -94,6 +102,9 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
             _updateGoal(widget.subtopic.name, _textEditingController.text,
                 widget.subtopic.completed);
             widget.subtopic.name = _textEditingController.text;
+            if(_textEditingController.text == "\u200c"){
+              _deleteSubtopic();
+            }
             FocusScope.of(context).unfocus();
           });
         },
@@ -102,8 +113,6 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   }
 
   _updateGoal(String old, String updated, bool completed) async {
-    print("UPDATE INDEX IS ");
-    print(widget.index);
 
     goal = _isarService.getGoalById(widget.goalId);
     widget.subtopic.name = updated;
