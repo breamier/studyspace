@@ -58,7 +58,7 @@ class _AnimatedToastState extends State<AnimatedToast>
           margin: EdgeInsets.only(
             bottom: MediaQuery.of(context).padding.bottom + 50,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 50),
           decoration: BoxDecoration(
             color: Color(0xFF161616),
             border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),

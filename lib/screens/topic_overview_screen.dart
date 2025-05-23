@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
+import 'package:studyspace/screens/dashboard_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/services/scheduler.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 
 import 'package:studyspace/study-session/study_session_camera.dart';
+import 'package:studyspace/widgets/custom_toast.dart';
 
 class TopicOverview extends StatefulWidget {
   final Id goalId;
@@ -234,29 +236,10 @@ class _TopicOverviewState extends State<TopicOverview> {
       });
 
       // show message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Subtopics deleted successfully',
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'Arimo',
-            ),
-          ),
-          backgroundColor: const Color.fromARGB(194, 109, 68, 221),
-        ),
-      );
+      showCustomToast(context, 'Subtopics deleted successfully');
     } catch (e) {
       // show error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to delete subtopics',
-            style: TextStyle(fontFamily: 'Arimo'),
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showCustomToast(context, 'Failed to delete subtopics');
     }
   }
 
@@ -631,18 +614,8 @@ class _TopicOverviewState extends State<TopicOverview> {
                                     _goal!.subtopics.any((s) => !s.completed)) {
                                   _showDeleteSubtopicDialog();
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'No incomplete subtopics to delete',
-                                        style: TextStyle(
-                                          fontFamily: 'Arimo',
-                                        ),
-                                      ),
-                                      backgroundColor: const Color.fromARGB(
-                                          194, 109, 68, 221),
-                                    ),
-                                  );
+                                  showCustomToast(context,
+                                      'No incomplete subtopics to delete');
                                 }
                               },
                             ),
@@ -1079,4 +1052,22 @@ class _TopicOverviewState extends State<TopicOverview> {
       ),
     );
   }
+}
+
+void showCustomToast(BuildContext context, String message) {
+  final overlay = Overlay.of(context);
+  final overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Center(child: AnimatedToast(message: message)),
+    ),
+  );
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(const Duration(seconds: 3), () {
+    overlayEntry.remove();
+  });
 }

@@ -16,7 +16,8 @@ class AstronautPetScreen extends StatefulWidget {
   State<AstronautPetScreen> createState() => _AstronautPetScreenState();
 }
 
-class _AstronautPetScreenState extends State<AstronautPetScreen> with TickerProviderStateMixin {
+class _AstronautPetScreenState extends State<AstronautPetScreen>
+    with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
   final IsarService _isarService = IsarService();
   Map<String, dynamic>? _currentAstronaut;
@@ -55,7 +56,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen> with TickerProv
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
-_floatingController.dispose();
+    _floatingController.dispose();
     super.dispose();
   }
 
@@ -157,22 +158,22 @@ _floatingController.dispose();
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-child: AnimatedBuilder(
+                      child: AnimatedBuilder(
                         animation: _floatingController,
                         builder: (context, child) {
                           return Transform.translate(
                             offset: Offset(0, _floatingAnimation.value),
                             child: Transform.rotate(
                               angle: _rotationAnimation.value,
-                      child: Hero(
-                        tag: 'selected-image',
-                        child: Image.asset(
-                          _getDisplayImage(),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-);
+                              child: Hero(
+                                tag: 'selected-image',
+                                child: Image.asset(
+                                  _getDisplayImage(),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
