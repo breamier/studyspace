@@ -107,6 +107,7 @@ class _StateStudySession extends State<StudySession> {
     return Scaffold(
       body: Stack(
         children: [
+
           _buildUI(),
           if (showPopUp) _buildPopUp(),
           if (showEndSession) _buildEndSessionNotif(),
@@ -124,7 +125,8 @@ class _StateStudySession extends State<StudySession> {
               Icons.arrow_circle_left_outlined,
               color: Colors.white,
             )),
-        backgroundColor: const Color(0xFF0A001F), // darker background
+        backgroundColor: Colors.transparent, // transparent app bar
+        elevation: 0, // remove shadow
       ),
       backgroundColor: const Color(0xFF0A001F), // darker background
     );
