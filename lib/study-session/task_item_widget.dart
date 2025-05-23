@@ -83,7 +83,6 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
-      autofocus: true,
       onChanged: (text)=> setState(() {
         _updateGoal(widget.subtopic.name,text,
             widget.subtopic.completed);
