@@ -246,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
-                              const ReplenishedAstronautScreen()),
+                              ReplenishedAstronautScreen(isar: widget.isar)),
                     );
                   },
                   child: const Text('Go to Replenished Astronaut Screen'),

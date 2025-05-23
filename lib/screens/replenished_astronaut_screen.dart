@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
-import 'marketplace_screen.dart'; 
-import 'edit_astronaut_screen.dart'; 
+import 'marketplace_screen.dart';
+import 'edit_astronaut_screen.dart';
+import '../services/isar_service.dart';
 
 class ReplenishedAstronautScreen extends StatefulWidget {
-  const ReplenishedAstronautScreen({Key? key}) : super(key: key);
+  final IsarService isar;
+  const ReplenishedAstronautScreen({Key? key, required this.isar})
+      : super(key: key);
 
   @override
-  State<ReplenishedAstronautScreen> createState() => _ReplenishedAstronautScreenState();
+  State<ReplenishedAstronautScreen> createState() =>
+      _ReplenishedAstronautScreenState();
 }
 
-class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen> {
-
+class _ReplenishedAstronautScreenState
+    extends State<ReplenishedAstronautScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black.withOpacity(0.7),
-        automaticallyImplyLeading: false, 
-        leadingWidth: 56, 
+        automaticallyImplyLeading: false,
+        leadingWidth: 56,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
           child: Container(
@@ -49,7 +53,7 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: const Color(0xFF2A2A2A), 
+              color: const Color(0xFF2A2A2A),
             ),
             child: Row(
               children: [
@@ -60,12 +64,11 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
                 ),
                 const SizedBox(width: 6),
                 const Text(
-                  '93', 
+                  '93',
                   style: TextStyle(
-                    color: Colors.white, 
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500
-                  ),
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -77,35 +80,19 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
           Positioned.fill(
             child: Image.asset('assets/stars.png', fit: BoxFit.cover),
           ),
-          
           Container(
             color: Colors.black.withOpacity(0.5),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildProgressBar(
-                    'assets/astronaut_icon.png',
-                    'HP',
-                    1.0,
-                    Colors.red.shade700,
-                    Colors.red.shade400,
-                    Colors.white
-                  ),
-                  
+                  _buildProgressBar('assets/astronaut_icon.png', 'HP', 1.0,
+                      Colors.red.shade700, Colors.red.shade400, Colors.white),
                   const SizedBox(height: 12),
-                  _buildProgressBar(
-                    'assets/rocket_icon.png',
-                    'Progress',
-                    0.85,
-                    Colors.grey.shade500,
-                    Colors.grey.shade400,
-                    Colors.black
-                  ),
-                   
+                  _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
+                      Colors.grey.shade500, Colors.grey.shade400, Colors.black),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
- 
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
@@ -113,7 +100,7 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
                     child: Center(
                       child: Image.asset(
                         'assets/replenished_astronaut.png',
-                        fit: BoxFit.contain, 
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
@@ -126,8 +113,8 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
     );
   }
 
-  Widget _buildProgressBar(String iconPath, String label, double progress, 
-                          Color startColor, Color endColor, Color textColor) {
+  Widget _buildProgressBar(String iconPath, String label, double progress,
+      Color startColor, Color endColor, Color textColor) {
     return Row(
       children: [
         Image.asset(
@@ -193,10 +180,10 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
           Expanded(
             flex: 1,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, 
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatHeader('assets/planet_icon.png', 'Planets Visited:', '2'),
-                
+                _buildStatHeader(
+                    'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionButton(
                   Icons.backpack,
@@ -204,12 +191,12 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MarketplaceScreen(),
+                        builder: (context) =>
+                            MarketplaceScreen(isar: widget.isar),
                       ),
                     );
                   },
                 ),
-                
                 const SizedBox(height: 16),
                 _buildActionButton(
                   Icons.edit,
@@ -217,7 +204,8 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EditAstronautScreen(),
+                        builder: (context) =>
+                            EditAstronautScreen(isar: widget.isar),
                       ),
                     );
                   },
@@ -225,7 +213,6 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
               ],
             ),
           ),
-              
           Expanded(
             flex: 1,
             child: Column(
@@ -251,7 +238,6 @@ class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
                     ),
                   ],
                 ),
-
                 _buildMissionsBox(),
               ],
             ),
