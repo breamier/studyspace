@@ -7,6 +7,7 @@ import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import 'package:isar/isar.dart';
+import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/study-session/study_session.dart';
 
 import '../mission_manager.dart';
@@ -30,6 +31,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
   bool showingTutorial = true;
   bool isAnimating = false;
   bool picTaken = false;
+  late String goalName;
   File? imgFile;
   XFile? picture;
 
@@ -72,6 +74,15 @@ class _StudySessionCameraState extends State<StudySessionCamera>
       begin: Colors.deepPurple,
       end: Colors.white,
     ).animate(_animationController);
+
+    _fetchGoalName();
+  }
+
+  Future<void> _fetchGoalName() async {
+    final goal = await widget.isarService.getGoalById(widget.goalId);
+    setState(() {
+      goalName = goal?.goalName ?? '';
+    });
   }
 
   @override
@@ -91,11 +102,17 @@ class _StudySessionCameraState extends State<StudySessionCamera>
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_circle_left_outlined,
-            color: Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
         ),
         backgroundColor: Colors.black,
@@ -118,14 +135,14 @@ class _StudySessionCameraState extends State<StudySessionCamera>
             Column(
               children: [
                 Text(
-                  "session study goal",
+                  "Study Goal Session",
                   style: GoogleFonts.arimo(
                     color: Colors.white,
                     fontSize: 14,
                   ),
                 ),
                 Text(
-                  "Statistics and Probability",
+                  goalName,
                   style: GoogleFonts.arimo(
                     color: Colors.white,
                     fontSize: 20,
@@ -218,7 +235,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                             isarService: widget.isarService,
                                           ),
                                         ),
-                                            (route) => false,
+                                        (route) => false,
                                       );
                                     },
                                   ),
@@ -233,7 +250,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                       isarService: widget.isarService,
                                     ),
                                   ),
-                                      (route) => false,
+                                  (route) => false,
                                 );
                               }
 
