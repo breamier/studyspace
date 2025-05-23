@@ -32,6 +32,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   late List<Map<String, dynamic>> _spaceships;
   final ItemManager _itemManager = ItemManager();
 
+
   @override
   void initState() {
     super.initState();
@@ -39,16 +40,20 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     _astronauts = _itemManager.astronauts;
     _spaceships = _itemManager.spaceships;
 
+
     if (widget.unlockedItem != null) {
       _processUnlockedItem(widget.unlockedItem!);
     }
   }
 
+
   void _processUnlockedItem(Map<String, dynamic> unlockedItem) {
     final String itemType = unlockedItem['type'] ?? 'astronaut';
     final String itemName = unlockedItem['name'];
 
+
     _itemManager.unlockItem(itemName, itemType);
+
 
     setState(() {
       _astronauts = _itemManager.astronauts;
@@ -56,7 +61,10 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       _selectedCategory = itemType;
       _currentItemIndex = _findItemIndexInUnlockedList(
           itemName, itemType == 'astronaut' ? _astronauts : _spaceships);
+      _currentItemIndex = _findItemIndexInUnlockedList(
+          itemName, itemType == 'astronaut' ? _astronauts : _spaceships);
     });
+
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,6 +76,9 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       );
     });
   }
+
+  int _findItemIndexInUnlockedList(
+      String itemName, List<Map<String, dynamic>> fullList) {
 
   int _findItemIndexInUnlockedList(
       String itemName, List<Map<String, dynamic>> fullList) {
@@ -83,14 +94,19 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   List<Map<String, dynamic>> get _currentList {
     final fullList =
         _selectedCategory == 'astronaut' ? _astronauts : _spaceships;
+    final fullList =
+        _selectedCategory == 'astronaut' ? _astronauts : _spaceships;
     return fullList.where((item) => item['unlocked']).toList();
   }
 
   void _switchToPreviousItem() {
     if (_currentList.length <= 1) return;
 
+
     setState(() {
       _showSelectedImage = false;
+      _currentItemIndex =
+          (_currentItemIndex - 1 + _currentList.length) % _currentList.length;
       _currentItemIndex =
           (_currentItemIndex - 1 + _currentList.length) % _currentList.length;
     });
@@ -98,6 +114,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
 
   void _switchToNextItem() {
     if (_currentList.length <= 1) return;
+
 
     setState(() {
       _showSelectedImage = false;
@@ -108,7 +125,9 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   void _selectCurrentItem() {
     final String selectedName = _currentList[_currentItemIndex]['name'];
 
+
     _itemManager.setCurrentItem(selectedName, _selectedCategory);
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -116,6 +135,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         duration: const Duration(milliseconds: 800),
       ),
     );
+
 
     Navigator.pop(context);
   }
@@ -163,6 +183,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         "Home",
         style: TextStyle(
             color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+        style: TextStyle(
+            color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
       ),
       actions: [
         Container(
@@ -181,6 +203,11 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w500)),
+              Text('${_itemManager.userPoints}',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500)),
             ],
           ),
         ),
@@ -191,9 +218,12 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   Widget _buildBody() {
     final screenHeight = MediaQuery.of(context).size.height;
 
+
     if (_currentItemIndex >= _currentList.length && _currentList.isNotEmpty) {
       _currentItemIndex = 0;
     }
+
+    final currentItem = _currentList.isNotEmpty
 
     final currentItem = _currentList.isNotEmpty
         ? _currentList[_currentItemIndex]
@@ -203,7 +233,14 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             'current': false
           };
 
+        : {
+            'name': 'No Item',
+            'image': 'assets/placeholder.png',
+            'current': false
+          };
+
     final bool isCurrent = currentItem['current'] == true;
+
 
     return Stack(
       children: [
@@ -227,12 +264,17 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                       child: Hero(
                         tag: _showSelectedImage
                             ? 'selected-image'
+                        tag: _showSelectedImage
+                            ? 'selected-image'
                             : '${_selectedCategory}-${_currentItemIndex}',
                         child: Image.asset(
                           _showSelectedImage &&
                                   currentItem.containsKey('selected_image')
+                          _showSelectedImage &&
+                                  currentItem.containsKey('selected_image')
                               ? currentItem['selected_image']
                               : currentItem['image'],
+                          height: screenHeight * 0.4,
                           height: screenHeight * 0.4,
                         ),
                       ),
@@ -246,6 +288,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 _buildDotsIndicator(),
               _buildActionButton(isCurrent),
               if (!_showSelectedImage) _buildCategorySelectors(),
+              if (!_showSelectedImage) _buildCategorySelectors(),
               const SizedBox(height: 5),
             ],
           ),
@@ -253,6 +296,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       ],
     );
   }
+
 
   Widget _buildNavigationButtons() {
     return Stack(
@@ -268,6 +312,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: IconButton(
+                icon: const Icon(Icons.chevron_left,
+                    color: Colors.white, size: 40),
                 icon: const Icon(Icons.chevron_left,
                     color: Colors.white, size: 40),
                 onPressed: _switchToPreviousItem,
@@ -286,6 +332,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: IconButton(
+                icon: const Icon(Icons.chevron_right,
+                    color: Colors.white, size: 40),
                 icon: const Icon(Icons.chevron_right,
                     color: Colors.white, size: 40),
                 onPressed: _switchToNextItem,
@@ -413,9 +461,23 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     final Color lightGreen = const Color(0xFFA7CF75);
     final Color darkGreen = const Color(0xFF7C9061);
 
+    final Color lightGreen = const Color(0xFFA7CF75);
+    final Color darkGreen = const Color(0xFF7C9061);
+
     return ElevatedButton(
       onPressed: _showSelectedImage
+      onPressed: _showSelectedImage
           ? () => setState(() => _showSelectedImage = false)
+          : isCurrent
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('This is your current item!'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+              : _selectCurrentItem,
           : isCurrent
               ? () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -432,6 +494,11 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             : isCurrent
                 ? darkGreen
                 : lightGreen,
+        backgroundColor: _showSelectedImage
+            ? Colors.blue
+            : isCurrent
+                ? darkGreen
+                : lightGreen,
         foregroundColor: Colors.black,
         minimumSize: const Size(150, 40),
         shape: RoundedRectangleBorder(
@@ -439,6 +506,11 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         ),
       ),
       child: Text(
+        _showSelectedImage
+            ? 'BACK'
+            : isCurrent
+                ? 'CURRENT'
+                : 'SELECT',
         _showSelectedImage
             ? 'BACK'
             : isCurrent
@@ -458,8 +530,10 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
           children: [
             _buildCategoryIcon(
                 icon: Icons.person, label: 'Astronaut', category: 'astronaut'),
+                icon: Icons.person, label: 'Astronaut', category: 'astronaut'),
             const SizedBox(width: 20),
             _buildCategoryIcon(
+                icon: Icons.rocket, label: 'Spaceship', category: 'spaceship'),
                 icon: Icons.rocket, label: 'Spaceship', category: 'spaceship'),
           ],
         ),
@@ -467,6 +541,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     );
   }
 
+  Widget _buildProgressBar(String iconPath, String label, double progress,
+      Color startColor, Color endColor, Color textColor) {
   Widget _buildProgressBar(String iconPath, String label, double progress,
       Color startColor, Color endColor, Color textColor) {
     return Row(
@@ -534,6 +610,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
               children: [
                 _buildStatHeader(
                     'assets/planet_icon.png', 'Planets Visited:', '2'),
+                _buildStatHeader(
+                    'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionIcon(
                   Icons.backpack,
@@ -548,6 +626,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 _buildActionIcon(
                   Icons.edit,
                   () {},
+                  Icons.edit,
+                  () {},
                   backgroundColor: Colors.black,
                 ),
               ],
@@ -558,24 +638,25 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      child: Image.asset('assets/Satellite_icon.png',
-                          width: 24, height: 24),
-                    ),
-                    const Text(
-                      "Missions:",
-                      style: TextStyle(
-                        fontFamily: 'BrunoAceSC',
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                _buildMissionsBox(),
+                // Row(
+                //   children: [
+                //     Container(
+                //       margin: const EdgeInsets.only(right: 10),
+                //       child: Image.asset('assets/Satellite_icon.png',
+                //           width: 24, height: 24),
+                //     ),
+                //     const Text(
+                //       "Missions:",
+                //       style: TextStyle(
+                //         fontFamily: 'BrunoAceSC',
+                //         color: Colors.white,
+                //         fontSize: 14,
+                //       ),
+                //     ),
+                //   ],
+                // ),
+
+                // _buildMissionsBox(),
               ],
             ),
           ),

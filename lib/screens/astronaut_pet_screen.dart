@@ -214,7 +214,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("No pet found", style: TextStyle(color: Colors.white));
+          return Text("No finished study sessions yet!",
+              style: TextStyle(color: Colors.white));
         }
 
         final pet = snapshot.data!;
@@ -241,7 +242,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return CircularProgressIndicator();
         }
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("No pet found", style: TextStyle(color: Colors.white));
+          return Text("Add a Study Goal/Study Now!",
+              style: TextStyle(color: Colors.white));
         }
         final pet = snapshot.data!;
         final progress = pet.progress;
@@ -437,27 +439,27 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      child: Image.asset(
-                        'assets/Satellite_icon.png',
-                        width: 24,
-                        height: 24,
-                      ),
-                    ),
-                    const Text(
-                      "Missions:",
-                      style: TextStyle(
-                        fontFamily: 'BrunoAceSC',
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                _buildMissionsBox(),
+                // Row(
+                //   children: [
+                //     Container(
+                //       margin: const EdgeInsets.only(right: 10),
+                //       child: Image.asset(
+                //         'assets/Satellite_icon.png',
+                //         width: 24,
+                //         height: 24,
+                //       ),
+                //     ),
+                //     const Text(
+                //       "Missions:",
+                //       style: TextStyle(
+                //         fontFamily: 'BrunoAceSC',
+                //         color: Colors.white,
+                //         fontSize: 14,
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // _buildMissionsBox(),
               ],
             ),
           ),

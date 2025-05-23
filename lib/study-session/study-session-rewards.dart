@@ -44,17 +44,17 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   void initState() {
     super.initState();
     _loadGoal();
-    // _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
   }
 
   Future<void> _loadGoal() async {
-    setState(() => _isLoading = false);
+    setState(() => _isLoading = true);
     try {
       final goal = await _isarService.getGoalById(widget.goalId);
       if (mounted) {
         setState(() {
           _goal = goal;
+          setState(() => _isLoading = false);
         });
       }
     } catch (e) {
@@ -76,11 +76,17 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_circle_left_outlined,
-            color: Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
         ),
         backgroundColor: Colors.black,

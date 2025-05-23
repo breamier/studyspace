@@ -634,27 +634,27 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      child: Image.asset(
-                        'assets/Satellite_icon.png',
-                        width: 24,
-                        height: 24,
-                      ),
-                    ),
-                    const Text(
-                      "Missions:",
-                      style: TextStyle(
-                        fontFamily: 'BrunoAceSC',
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                _buildMissionsBox(),
+                // Row(
+                //   children: [
+                //     Container(
+                //       margin: const EdgeInsets.only(right: 10),
+                //       child: Image.asset(
+                //         'assets/Satellite_icon.png',
+                //         width: 24,
+                //         height: 24,
+                //       ),
+                //     ),
+                //     const Text(
+                //       "Missions:",
+                //       style: TextStyle(
+                //         fontFamily: 'BrunoAceSC',
+                //         color: Colors.white,
+                //         fontSize: 14,
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // _buildMissionsBox(),
               ],
             ),
           ),
