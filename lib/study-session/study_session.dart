@@ -585,10 +585,13 @@ class _StateStudySession extends State<StudySession> {
                       onPressed: () {
                         timer?.cancel();
                         isActive = false;
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => DashboardScreen(isar:_isarService)));
+
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) => DashboardScreen(isar: _isarService),
+                          ),
+                              (route) => false,
+                        );
                       },
                       style: TextButton.styleFrom(
                           foregroundColor: Colors.white,

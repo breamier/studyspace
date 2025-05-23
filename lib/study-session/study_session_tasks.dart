@@ -72,6 +72,9 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
                 // return const Center(child: CircularProgressIndicator());
               }
               final subtopics = snapshot.data?.subtopics.toList();
+              if (subtopics == null) {
+                return const Center();
+              }
               return Column(
                 children:
                   [
