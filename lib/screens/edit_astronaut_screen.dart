@@ -8,13 +8,10 @@ import '../services/astro_hp_service.dart';
 import '../services/isar_service.dart';
 
 class EditAstronautScreen extends StatefulWidget {
-  final IsarService isar;
   final Map<String, dynamic>? unlockedItem;
-  const EditAstronautScreen({
-    Key? key,
-    required this.isar,
-    this.unlockedItem,
-  }) : super(key: key);
+  final IsarService isar;
+  const EditAstronautScreen({Key? key, this.unlockedItem, required this.isar})
+      : super(key: key);
 
   @override
   State<EditAstronautScreen> createState() => _EditAstronautScreenState();
@@ -25,13 +22,12 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   bool _showSelectedImage = false;
   int _currentItemIndex = 0;
 
-  // use to update pet for hp and mission progress
-  late Future<AstronautPet?> _currentPet;
-
   late List<Map<String, dynamic>> _astronauts;
   late List<Map<String, dynamic>> _spaceships;
   final ItemManager _itemManager = ItemManager();
 
+  // use to update pet for hp and mission progress
+  late Future<AstronautPet?> _currentPet;
 
   @override
   void initState() {
@@ -40,20 +36,16 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     _astronauts = _itemManager.astronauts;
     _spaceships = _itemManager.spaceships;
 
-
     if (widget.unlockedItem != null) {
       _processUnlockedItem(widget.unlockedItem!);
     }
   }
 
-
   void _processUnlockedItem(Map<String, dynamic> unlockedItem) {
     final String itemType = unlockedItem['type'] ?? 'astronaut';
     final String itemName = unlockedItem['name'];
 
-
     _itemManager.unlockItem(itemName, itemType);
-
 
     setState(() {
       _astronauts = _itemManager.astronauts;
@@ -61,10 +53,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       _selectedCategory = itemType;
       _currentItemIndex = _findItemIndexInUnlockedList(
           itemName, itemType == 'astronaut' ? _astronauts : _spaceships);
-      _currentItemIndex = _findItemIndexInUnlockedList(
-          itemName, itemType == 'astronaut' ? _astronauts : _spaceships);
     });
-
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,9 +65,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       );
     });
   }
-
-  int _findItemIndexInUnlockedList(
-      String itemName, List<Map<String, dynamic>> fullList) {
 
   int _findItemIndexInUnlockedList(
       String itemName, List<Map<String, dynamic>> fullList) {
@@ -94,19 +80,14 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   List<Map<String, dynamic>> get _currentList {
     final fullList =
         _selectedCategory == 'astronaut' ? _astronauts : _spaceships;
-    final fullList =
-        _selectedCategory == 'astronaut' ? _astronauts : _spaceships;
     return fullList.where((item) => item['unlocked']).toList();
   }
 
   void _switchToPreviousItem() {
     if (_currentList.length <= 1) return;
 
-
     setState(() {
       _showSelectedImage = false;
-      _currentItemIndex =
-          (_currentItemIndex - 1 + _currentList.length) % _currentList.length;
       _currentItemIndex =
           (_currentItemIndex - 1 + _currentList.length) % _currentList.length;
     });
@@ -114,7 +95,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
 
   void _switchToNextItem() {
     if (_currentList.length <= 1) return;
-
 
     setState(() {
       _showSelectedImage = false;
@@ -125,9 +105,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   void _selectCurrentItem() {
     final String selectedName = _currentList[_currentItemIndex]['name'];
 
-
     _itemManager.setCurrentItem(selectedName, _selectedCategory);
-
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -136,17 +114,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       ),
     );
 
-
     Navigator.pop(context);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // refresh pet data every time the screen is shown
-    setState(() {
-      _currentPet = widget.isar.getCurrentPet();
-    });
   }
 
   @override
@@ -183,8 +151,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         "Home",
         style: TextStyle(
             color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-        style: TextStyle(
-            color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
       ),
       actions: [
         Container(
@@ -203,11 +169,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w500)),
-              Text('${_itemManager.userPoints}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500)),
             ],
           ),
         ),
@@ -218,12 +179,9 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   Widget _buildBody() {
     final screenHeight = MediaQuery.of(context).size.height;
 
-
     if (_currentItemIndex >= _currentList.length && _currentList.isNotEmpty) {
       _currentItemIndex = 0;
     }
-
-    final currentItem = _currentList.isNotEmpty
 
     final currentItem = _currentList.isNotEmpty
         ? _currentList[_currentItemIndex]
@@ -233,14 +191,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             'current': false
           };
 
-        : {
-            'name': 'No Item',
-            'image': 'assets/placeholder.png',
-            'current': false
-          };
-
     final bool isCurrent = currentItem['current'] == true;
-
 
     return Stack(
       children: [
@@ -255,7 +206,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
               _buildHpProgressBar(),
               const SizedBox(height: 12),
               _buildMissionProgressBar(),
-              const SizedBox(height: 12),
               _buildStatsSection(),
               Expanded(
                 child: Stack(
@@ -264,17 +214,12 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                       child: Hero(
                         tag: _showSelectedImage
                             ? 'selected-image'
-                        tag: _showSelectedImage
-                            ? 'selected-image'
                             : '${_selectedCategory}-${_currentItemIndex}',
                         child: Image.asset(
                           _showSelectedImage &&
                                   currentItem.containsKey('selected_image')
-                          _showSelectedImage &&
-                                  currentItem.containsKey('selected_image')
                               ? currentItem['selected_image']
                               : currentItem['image'],
-                          height: screenHeight * 0.4,
                           height: screenHeight * 0.4,
                         ),
                       ),
@@ -288,7 +233,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 _buildDotsIndicator(),
               _buildActionButton(isCurrent),
               if (!_showSelectedImage) _buildCategorySelectors(),
-              if (!_showSelectedImage) _buildCategorySelectors(),
               const SizedBox(height: 5),
             ],
           ),
@@ -296,7 +240,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       ],
     );
   }
-
 
   Widget _buildNavigationButtons() {
     return Stack(
@@ -312,8 +255,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: IconButton(
-                icon: const Icon(Icons.chevron_left,
-                    color: Colors.white, size: 40),
                 icon: const Icon(Icons.chevron_left,
                     color: Colors.white, size: 40),
                 onPressed: _switchToPreviousItem,
@@ -334,9 +275,138 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
               child: IconButton(
                 icon: const Icon(Icons.chevron_right,
                     color: Colors.white, size: 40),
-                icon: const Icon(Icons.chevron_right,
-                    color: Colors.white, size: 40),
                 onPressed: _switchToNextItem,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDotsIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_currentList.length, (index) {
+          return Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _currentItemIndex == index ? Colors.white : Colors.grey,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(bool isCurrent) {
+    final Color lightGreen = const Color(0xFFA7CF75);
+    final Color darkGreen = const Color(0xFF7C9061);
+
+    return ElevatedButton(
+      onPressed: _showSelectedImage
+          ? () => setState(() => _showSelectedImage = false)
+          : isCurrent
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('This is your current item!'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+              : _selectCurrentItem,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _showSelectedImage
+            ? Colors.blue
+            : isCurrent
+                ? darkGreen
+                : lightGreen,
+        foregroundColor: Colors.black,
+        minimumSize: const Size(150, 40),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      child: Text(
+        _showSelectedImage
+            ? 'BACK'
+            : isCurrent
+                ? 'CURRENT'
+                : 'SELECT',
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+    );
+  }
+
+  Widget _buildCategorySelectors() {
+    return Column(
+      children: [
+        const SizedBox(height: 15),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildCategoryIcon(
+                icon: Icons.person, label: 'Astronaut', category: 'astronaut'),
+            const SizedBox(width: 20),
+            _buildCategoryIcon(
+                icon: Icons.rocket, label: 'Spaceship', category: 'spaceship'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressBar(String iconPath, String label, double progress,
+      Color startColor, Color endColor, Color textColor) {
+    return Row(
+      children: [
+        Image.asset(iconPath, width: 28, height: 28),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            height: 25,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white, width: 1.5),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: Stack(
+                children: [
+                  FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: progress,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [startColor, endColor],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -437,165 +507,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     );
   }
 
-  Widget _buildDotsIndicator() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(_currentList.length, (index) {
-          return Container(
-            width: 8,
-            height: 8,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _currentItemIndex == index ? Colors.white : Colors.grey,
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(bool isCurrent) {
-    final Color lightGreen = const Color(0xFFA7CF75);
-    final Color darkGreen = const Color(0xFF7C9061);
-
-    final Color lightGreen = const Color(0xFFA7CF75);
-    final Color darkGreen = const Color(0xFF7C9061);
-
-    return ElevatedButton(
-      onPressed: _showSelectedImage
-      onPressed: _showSelectedImage
-          ? () => setState(() => _showSelectedImage = false)
-          : isCurrent
-              ? () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('This is your current item!'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                }
-              : _selectCurrentItem,
-          : isCurrent
-              ? () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('This is your current item!'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                }
-              : _selectCurrentItem,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _showSelectedImage
-            ? Colors.blue
-            : isCurrent
-                ? darkGreen
-                : lightGreen,
-        backgroundColor: _showSelectedImage
-            ? Colors.blue
-            : isCurrent
-                ? darkGreen
-                : lightGreen,
-        foregroundColor: Colors.black,
-        minimumSize: const Size(150, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-      ),
-      child: Text(
-        _showSelectedImage
-            ? 'BACK'
-            : isCurrent
-                ? 'CURRENT'
-                : 'SELECT',
-        _showSelectedImage
-            ? 'BACK'
-            : isCurrent
-                ? 'CURRENT'
-                : 'SELECT',
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-    );
-  }
-
-  Widget _buildCategorySelectors() {
-    return Column(
-      children: [
-        const SizedBox(height: 15),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildCategoryIcon(
-                icon: Icons.person, label: 'Astronaut', category: 'astronaut'),
-                icon: Icons.person, label: 'Astronaut', category: 'astronaut'),
-            const SizedBox(width: 20),
-            _buildCategoryIcon(
-                icon: Icons.rocket, label: 'Spaceship', category: 'spaceship'),
-                icon: Icons.rocket, label: 'Spaceship', category: 'spaceship'),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProgressBar(String iconPath, String label, double progress,
-      Color startColor, Color endColor, Color textColor) {
-  Widget _buildProgressBar(String iconPath, String label, double progress,
-      Color startColor, Color endColor, Color textColor) {
-    return Row(
-      children: [
-        Image.asset(iconPath, width: 28, height: 28),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            height: 25,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.white, width: 1.5),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: Stack(
-                children: [
-                  FractionallySizedBox(
-                    alignment: Alignment.centerLeft,
-                    widthFactor: progress,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [startColor, endColor],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildStatsSection() {
     return Container(
       width: double.infinity,
@@ -610,8 +521,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
               children: [
                 _buildStatHeader(
                     'assets/planet_icon.png', 'Planets Visited:', '2'),
-                _buildStatHeader(
-                    'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionIcon(
                   Icons.backpack,
@@ -624,8 +533,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildActionIcon(
-                  Icons.edit,
-                  () {},
                   Icons.edit,
                   () {},
                   backgroundColor: Colors.black,
