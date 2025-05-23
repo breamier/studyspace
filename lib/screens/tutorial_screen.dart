@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:studyspace/screens/dashboard_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 
@@ -26,8 +27,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
     fontFamily: 'Arimo',
   );
 
-  void _goToDashboard() => Navigator.pushReplacement(context,
-      MaterialPageRoute(builder: (_) => DashboardScreen(isar: widget.isar)));
+  void _goToDashboard() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasSeenTutorial', true);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => DashboardScreen(isar: widget.isar)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
