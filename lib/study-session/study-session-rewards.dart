@@ -42,7 +42,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   void initState() {
     super.initState();
     _loadGoal();
-    _isarService.initializeDailyMissions(_allMissions);
+    // _isarService.initializeDailyMissions(_allMissions);
     _missionsFuture = _isarService.getMissions();
   }
 
@@ -64,7 +64,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
 
   @override
   Widget build(BuildContext context) {
-    if(_isLoading){
+    if (_isLoading) {
       return Center(child: CircularProgressIndicator());
     }
     return Scaffold(
@@ -114,7 +114,8 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
             // Mission Board
             Spacer(),
             Padding(
-                padding: EdgeInsets.symmetric(horizontal: MediaQuery.sizeOf(context).width * 0.045),
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.sizeOf(context).width * 0.045),
                 child: FutureBuilder<List<Mission>>(
                   future: _missionsFuture,
                   builder: (context, snapshot) {
@@ -159,7 +160,8 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
             // Mission Board
             const SizedBox(height: 30),
             Padding(
-                padding: EdgeInsets.symmetric(horizontal:  MediaQuery.of(context).size.width * 0.045),
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.045),
                 child: FutureBuilder<List<Mission>>(
                   future: _missionsFuture,
                   builder: (context, snapshot) {
@@ -186,39 +188,41 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
                                   fontSize: 18,
                                 ))
                           ]),
-                          SizedBox(height:10),
-                            Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.white),
-                                  color:Colors.white24,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child:Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: 8, top:8, left: 10),
-                              child: Row(children: [
-                                Icon(Icons.rocket_launch_outlined, size: 18),
-                                Text(
-                                  "Experience",
-                                  style: TextStyle(
-                                      fontSize: 14, fontFamily: 'Amino'),
-                                ),
-                                Spacer(),
-                                Text("+10")
-                              ]),
-                            )),
-                          SizedBox(height:10),
+                          SizedBox(height: 10),
                           Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.white),
-                                color:Colors.white24,
+                                color: Colors.white24,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child:Padding(
-                                padding:
-                                const EdgeInsets.only(bottom: 8, top:8, left: 10),
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 8, top: 8, left: 10),
+                                child: Row(children: [
+                                  Icon(Icons.rocket_launch_outlined, size: 18),
+                                  Text(
+                                    "Experience",
+                                    style: TextStyle(
+                                        fontSize: 14, fontFamily: 'Amino'),
+                                  ),
+                                  Spacer(),
+                                  Text("+10")
+                                ]),
+                              )),
+                          SizedBox(height: 10),
+                          Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white),
+                                color: Colors.white24,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 8, top: 8, left: 10),
                                 child: Row(children: [
                                   Icon(Icons.map_outlined, size: 18),
                                   Text(
@@ -230,17 +234,18 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
                                   Text("+10")
                                 ]),
                               )),
-                          SizedBox(height:10),
+                          SizedBox(height: 10),
                           Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.white),
-                                color:Colors.white24,
+                                color: Colors.white24,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child:Padding(
-                                padding:
-                                const EdgeInsets.only(bottom: 8, top:8, left: 10),
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 8, top: 8, left: 10),
                                 child: Row(children: [
                                   Icon(Icons.stars_outlined, size: 18),
                                   Text(
@@ -262,11 +267,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
               onPressed: () {
                 setState(() {
                   //update data and send data
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HomeScreen()));
-                });
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);});
               },
               style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.deepPurple),

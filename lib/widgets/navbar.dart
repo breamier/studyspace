@@ -4,7 +4,7 @@ import 'package:studyspace/screens/study_overview_screen.dart'; // index 1
 import 'package:studyspace/screens/add_study_goal.dart'; // index 2 (FAB)
 import 'package:studyspace/screens/analytics_screen.dart';
 import 'package:studyspace/services/isar_service.dart'; // index 3
-// import 'package:studyspace/screens/settings_screen.dart';       // index 4
+import 'package:studyspace/screens/settings.dart'; // index 4
 
 const Color kPurple = Color(0xFF6C44DD);
 const Color kOnyx = Color(0xFF0E0E0E);
@@ -37,9 +37,9 @@ class CustomBottomNavBar extends StatelessWidget {
       case 3:
         screen = AnalyticsScreen(isar: isar);
         break;
-      // case 4:
-      //   screen = const SettingsScreen();
-      //   break;
+      case 4:
+        screen = Settings(isar: isar);
+        break;
       default:
         screen = DashboardScreen(isar: isar);
     }

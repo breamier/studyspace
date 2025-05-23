@@ -39,81 +39,18 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  final List<Map<String, dynamic>> studySchedule = [
-    {
-      'label': 'TODAY',
-      'lessons': [
-        {
-          'title': 'Subprograms',
-          'subject': 'CMSC 131',
-          'color': kGreen,
-          'progress': 0.7
-        },
-        {
-          'title': 'Communication',
-          'subject': 'CMSC 134',
-          'color': kYellow,
-          'progress': 0.3
-        },
-      ],
-    },
-    {
-      'label': 'TOMORROW',
-      'lessons': [
-        {
-          'title': 'Conditional Pr...',
-          'subject': 'STAT 105',
-          'color': kRed,
-          'progress': 0.0
-        },
-        {
-          'title': 'Basic concept...',
-          'subject': 'STAT 105',
-          'color': kBrown,
-          'progress': 0.1
-        },
-        {
-          'title': 'Probability fun...',
-          'subject': 'STAT 105',
-          'color': kRed,
-          'progress': 0.0
-        },
-      ],
-    },
-    {
-      'label': 'APR 22',
-      'lessons': [
-        {
-          'title': 'Loops Review',
-          'subject': 'CMSC 131',
-          'color': kGreen,
-          'progress': 0.5
-        },
-        {
-          'title': 'ANOVA',
-          'subject': 'STAT 105',
-          'color': kBrown,
-          'progress': 0.4
-        },
-      ],
-    },
-    {
-      'label': 'APR 23',
-      'lessons': [
-        {
-          'title': 'Function Calls',
-          'subject': 'CMSC 131',
-          'color': kGreen,
-          'progress': 1.0
-        },
-      ],
-    },
-  ];
+  late Future<List<Map<String, dynamic>>> studySchedule;
+
+  @override
+  void initState() {
+    super.initState();
+    final analytics = Analytics(widget.isar);
+    studySchedule = analytics.getStudySchedule();
+  }
 
   @override
   Widget build(BuildContext context) {
     final analytics = Analytics(widget.isar);
-
     return Scaffold(
       backgroundColor: kOnyx,
       appBar: AppBar(
@@ -144,7 +81,35 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            daySection(),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: studySchedule,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final schedule = snapshot.data!;
+
+                if (schedule.isEmpty) {
+                  return Column(
+                    children: [
+                      Icon(Icons.hourglass_empty,
+                          color: Colors.white54, size: 48),
+                      const SizedBox(height: 12),
+                      Text(
+                        "No study schedule yet.",
+                        style: kBodyFont.copyWith(
+                            fontSize: 16, color: Colors.white54),
+                      ),
+                    ],
+                  );
+                }
+                final displayedDays =
+                    _isExpanded ? schedule : schedule.take(2).toList();
+
+                return daySectionFromSchedule(displayedDays);
+              },
+            ),
             const SizedBox(height: 20),
             statsGrid(analytics),
             const SizedBox(height: 24),
@@ -161,10 +126,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   bool _isExpanded = false;
 
-  Widget daySection() {
-    final displayedDays =
-        _isExpanded ? studySchedule : studySchedule.take(2).toList();
-
+  Widget daySectionFromSchedule(List<Map<String, dynamic>> displayedDays) {
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -190,14 +152,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         sectionTitle(day['label']),
                         const SizedBox(height: 8),
                         wrapChips(
-                            (day['lessons'] as List).map<Widget>((lesson) {
-                          return lessonChip(
-                            lesson['title'],
-                            lesson['subject'],
-                            lesson['color'],
-                            progress: lesson['progress'],
-                          );
-                        }).toList()),
+                          (day['lessons'] as List).map<Widget>((lesson) {
+                            return lessonChip(
+                              lesson['title'],
+                              lesson['date'].toString(),
+                              lesson['color'],
+                              progress: lesson['progress'],
+                            );
+                          }).toList(),
+                        ),
                       ],
                     ),
                   );
@@ -217,14 +180,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           sectionTitle(day['label']),
                           const SizedBox(height: 8),
                           wrapChips(
-                              (day['lessons'] as List).map<Widget>((lesson) {
-                            return lessonChip(
-                              lesson['title'],
-                              lesson['subject'],
-                              lesson['color'],
-                              progress: lesson['progress'],
-                            );
-                          }).toList()),
+                            (day['lessons'] as List).map<Widget>((lesson) {
+                              return lessonChip(
+                                lesson['title'],
+                                lesson['date'].toString(),
+                                lesson['color'],
+                                progress: lesson['progress'],
+                              );
+                            }).toList(),
+                          ),
                         ],
                       ),
                     );
@@ -348,7 +312,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CompletedTasksScreen(isar: widget.isar),
+              builder: (context) => CompletedGoalsScreen(isar: widget.isar),
             ),
           );
         },

@@ -37,10 +37,47 @@ const MissionSchema = CollectionSchema(
       name: r'dailyKeyIndex',
       type: IsarType.string,
     ),
-    r'text': PropertySchema(
+    r'difficulty': PropertySchema(
       id: 4,
+      name: r'difficulty',
+      type: IsarType.string,
+      enumMap: _MissiondifficultyEnumValueMap,
+    ),
+    r'expiryDate': PropertySchema(
+      id: 5,
+      name: r'expiryDate',
+      type: IsarType.dateTime,
+    ),
+    r'hpPenalty': PropertySchema(
+      id: 6,
+      name: r'hpPenalty',
+      type: IsarType.long,
+    ),
+    r'isActive': PropertySchema(
+      id: 7,
+      name: r'isActive',
+      type: IsarType.bool,
+    ),
+    r'penaltyPoints': PropertySchema(
+      id: 8,
+      name: r'penaltyPoints',
+      type: IsarType.long,
+    ),
+    r'rewardPoints': PropertySchema(
+      id: 9,
+      name: r'rewardPoints',
+      type: IsarType.long,
+    ),
+    r'text': PropertySchema(
+      id: 10,
       name: r'text',
       type: IsarType.string,
+    ),
+    r'type': PropertySchema(
+      id: 11,
+      name: r'type',
+      type: IsarType.string,
+      enumMap: _MissiontypeEnumValueMap,
     )
   },
   estimateSize: _missionEstimateSize,
@@ -79,7 +116,9 @@ int _missionEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.dailyKey.length * 3;
   bytesCount += 3 + object.dailyKeyIndex.length * 3;
+  bytesCount += 3 + object.difficulty.name.length * 3;
   bytesCount += 3 + object.text.length * 3;
+  bytesCount += 3 + object.type.name.length * 3;
   return bytesCount;
 }
 
@@ -93,7 +132,14 @@ void _missionSerialize(
   writer.writeDateTime(offsets[1], object.completedDate);
   writer.writeString(offsets[2], object.dailyKey);
   writer.writeString(offsets[3], object.dailyKeyIndex);
-  writer.writeString(offsets[4], object.text);
+  writer.writeString(offsets[4], object.difficulty.name);
+  writer.writeDateTime(offsets[5], object.expiryDate);
+  writer.writeLong(offsets[6], object.hpPenalty);
+  writer.writeBool(offsets[7], object.isActive);
+  writer.writeLong(offsets[8], object.penaltyPoints);
+  writer.writeLong(offsets[9], object.rewardPoints);
+  writer.writeString(offsets[10], object.text);
+  writer.writeString(offsets[11], object.type.name);
 }
 
 Mission _missionDeserialize(
@@ -103,11 +149,21 @@ Mission _missionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Mission(
-    text: reader.readString(offsets[4]),
+    completed: reader.readBoolOrNull(offsets[0]) ?? false,
+    completedDate: reader.readDateTimeOrNull(offsets[1]),
+    dailyKey: reader.readString(offsets[2]),
+    difficulty:
+        _MissiondifficultyValueEnumMap[reader.readStringOrNull(offsets[4])] ??
+            MissionDifficulty.easy,
+    expiryDate: reader.readDateTimeOrNull(offsets[5]),
+    hpPenalty: reader.readLong(offsets[6]),
+    isActive: reader.readBoolOrNull(offsets[7]) ?? true,
+    penaltyPoints: reader.readLong(offsets[8]),
+    rewardPoints: reader.readLong(offsets[9]),
+    text: reader.readString(offsets[10]),
+    type: _MissiontypeValueEnumMap[reader.readStringOrNull(offsets[11])] ??
+        MissionType.minor,
   );
-  object.completed = reader.readBool(offsets[0]);
-  object.completedDate = reader.readDateTimeOrNull(offsets[1]);
-  object.dailyKey = reader.readString(offsets[2]);
   object.id = id;
   return object;
 }
@@ -120,7 +176,7 @@ P _missionDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 1:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 2:
@@ -128,11 +184,52 @@ P _missionDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
+      return (_MissiondifficultyValueEnumMap[reader.readStringOrNull(offset)] ??
+          MissionDifficulty.easy) as P;
+    case 5:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
+      return (reader.readBoolOrNull(offset) ?? true) as P;
+    case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
       return (reader.readString(offset)) as P;
+    case 11:
+      return (_MissiontypeValueEnumMap[reader.readStringOrNull(offset)] ??
+          MissionType.minor) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _MissiondifficultyEnumValueMap = {
+  r'easy': r'easy',
+  r'medium': r'medium',
+  r'hard': r'hard',
+  r'extreme': r'extreme',
+};
+const _MissiondifficultyValueEnumMap = {
+  r'easy': MissionDifficulty.easy,
+  r'medium': MissionDifficulty.medium,
+  r'hard': MissionDifficulty.hard,
+  r'extreme': MissionDifficulty.extreme,
+};
+const _MissiontypeEnumValueMap = {
+  r'minor': r'minor',
+  r'selfie': r'selfie',
+  r'deepMindFocus': r'deepMindFocus',
+  r'informationOverload': r'informationOverload',
+};
+const _MissiontypeValueEnumMap = {
+  r'minor': MissionType.minor,
+  r'selfie': MissionType.selfie,
+  r'deepMindFocus': MissionType.deepMindFocus,
+  r'informationOverload': MissionType.informationOverload,
+};
 
 Id _missionGetId(Mission object) {
   return object.id;
@@ -611,6 +708,258 @@ extension MissionQueryFilter
     });
   }
 
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyEqualTo(
+    MissionDifficulty value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyGreaterThan(
+    MissionDifficulty value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyLessThan(
+    MissionDifficulty value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyBetween(
+    MissionDifficulty lower,
+    MissionDifficulty upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'difficulty',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'difficulty',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'difficulty',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'difficulty',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> difficultyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'difficulty',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> expiryDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'expiryDate',
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> expiryDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'expiryDate',
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> expiryDateEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'expiryDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> expiryDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'expiryDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> expiryDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'expiryDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> expiryDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'expiryDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> hpPenaltyEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hpPenalty',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> hpPenaltyGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hpPenalty',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> hpPenaltyLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hpPenalty',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> hpPenaltyBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hpPenalty',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Mission, Mission, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -655,6 +1004,123 @@ extension MissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> isActiveEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isActive',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> penaltyPointsEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'penaltyPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition>
+      penaltyPointsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'penaltyPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> penaltyPointsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'penaltyPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> penaltyPointsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'penaltyPoints',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> rewardPointsEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'rewardPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> rewardPointsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'rewardPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> rewardPointsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'rewardPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> rewardPointsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'rewardPoints',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -792,6 +1258,136 @@ extension MissionQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeEqualTo(
+    MissionType value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeGreaterThan(
+    MissionType value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeLessThan(
+    MissionType value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeBetween(
+    MissionType lower,
+    MissionType upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'type',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterFilterCondition> typeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension MissionQueryObject
@@ -849,6 +1445,78 @@ extension MissionQuerySortBy on QueryBuilder<Mission, Mission, QSortBy> {
     });
   }
 
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByDifficulty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByDifficultyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByExpiryDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expiryDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByExpiryDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expiryDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByHpPenalty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hpPenalty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByHpPenaltyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hpPenalty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByPenaltyPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'penaltyPoints', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByPenaltyPointsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'penaltyPoints', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByRewardPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rewardPoints', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByRewardPointsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rewardPoints', Sort.desc);
+    });
+  }
+
   QueryBuilder<Mission, Mission, QAfterSortBy> sortByText() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.asc);
@@ -858,6 +1526,18 @@ extension MissionQuerySortBy on QueryBuilder<Mission, Mission, QSortBy> {
   QueryBuilder<Mission, Mission, QAfterSortBy> sortByTextDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
@@ -912,6 +1592,42 @@ extension MissionQuerySortThenBy
     });
   }
 
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByDifficulty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByDifficultyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'difficulty', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByExpiryDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expiryDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByExpiryDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'expiryDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByHpPenalty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hpPenalty', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByHpPenaltyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hpPenalty', Sort.desc);
+    });
+  }
+
   QueryBuilder<Mission, Mission, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -924,6 +1640,42 @@ extension MissionQuerySortThenBy
     });
   }
 
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByPenaltyPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'penaltyPoints', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByPenaltyPointsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'penaltyPoints', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByRewardPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rewardPoints', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByRewardPointsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'rewardPoints', Sort.desc);
+    });
+  }
+
   QueryBuilder<Mission, Mission, QAfterSortBy> thenByText() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.asc);
@@ -933,6 +1685,18 @@ extension MissionQuerySortThenBy
   QueryBuilder<Mission, Mission, QAfterSortBy> thenByTextDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'text', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
     });
   }
 }
@@ -966,10 +1730,54 @@ extension MissionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Mission, Mission, QDistinct> distinctByDifficulty(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'difficulty', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QDistinct> distinctByExpiryDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'expiryDate');
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QDistinct> distinctByHpPenalty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hpPenalty');
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QDistinct> distinctByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isActive');
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QDistinct> distinctByPenaltyPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'penaltyPoints');
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QDistinct> distinctByRewardPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'rewardPoints');
+    });
+  }
+
   QueryBuilder<Mission, Mission, QDistinct> distinctByText(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'text', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Mission, Mission, QDistinct> distinctByType(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1006,9 +1814,52 @@ extension MissionQueryProperty
     });
   }
 
+  QueryBuilder<Mission, MissionDifficulty, QQueryOperations>
+      difficultyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'difficulty');
+    });
+  }
+
+  QueryBuilder<Mission, DateTime?, QQueryOperations> expiryDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'expiryDate');
+    });
+  }
+
+  QueryBuilder<Mission, int, QQueryOperations> hpPenaltyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hpPenalty');
+    });
+  }
+
+  QueryBuilder<Mission, bool, QQueryOperations> isActiveProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isActive');
+    });
+  }
+
+  QueryBuilder<Mission, int, QQueryOperations> penaltyPointsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'penaltyPoints');
+    });
+  }
+
+  QueryBuilder<Mission, int, QQueryOperations> rewardPointsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'rewardPoints');
+    });
+  }
+
   QueryBuilder<Mission, String, QQueryOperations> textProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'text');
+    });
+  }
+
+  QueryBuilder<Mission, MissionType, QQueryOperations> typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 }
