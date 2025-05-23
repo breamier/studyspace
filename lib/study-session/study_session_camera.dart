@@ -210,8 +210,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                         );
                                         return;
                                       }
-                                      Navigator.push(
-                                        context,
+                                      Navigator.of(context).pushAndRemoveUntil(
                                         MaterialPageRoute(
                                           builder: (context) => StudySession(
                                             goalId: widget.goalId,
@@ -219,21 +218,22 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                                             isarService: widget.isarService,
                                           ),
                                         ),
+                                            (route) => false,
                                       );
                                     },
                                   ),
                                 );
                               } else {
                                 // no mission to complete, just go to study session
-
-                                Navigator.push(
-                                  context,
+                                Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => StudySession(
-                                        goalId: widget.goalId,
-                                        imgLoc: imgFile!.path,
-                                        isarService: widget.isarService),
+                                      goalId: widget.goalId,
+                                      imgLoc: imgFile!.path,
+                                      isarService: widget.isarService,
+                                    ),
                                   ),
+                                      (route) => false,
                                 );
                               }
 

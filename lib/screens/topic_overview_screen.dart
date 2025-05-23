@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'dart:ui';
 
 import 'package:studyspace/study-session/study_session_camera.dart';
+import 'package:studyspace/study-session/study_session_tasks.dart';
 
 class TopicOverview extends StatefulWidget {
   final Id goalId;
@@ -608,145 +609,147 @@ class _TopicOverviewState extends State<TopicOverview> {
                         padding: EdgeInsets.symmetric(
                           horizontal: deviceWidth * 0.04,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Subtopics",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: deviceWidth * 0.06,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Arimo',
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.delete,
-                                color: const Color.fromRGBO(176, 152, 228, 1),
-                                size: deviceWidth * 0.07,
-                              ),
-                              onPressed: () {
-                                if (_goal != null &&
-                                    _goal!.subtopics.any((s) => !s.completed)) {
-                                  _showDeleteSubtopicDialog();
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'No incomplete subtopics to delete',
-                                        style: TextStyle(
-                                          fontFamily: 'Arimo',
-                                        ),
-                                      ),
-                                      backgroundColor: const Color.fromARGB(
-                                          194, 109, 68, 221),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
+                      child:StudySessionTasks(goalId: _goal!.id) ,
                       ),
-                      ..._subtopicControllers.asMap().entries.map(
-                        (entry) {
-                          final index = entry.key;
-                          final controller = entry.value;
-                          final isNew = index >= _goal!.subtopics.length;
-                          final subtopic =
-                              isNew ? null : _goal!.subtopics[index];
-
-                          return Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: deviceWidth * 0.04,
-                              vertical: deviceHeight * 0.00,
-                            ),
-                            child: Row(
-                              children: [
-                                if (!isNew)
-                                  SizedBox(
-                                    width: deviceWidth * 0.04,
-                                    height: deviceWidth * 0.04,
-                                    child: Checkbox(
-                                      value: subtopic?.completed ?? false,
-                                      onChanged: (value) =>
-                                          _toggleSubtopicCompletion(index),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      side: const BorderSide(
-                                        color: Colors.white,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                  ),
-                                if (!isNew) SizedBox(width: deviceWidth * 0.03),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: deviceWidth * 0.04,
-                                      fontFamily: 'Arimo',
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: isNew ? "New subtopic" : null,
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: deviceWidth * 0.04,
-                                        fontFamily: 'Arimo',
-                                      ),
-                                      border: InputBorder.none,
-                                    ),
-                                    onChanged: (value) => _saveSubtopics(),
-                                    focusNode: isNew &&
-                                            index ==
-                                                _subtopicControllers.length - 1
-                                        ? _newSubtopicFocusNode
-                                        : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                      //   child: Row(
+                      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //     children: [
+                      //       Text(
+                      //         "Subtopics",
+                      //         style: TextStyle(
+                      //           color: Colors.white,
+                      //           fontSize: deviceWidth * 0.06,
+                      //           fontWeight: FontWeight.bold,
+                      //           fontFamily: 'Arimo',
+                      //         ),
+                      //       ),
+                      //       IconButton(
+                      //         icon: Icon(
+                      //           Icons.delete,
+                      //           color: const Color.fromRGBO(176, 152, 228, 1),
+                      //           size: deviceWidth * 0.07,
+                      //         ),
+                      //         onPressed: () {
+                      //           if (_goal != null &&
+                      //               _goal!.subtopics.any((s) => !s.completed)) {
+                      //             _showDeleteSubtopicDialog();
+                      //           } else {
+                      //             ScaffoldMessenger.of(context).showSnackBar(
+                      //               SnackBar(
+                      //                 content: Text(
+                      //                   'No incomplete subtopics to delete',
+                      //                   style: TextStyle(
+                      //                     fontFamily: 'Arimo',
+                      //                   ),
+                      //                 ),
+                      //                 backgroundColor: const Color.fromARGB(
+                      //                     194, 109, 68, 221),
+                      //               ),
+                      //             );
+                      //           }
+                      //         },
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
+                      // ..._subtopicControllers.asMap().entries.map(
+                      //   (entry) {
+                      //     final index = entry.key;
+                      //     final controller = entry.value;
+                      //     final isNew = index >= _goal!.subtopics.length;
+                      //     final subtopic =
+                      //         isNew ? null : _goal!.subtopics[index];
+                      //
+                      //     return Padding(
+                      //       padding: EdgeInsets.symmetric(
+                      //         horizontal: deviceWidth * 0.04,
+                      //         vertical: deviceHeight * 0.00,
+                      //       ),
+                      //       child: Row(
+                      //         children: [
+                      //           if (!isNew)
+                      //             SizedBox(
+                      //               width: deviceWidth * 0.04,
+                      //               height: deviceWidth * 0.04,
+                      //               child: Checkbox(
+                      //                 value: subtopic?.completed ?? false,
+                      //                 onChanged: (value) =>
+                      //                     _toggleSubtopicCompletion(index),
+                      //                 shape: RoundedRectangleBorder(
+                      //                   borderRadius: BorderRadius.circular(5),
+                      //                 ),
+                      //                 side: const BorderSide(
+                      //                   color: Colors.white,
+                      //                   width: 1.5,
+                      //                 ),
+                      //               ),
+                      //             ),
+                      //           if (!isNew) SizedBox(width: deviceWidth * 0.03),
+                      //           Expanded(
+                      //             child: TextFormField(
+                      //               controller: controller,
+                      //               style: TextStyle(
+                      //                 color: Colors.white,
+                      //                 fontSize: deviceWidth * 0.04,
+                      //                 fontFamily: 'Arimo',
+                      //               ),
+                      //               decoration: InputDecoration(
+                      //                 hintText: isNew ? "New subtopic" : null,
+                      //                 hintStyle: TextStyle(
+                      //                   color: Colors.grey,
+                      //                   fontSize: deviceWidth * 0.04,
+                      //                   fontFamily: 'Arimo',
+                      //                 ),
+                      //                 border: InputBorder.none,
+                      //               ),
+                      //               onChanged: (value) => _saveSubtopics(),
+                      //               focusNode: isNew &&
+                      //                       index ==
+                      //                           _subtopicControllers.length - 1
+                      //                   ? _newSubtopicFocusNode
+                      //                   : null,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     );
+                      //   },
+                      // ),
                       Padding(
                         padding: EdgeInsets.only(
                           left: deviceWidth * 0.02,
                           right: deviceWidth * 0.04,
                           top: deviceHeight * 0.01,
                         ),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: deviceWidth * 0.03,
-                              height: deviceWidth * 0.09,
-                              child: Container(
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(
-                                    Icons.add,
-                                    size: deviceWidth * 0.08,
-                                    color: const Color.fromARGB(
-                                        187, 187, 187, 187),
-                                  ),
-                                  onPressed: _addNewSubtopicField,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: deviceWidth * 0.06),
-                            Text(
-                              "Add a subtopic",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: deviceWidth * 0.04,
-                                fontFamily: 'Arimo',
-                              ),
-                            ),
-                          ],
-                        ),
+                        // child: Row(
+                        //   children: [
+                        //     SizedBox(
+                        //       width: deviceWidth * 0.03,
+                        //       height: deviceWidth * 0.09,
+                        //       child: Container(
+                        //         child: IconButton(
+                        //           padding: EdgeInsets.zero,
+                        //           icon: Icon(
+                        //             Icons.add,
+                        //             size: deviceWidth * 0.08,
+                        //             color: const Color.fromARGB(
+                        //                 187, 187, 187, 187),
+                        //           ),
+                        //           onPressed: _addNewSubtopicField,
+                        //         ),
+                        //       ),
+                        //     ),
+                        //     SizedBox(width: deviceWidth * 0.06),
+                            // Text(
+                            //   "Add a subtopic",
+                            //   style: TextStyle(
+                            //     color: Colors.white,
+                            //     fontSize: deviceWidth * 0.04,
+                            //     fontFamily: 'Arimo',
+                            //   ),
+                            // ),
+                          // ],
+                        // ),
                       ),
                       SizedBox(height: deviceHeight * 0.04),
                       Padding(
