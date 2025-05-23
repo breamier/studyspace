@@ -25,7 +25,7 @@ class StudySession extends StatefulWidget {
   @override
   State<StudySession> createState() {
     return _StateStudySession();
-  } 
+  }
 }
 
 class _StateStudySession extends State<StudySession> {
@@ -107,11 +107,10 @@ class _StateStudySession extends State<StudySession> {
     return Scaffold(
       body: Stack(
         children: [
-
           _buildUI(),
           if (showPopUp) _buildPopUp(),
           if (showEndSession) _buildEndSessionNotif(),
-          if(showCancelSession) _buildCancelSessionPopup()
+          if (showCancelSession) _buildCancelSessionPopup()
         ],
       ),
       appBar: AppBar(
@@ -260,7 +259,7 @@ class _StateStudySession extends State<StudySession> {
   Widget timerContainer() {
     return Container(
       width: MediaQuery.sizeOf(context).width * 0.75,
-      height:  MediaQuery.sizeOf(context).width * 0.75,
+      height: MediaQuery.sizeOf(context).width * 0.75,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -282,7 +281,6 @@ class _StateStudySession extends State<StudySession> {
             offset: Offset(0, 8),
           ),
         ],
-
       ),
       child: studyTimer(),
     );
@@ -396,72 +394,77 @@ class _StateStudySession extends State<StudySession> {
                     height: 100,
                     fit: BoxFit.cover,
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width * 0.4,
-                        height: MediaQuery.sizeOf(context).width * 0.1,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              showPopUp = false;
-                              if (promptIndex == 2) {
-                                isActive = false;
-                              }
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            foregroundColor: Colors.white,
-                            elevation: 3,
-                          ),
-                          child: Text(yesButtonText),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width * 0.4,
-                        height: MediaQuery.sizeOf(context).width * 0.1,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              showPopUp = false;
-                              if (promptIndex == 0 || promptIndex == 1) {
-                                showEndSession = true;
-                              } else if (promptIndex == 2) {
-                                isActive = true;
-                              }
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey,
-                            foregroundColor: Colors.white,
-                            elevation: 3,
-                          ),
-                          child: Text(noButtonText),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: dontShowCheckIns,
-                            onChanged: (value) {
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: MediaQuery.sizeOf(context).width * 0.1,
+                          child: ElevatedButton(
+                            onPressed: () {
                               setState(() {
-                                dontShowCheckIns = value!;
+                                showPopUp = false;
+                                if (promptIndex == 2) {
+                                  isActive = false;
+                                }
                               });
                             },
-                            visualDensity: VisualDensity.compact,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                              foregroundColor: Colors.white,
+                              elevation: 3,
+                            ),
+                            child: Text(yesButtonText),
                           ),
-                          Text("Don't show again for this session.",
-                              style: TextStyle(
-                                  fontFamily: "Amino",
-                                  fontSize: 10,
-                                  color: Colors.white)),
-                        ],
-                      ),
-                    ],
+                        ),
+                        SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          height: MediaQuery.sizeOf(context).width * 0.1,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                showPopUp = false;
+                                if (promptIndex == 0 || promptIndex == 1) {
+                                  showEndSession = true;
+                                } else if (promptIndex == 2) {
+                                  isActive = true;
+                                }
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey,
+                              foregroundColor: Colors.white,
+                              elevation: 3,
+                            ),
+                            child: Text(noButtonText),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: dontShowCheckIns,
+                              onChanged: (value) {
+                                setState(() {
+                                  dontShowCheckIns = value!;
+                                });
+                              },
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            Flexible(
+                              child: Text("Don't show again for this session.",
+                                  style: TextStyle(
+                                      fontFamily: "Amino",
+                                      fontSize: 10,
+                                      color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   )
                 ],
               ),
@@ -550,6 +553,7 @@ class _StateStudySession extends State<StudySession> {
       ),
     );
   }
+
   Widget _buildCancelSessionPopup() {
     return Container(
       color: Colors.black.withValues(alpha: 0.7),
@@ -588,7 +592,8 @@ class _StateStudySession extends State<StudySession> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => DashboardScreen(isar:_isarService)));
+                                builder: (context) =>
+                                    DashboardScreen(isar: _isarService)));
                       },
                       style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
@@ -602,7 +607,8 @@ class _StateStudySession extends State<StudySession> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () => setState(() => showCancelSession = false),
+                      onPressed: () =>
+                          setState(() => showCancelSession = false),
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.grey,
                           foregroundColor: Colors.white,
