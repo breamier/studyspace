@@ -20,6 +20,7 @@ void main() async {
   final isarService = IsarService();
   // await AndroidAlarmManager.initialize();
   await NotifService().initNotification();
+
   await isarService.initializeDailyMissions();
 
   runApp(const StudySpaceApp());
@@ -55,8 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     IsarService().initializeDefaultPet();
     final hpService = AstroHpService(service);
-    //_checkCompletedSessions();
-    hpService.checkMissedSessions();
+
+    // Should be run once a day to check for missed sessions || comment out to test
+    //hpService.checkMissedSessions();
   }
 
   @override
@@ -65,144 +67,201 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           title: const Text('Study Space Home'),
         ),
-        body: Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-              ElevatedButton(
-                onPressed: () {
-                  NotifService().scheduleDailyCustomNotifications();
-                },
-                child: const Text('Schedule Notification'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  NotifService().scheduleNotification(
-                      title: "TEST",
-                      body: "Scheduled",
-                      dateTime:
-                          DateTime(2025, 5, 17, 22, 54)); // change time to test
-                },
-                child: const Text('Schedule single Notification'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  NotifService().printScheduledNotifications();
-                },
-                child: const Text('Show Scheduled Notifications'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final goal = await IsarService().getFirstGoal();
+        body: SingleChildScrollView(
+            child: Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ElevatedButton(
+                  onPressed: () {
+                    NotifService().scheduleDailyCustomNotifications();
+                  },
+                  child: const Text('Schedule Notification'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    NotifService().scheduleNotification(
+                        title: "TEST",
+                        body: "Scheduled",
+                        dateTime: DateTime(
+                            2025, 5, 17, 22, 54)); // change time to test
+                  },
+                  child: const Text('Schedule single Notification'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    NotifService().printScheduledNotifications();
+                  },
+                  child: const Text('Show Scheduled Notifications'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final goal = await IsarService().getFirstGoal();
 
-                  if (goal == null || goal.upcomingSessionDates.isEmpty) {
-                    print("Goal or sessions not found.");
-                    return;
-                  }
+                    if (goal == null || goal.upcomingSessionDates.isEmpty) {
+                      print("Goal or sessions not found.");
+                      return;
+                    }
 
-                  final completedDate = goal.upcomingSessionDates.first;
-                  const newDifficulty = 'medium'; // simulate difficulty
+                    final completedDate = goal.upcomingSessionDates.first;
+                    const newDifficulty = 'medium'; // simulate difficulty
 
-                  await Scheduler().completeStudySession(
-                    goal: goal,
-                    completedDate: completedDate,
-                    newDifficulty: newDifficulty,
-                  );
-                },
-                child: Text("Simulate Study Session"),
-              ),
-              ElevatedButton(
-                onPressed: _testHpSystem,
-                child: Text('Test HP System'),
-              ),
-              ElevatedButton(
+                    await Scheduler().completeStudySession(
+                      goal: goal,
+                      completedDate: completedDate,
+                      newDifficulty: newDifficulty,
+                    );
+                  },
+                  child: Text("Simulate Study Session"),
+                ),
+                ElevatedButton(
+                  onPressed: _testHpSystem,
+                  child: Text('Test HP'),
+                ),
+                ElevatedButton(
+                    onPressed: () async {
+                      final goal = await widget.isar.getFirstGoal();
+                      if (goal == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  "No goals found. Please create a goal first.")),
+                        );
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => StudySessionCamera(
+                                  goalId: 1,
+                                  isarService: widget.isar,
+                                )),
+                      );
+                    },
+                    child: const Text("StudySession")),
+                ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const StudySessionCamera(
-                                goalId: 1,
-                              )),
+                          builder: (context) =>
+                              DashboardScreen(isar: widget.isar)),
                     );
                   },
-                  child: const Text("StudySession")),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            DashboardScreen(isar: widget.isar)),
-                  );
-                },
-                child: const Text('Go to Dashboard'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SplashScreen(isar: widget.isar)),
-                  );
-                },
-                child: const Text('Go to Splash Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => StudySession(
-                              goalId: 1,
-                              imgLoc: "",
-                            )),
-                  );
-                },
-                child: const Text('Go to Study Session'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            AstronautPetScreen(isar: widget.isar)),
-                  );
-                },
-                child: const Text('Go to Astronaut Pet Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            AstronautTravelScreen(isar: widget.isar)),
-                  );
-                },
-                child: const Text('Go to Astronaut Traveling Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const ReplenishedAstronautScreen()),
-                  );
-                },
-                child: const Text('Go to Replenished Astronaut Screen'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  NotifService().showNotification(
-                    title: "Study Space 🌌",
-                    body: "🌠 Study stars are aligning just for you!",
-                  );
-                },
-                child: const Text('Show Notification'),
-              ),
-            ])));
+                  child: const Text('Go to Dashboard'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await widget.isar.resetAllMissions();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("All missions have been reset!")),
+                    );
+                  },
+                  child: const Text('Reset All Missions'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final pet = await widget.isar.getCurrentPet();
+                    if (pet != null) {
+                      pet.progress = 0.0;
+                      await widget.isar.updatePet(pet);
+                      setState(() {});
+                    }
+                  },
+                  child: Text("Reset Pet Progress"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              SplashScreen(isar: widget.isar)),
+                    );
+                  },
+                  child: const Text('Go to Splash Screen'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final goal = await widget.isar.getFirstGoal();
+                    if (goal == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                "No goals found. Please create a goal first.")),
+                      );
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => StudySession(
+                              goalId: 1, imgLoc: "", isarService: widget.isar)),
+                    );
+                  },
+                  child: const Text('Go to Study Session'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final pet = await widget.isar.getCurrentPet();
+                    if (pet == null || pet.planetsCount == 0) {
+                      // Go to pet screen if no planets visited yet
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AstronautPetScreen(isar: widget.isar),
+                        ),
+                      ).then((_) => setState(() {}));
+                    } else {
+                      // go to traveling screen and force arrived view if planetCount is >=1
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AstronautTravelScreen(
+                            isar: widget.isar,
+                            forceArrived: true,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Go to Astronaut Pet Screen'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              AstronautTravelScreen(isar: widget.isar)),
+                    );
+                  },
+                  child: const Text('Go to Astronaut Traveling Screen'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              const ReplenishedAstronautScreen()),
+                    );
+                  },
+                  child: const Text('Go to Replenished Astronaut Screen'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    NotifService().showNotification(
+                      title: "Study Space 🌌",
+                      body: "🌠 Study stars are aligning just for you!",
+                    );
+                  },
+                  child: const Text('Show Notification'),
+                ),
+              ]),
+        )));
   }
 
   Future<void> _testHpSystem() async {
@@ -210,7 +269,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final hpService = AstroHpService(isarService);
 
     // DON'T reset the database - we want to keep existing state
-    // Only initialize pet if it doesn't exist
+
+    // only initialize pet if it doesn't exist
     var pet = await isarService.getCurrentPet();
     if (pet == null) {
       await isarService.initializeDefaultPet();
@@ -253,23 +313,23 @@ class _HomeScreenState extends State<HomeScreen> {
     // Apply HP increase
     await hpService.applyStudySessionHp(session: session, goal: goal);
 
-    /* START: COMMENT THIS IF YOU WANT TO TEST HP INCREASE */
+    /* START: COMMENT THIS IF YOU WANT TO TEST HP DECREASE */
 
-    // // TEST 2: HP DECREASE - Create a missed session
-    // final missedGoal = Goal()
-    //   ..goalName = "Missed Goal $testId"
-    //   ..start = now.subtract(Duration(days: 3))
-    //   ..end = now.add(Duration(days: 5))
-    //   ..difficulty = "Medium"
-    //   ..reps = 2
-    //   ..interval = 2
-    //   ..easeFactor = 2.3
-    //   ..upcomingSessionDates = [now.subtract(Duration(days: 1))];
+    // TEST 2: HP DECREASE - Create a missed session
+    final missedGoal = Goal()
+      ..goalName = "Missed Goal $testId"
+      ..start = now.subtract(Duration(days: 3))
+      ..end = now.add(Duration(days: 5))
+      ..difficulty = "Medium"
+      ..reps = 2
+      ..interval = 2
+      ..easeFactor = 2.3
+      ..upcomingSessionDates = [now.subtract(Duration(days: 1))];
 
-    // await isar.writeTxn(() => isar.goals.put(missedGoal));
-    // await hpService.checkMissedSessions();
+    await isar.writeTxn(() => isar.goals.put(missedGoal));
+    await hpService.checkMissedSessions();
 
-    /* END: COMMENT THIS IF YOU WANT TO TEST HP INCREASE */
+    /* END: COMMENT THIS IF YOU WANT TO TEST HP DECREASE */
 
     // Get updated pet
     pet = await isarService.getCurrentPet();

@@ -89,8 +89,6 @@ class AstroHpService {
 
     print('[HP] Increasing HP by $hpIncrease for ${goal.goalName}');
     print('[HP] Session duration: ${session.duration} minutes');
-    print(
-        '[HP] Goal factors - reps: ${goal.reps}, interval: ${goal.interval}, ease: ${goal.easeFactor}');
 
     pet.hp = (pet.hp + hpIncrease).clamp(minHp, maxHp);
     pet.isAlive = pet.hp > 0;
@@ -105,6 +103,17 @@ class AstroHpService {
     final pet = await _isarService.getCurrentPet();
     if (pet == null) {
       debugPrint('No pet found!');
+      return;
+    }
+
+    final lastChecked = await _isarService.getLastMissedSessionCheck();
+
+    // Only run if last check was not today
+    if (lastChecked != null &&
+        lastChecked.year == now.year &&
+        lastChecked.month == now.month &&
+        lastChecked.day == now.day) {
+      debugPrint('Missed sessions already checked today.');
       return;
     }
 

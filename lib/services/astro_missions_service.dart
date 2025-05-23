@@ -5,6 +5,26 @@ import 'package:intl/intl.dart';
 import '../models/mission.dart';
 import '../models/astronaut_pet.dart';
 
+final List<MissionData> dailyMissions = [
+  MissionData(
+    "Take a picture before a study session",
+    MissionType.selfie,
+    MissionDifficulty.easy,
+    50,
+    20,
+    10,
+  ),
+  MissionData(
+    "Study 30 minutes straight",
+    MissionType.study,
+    MissionDifficulty.easy,
+    50,
+    20,
+    10,
+  ),
+  // new mission here
+];
+
 class MissionService {
   final Isar isar;
 
@@ -17,40 +37,49 @@ class MissionService {
   Future<void> initializeDailyMissions() async {
     final todayKey = _getTodayKey();
 
-    // check if missions for today already exist
-    final existingMissions =
-        await isar.missions.filter().dailyKeyEqualTo(todayKey).findAll();
+    // delete old missions that are not completed (in batches)
+    final oldMissions = await isar.missions
+        .filter()
+        .not()
+        .dailyKeyEqualTo(todayKey)
+        .and()
+        .completedEqualTo(false)
+        .findAll();
 
-    if (existingMissions.isNotEmpty) {
-      return; // already exist for today
+    const batchSize = 50;
+    for (var i = 0; i < oldMissions.length; i += batchSize) {
+      final batch =
+          oldMissions.skip(i).take(batchSize).map((m) => m.id).toList();
+      await isar.writeTxn(() async {
+        await isar.missions.deleteAll(batch);
+      });
     }
 
-    //  old missions that are not completed
-    await isar.writeTxn(() async {
-      final oldMissions = await isar.missions
-          .filter()
-          .not()
-          .dailyKeyEqualTo(todayKey)
-          .and()
-          .completedEqualTo(false)
-          .findAll();
+    // 2. Delete all today's missions
+    final todayMissions =
+        await isar.missions.filter().dailyKeyEqualTo(todayKey).findAll();
+    if (todayMissions.isNotEmpty) {
+      await isar.writeTxn(() async {
+        await isar.missions.deleteAll(todayMissions.map((m) => m.id).toList());
+      });
+    }
 
-      await isar.missions.deleteAll(oldMissions.map((m) => m.id).toList());
-    });
-
-    // test test
+    // 3. Add up to 3 missions from dailyMissions
+    final missionsToAdd = dailyMissions.take(3).toList();
     await isar.writeTxn(() async {
-      final mission = Mission(
-        text: "Take a picture before a study session",
-        type: MissionType.selfie,
-        difficulty: MissionDifficulty.easy,
-        dailyKey: todayKey,
-        rewardPoints: 50,
-        penaltyPoints: 20,
-        hpPenalty: 10,
-        expiryDate: DateTime.now().add(const Duration(days: 1)),
-      );
-      await isar.missions.put(mission);
+      for (final missionData in missionsToAdd) {
+        final mission = Mission(
+          text: missionData.text,
+          type: missionData.type,
+          difficulty: missionData.difficulty,
+          dailyKey: todayKey,
+          rewardPoints: missionData.rewardPoints,
+          penaltyPoints: missionData.penaltyPoints,
+          hpPenalty: missionData.hpPenalty,
+          expiryDate: DateTime.now().add(const Duration(days: 1)),
+        );
+        await isar.missions.put(mission);
+      }
     });
   }
 
@@ -89,12 +118,11 @@ class MissionService {
   Future<void> _applyMissionReward(Mission mission) async {
     final pet = await isar.astronautPets.where().findFirst();
     if (pet != null) {
-      await isar.writeTxn(() async {
-        // update progress
-        double progressIncrease = mission.rewardPoints / 1000.0;
-        pet.progress = min(1.0, pet.progress + progressIncrease);
-        await isar.astronautPets.put(pet);
-      });
+      // Do NOT start a new transaction here!
+      double progressIncrease = mission.rewardPoints / 100.0;
+      pet.progress = min(1.0, pet.progress + progressIncrease);
+      await isar.astronautPets
+          .put(pet); // This is safe, because it's called inside the outer txn
     }
   }
 
@@ -102,16 +130,11 @@ class MissionService {
   Future<void> _applyMissionPenalty(Mission mission) async {
     final pet = await isar.astronautPets.where().findFirst();
     if (pet != null) {
-      await isar.writeTxn(() async {
-        // decrease HP
-        pet.hp = max(0, pet.hp - mission.hpPenalty);
-
-        // decrease progress
-        double progressDecrease = mission.penaltyPoints / 1000.0;
-        pet.progress = max(0, pet.progress - progressDecrease);
-
-        await isar.astronautPets.put(pet);
-      });
+      // Do NOT start a new transaction here!
+      pet.hp = max(0, pet.hp - mission.hpPenalty);
+      double progressDecrease = mission.penaltyPoints / 1000.0;
+      pet.progress = max(0, pet.progress - progressDecrease);
+      await isar.astronautPets.put(pet);
     }
   }
 
@@ -151,14 +174,14 @@ class MissionData {
 // All available missions with their rewards and penalties
     // final allMissions = [
     //   // Minor missions
-    //   // MissionData(
-    //   //   "Study 30 minutes straight",
-    //   //   MissionType.study,
-    //   //   MissionDifficulty.easy,
-    //   //   50, // reward points
-    //   //   20, // penalty points
-    //   //   10, // hp penalty
-    //   // ),
+      // MissionData(
+      //   "Study 30 minutes straight",
+      //   MissionType.study,
+      //   MissionDifficulty.easy,
+      //   50, // reward points
+      //   20, // penalty points
+      //   10, // hp penalty
+      // ),
     //   MissionData(
     //     "Take a picture before a study session",
     //     MissionType.selfie,

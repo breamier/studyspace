@@ -219,12 +219,14 @@ const _MissiondifficultyValueEnumMap = {
   r'extreme': MissionDifficulty.extreme,
 };
 const _MissiontypeEnumValueMap = {
+  r'study': r'study',
   r'minor': r'minor',
   r'selfie': r'selfie',
   r'deepMindFocus': r'deepMindFocus',
   r'informationOverload': r'informationOverload',
 };
 const _MissiontypeValueEnumMap = {
+  r'study': MissionType.study,
   r'minor': MissionType.minor,
   r'selfie': MissionType.selfie,
   r'deepMindFocus': MissionType.deepMindFocus,
