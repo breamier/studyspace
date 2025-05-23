@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:studyspace/screens/dashboard_screen.dart';
+import 'package:studyspace/widgets/custom_toast.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
 
@@ -271,12 +273,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         _rouletteItems.where((item) => item['unlocked'] == false).toList();
 
     if (lockedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You have unlocked all items in this category!'),
-          duration: Duration(seconds: 3),
-        ),
-      );
+      showCustomToast(context, 'You have unlocked all items in this category!');
+
       setState(() {
         _showRoulette = false;
         _clickedButtons[id] = false;
@@ -748,4 +746,22 @@ class RouletteSegmentClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => true;
+}
+
+void showCustomToast(BuildContext context, String message) {
+  final overlay = Overlay.of(context);
+  final overlayEntry = OverlayEntry(
+    builder: (context) => Positioned(
+      bottom: -40,
+      left: 0,
+      right: 0,
+      child: Center(child: AnimatedToast(message: message)),
+    ),
+  );
+
+  overlay.insert(overlayEntry);
+
+  Future.delayed(const Duration(seconds: 3), () {
+    overlayEntry.remove();
+  });
 }
