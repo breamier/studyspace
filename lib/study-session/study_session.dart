@@ -114,16 +114,24 @@ class _StateStudySession extends State<StudySession> {
         ],
       ),
       appBar: AppBar(
-        leading: IconButton(
-            onPressed: () {
-              setState(() {
-                showCancelSession = true;
-              });
-            },
-            icon: const Icon(
-              Icons.arrow_circle_left_outlined,
-              color: Colors.white,
-            )),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  showCancelSession = true;
+                });
+              },
+            ),
+          ),
+        ),
+
         backgroundColor: Colors.transparent, // transparent app bar
         elevation: 0, // remove shadow
       ),
