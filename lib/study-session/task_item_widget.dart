@@ -83,12 +83,27 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
+
+      onEditingComplete: () {
+        FocusScope.of(context).unfocus();
+        setState(() {
+          if(_textEditingController.text == "\u200c"){
+            _deleteSubtopic();
+          }else{
+            _updateGoal(widget.subtopic.name, _textEditingController.text,
+                widget.subtopic.completed);
+            widget.subtopic.name = _textEditingController.text;
+          }
+        });
+      },
       onChanged: (text)=> setState(() {
-        _updateGoal(widget.subtopic.name,text,
-            widget.subtopic.completed);
-        widget.subtopic.name =text;
+
         if(_textEditingController.text == ""){
           _deleteSubtopic();
+        }else{
+          _updateGoal(widget.subtopic.name,text,
+              widget.subtopic.completed);
+          widget.subtopic.name =text;
         }
       }),
 
@@ -99,11 +114,12 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
         ),
         onTapOutside: (event) {
           setState(() {
-            _updateGoal(widget.subtopic.name, _textEditingController.text,
-                widget.subtopic.completed);
-            widget.subtopic.name = _textEditingController.text;
             if(_textEditingController.text == "\u200c"){
               _deleteSubtopic();
+            }else{
+              _updateGoal(widget.subtopic.name, _textEditingController.text,
+                  widget.subtopic.completed);
+              widget.subtopic.name = _textEditingController.text;
             }
             FocusScope.of(context).unfocus();
           });
