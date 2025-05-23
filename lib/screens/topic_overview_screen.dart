@@ -721,25 +721,25 @@ class _TopicOverviewState extends State<TopicOverview> {
                           right: deviceWidth * 0.04,
                           top: deviceHeight * 0.01,
                         ),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: deviceWidth * 0.03,
-                              height: deviceWidth * 0.09,
-                              child: Container(
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(
-                                    Icons.add,
-                                    size: deviceWidth * 0.08,
-                                    color: const Color.fromARGB(
-                                        187, 187, 187, 187),
-                                  ),
-                                  onPressed: _addNewSubtopicField,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: deviceWidth * 0.06),
+                        // child: Row(
+                        //   children: [
+                        //     SizedBox(
+                        //       width: deviceWidth * 0.03,
+                        //       height: deviceWidth * 0.09,
+                        //       child: Container(
+                        //         child: IconButton(
+                        //           padding: EdgeInsets.zero,
+                        //           icon: Icon(
+                        //             Icons.add,
+                        //             size: deviceWidth * 0.08,
+                        //             color: const Color.fromARGB(
+                        //                 187, 187, 187, 187),
+                        //           ),
+                        //           onPressed: _addNewSubtopicField,
+                        //         ),
+                        //       ),
+                        //     ),
+                        //     SizedBox(width: deviceWidth * 0.06),
                             // Text(
                             //   "Add a subtopic",
                             //   style: TextStyle(
@@ -748,8 +748,8 @@ class _TopicOverviewState extends State<TopicOverview> {
                             //     fontFamily: 'Arimo',
                             //   ),
                             // ),
-                          ],
-                        ),
+                          // ],
+                        // ),
                       ),
                       SizedBox(height: deviceHeight * 0.04),
                       Padding(
