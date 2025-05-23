@@ -54,7 +54,7 @@ class MissionCompleteModal extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Image.asset(
-              "assets/astronaut_reward.png",
+              "assets/austronaut.png",
               width: 100,
               height: 100,
             ),

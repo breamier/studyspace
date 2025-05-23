@@ -765,8 +765,8 @@ class _TopicOverviewState extends State<TopicOverview> {
                                     MaterialPageRoute(
                                         builder: (context) =>
                                             StudySessionCamera(
-                                              goalId: widget.goalId,
-                                            )));
+                                                goalId: widget.goalId,
+                                                isarService: _isarService)));
                               },
                               deviceWidth: deviceWidth,
                               deviceHeight: deviceHeight,

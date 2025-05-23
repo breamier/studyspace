@@ -17,6 +17,9 @@ class AstronautPet {
   String skinType = 'default';
   String shipType = 'default';
 
+  bool isTraveling = false;
+  bool hasArrived = false;
+
   AstronautPet();
 
   AstronautPet.create({

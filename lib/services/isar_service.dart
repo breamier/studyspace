@@ -9,6 +9,7 @@ import '../models/session.dart';
 import '../models/astronaut_pet.dart';
 
 import 'astro_missions_service.dart';
+import 'package:studyspace/models/hp_check_log.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -40,7 +41,7 @@ class IsarService extends ChangeNotifier {
   Future<void> addGoal(Goal newGoal) async {
     final isar = await db;
     isar.writeTxnSync<int>(() => isar.goals.putSync(newGoal));
-    print("Goal added successfully!");
+    debugPrint("Goal added successfully!");
   }
 
   // filter -> Upcoming goals date for dashboard
@@ -78,14 +79,15 @@ class IsarService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateSubtopic(Goal goal, int index,Subtopic subtopic) async {
+  Future<void> updateSubtopic(Goal goal, int index, Subtopic subtopic) async {
     final isar = await db;
     print(goal.subtopics);
     goal.subtopics[index] = subtopic;
     await isar.writeTxn(() => isar.goals.put(goal));
     notifyListeners();
   }
-  Future<void> deleteSubtopicAtIndex(Goal goal, int index)async {
+
+  Future<void> deleteSubtopicAtIndex(Goal goal, int index) async {
     final isar = db;
     var updated = goal.subtopics.toList();
     updated = updated.sublist(0, index) + updated.sublist(index + 1);
@@ -93,17 +95,17 @@ class IsarService extends ChangeNotifier {
     await isar.then((value) => value.writeTxn(() => value.goals.put(goal)));
     notifyListeners();
   }
-  Future<void> deleteSubtopic(Goal goal, Subtopic subtopic) async{
 
+  Future<void> deleteSubtopic(Goal goal, Subtopic subtopic) async {
     final isar = await db;
-    final updatedSubtopics = goal.subtopics
-        .where((sub) => sub.name != subtopic.name)
-        .toList();
+    final updatedSubtopics =
+        goal.subtopics.where((sub) => sub.name != subtopic.name).toList();
 
-    int duplicateCount = goal.subtopics.where((sub)=> sub.name == subtopic.name).length;
-    while(duplicateCount>1){
+    int duplicateCount =
+        goal.subtopics.where((sub) => sub.name == subtopic.name).length;
+    while (duplicateCount > 1) {
       updatedSubtopics.add(subtopic);
-      print(subtopic.name);
+      debugPrint(subtopic.name);
       duplicateCount--;
     }
     goal.subtopics = updatedSubtopics;
@@ -135,11 +137,16 @@ class IsarService extends ChangeNotifier {
 
   Future<Isar> openDB() async {
     final dir = await getApplicationDocumentsDirectory();
-    print('ISAR DB path: ${dir.path}');
+    debugPrint('ISAR DB path: ${dir.path}');
     if (Isar.instanceNames.isEmpty) {
-      final isar = await Isar.open([AstronautPetSchema,GoalSchema, MissionSchema, SessionSchema],
-          directory: dir.path, inspector: true);
-      print('ISAR DB opened: ${isar.name}');
+      final isar = await Isar.open([
+        AstronautPetSchema,
+        GoalSchema,
+        MissionSchema,
+        SessionSchema,
+        HpCheckLogSchema
+      ], directory: dir.path, inspector: true);
+      debugPrint('ISAR DB opened: ${isar.name}');
       return isar;
     }
 
@@ -173,8 +180,8 @@ class IsarService extends ChangeNotifier {
   // Complete a mission
   Future<void> completeMission(Id missionId) async {
     await initializeServices();
-    await _missionService.completeMission(missionId);
-    notifyListeners();
+    await _missionService
+        .completeMission(missionId); // update mission and pet progress
   }
 
   // Fail a mission
@@ -187,6 +194,25 @@ class IsarService extends ChangeNotifier {
   Future<double> getMissionCompletionPercentage() async {
     await initializeServices();
     return await _missionService.getMissionCompletionPercentage();
+  }
+
+  // get missions by id
+  Future<Mission?> getMissionById(Id id) async {
+    final isar = await db;
+    return await isar.missions.get(id);
+  }
+
+  // reset mission complete status to false [ FOR DEBUG/TESTING]
+  Future<void> resetAllMissions() async {
+    final isar = await db;
+    await isar.writeTxn(() async {
+      final missions = await isar.missions.where().findAll();
+      for (final mission in missions) {
+        mission.completed = false;
+        mission.completedDate = null;
+        await isar.missions.put(mission);
+      }
+    });
   }
 
   // Session Methods
@@ -203,8 +229,8 @@ class IsarService extends ChangeNotifier {
 
   Future<void> addSession(Session newSession, Goal goal) async {
     final isar = await db;
-    print(newSession.difficulty);
-    print(newSession.imgPath);
+    debugPrint(newSession.difficulty);
+    debugPrint(newSession.imgPath);
     goal.sessions.add(newSession);
     await isar.writeTxn(() async {
       await isar.goals.put(goal);
@@ -304,6 +330,7 @@ class IsarService extends ChangeNotifier {
     }
     return formatDuration(Duration(seconds: totalSeconds));
   }
+
   Stream<Goal?> watchGoalById(Id id) async* {
     final isar = await db;
     yield* isar.goals.watchObject(id, fireImmediately: true);
@@ -363,5 +390,21 @@ class IsarService extends ChangeNotifier {
       await isar.astronautPets.put(newPet);
     });
     return newPet;
+  }
+
+  Future<DateTime?> getLastMissedSessionCheck() async {
+    final isar = await db;
+    final log = await isar.hpCheckLogs.get(0);
+    return log?.lastChecked;
+  }
+
+  Future<void> setLastMissedSessionCheck(DateTime date) async {
+    final isar = await db;
+    final log = HpCheckLog()
+      ..id = 0
+      ..lastChecked = date;
+    await isar.writeTxn(() async {
+      await isar.hpCheckLogs.put(log);
+    });
   }
 }

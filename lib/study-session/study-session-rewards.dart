@@ -11,8 +11,10 @@ import '../services/isar_service.dart';
 
 class StudySessionRewards extends StatefulWidget {
   final Id goalId;
+  final int? study30MinReward;
 
-  const StudySessionRewards({super.key, required this.goalId});
+  const StudySessionRewards(
+      {super.key, required this.goalId, this.study30MinReward});
 
   @override
   State<StudySessionRewards> createState() => _StudySessionRewardsState();
@@ -139,19 +141,44 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
                                 fontFamily: 'BrunoAceSC',
                                 fontSize: 18,
                               )),
-                          for (var i = 0; i < displayedMissions.length; i++)
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: 8, left: 10),
-                              child: Row(children: [
-                                Icon(Icons.arrow_right, size: 18),
-                                Text(
-                                  displayedMissions[i].text,
-                                  style: TextStyle(
-                                      fontSize: 14, fontFamily: 'Amino'),
-                                ),
-                              ]),
+                          if (widget.study30MinReward != null) ...[
+                            Text(
+                              "You completed 'Study 30 minutes straight'!",
+                              style: TextStyle(
+                                  fontFamily: 'Amino',
+                                  fontSize: 18,
+                                  color: Colors.green),
                             ),
+                            Text(
+                              "Lumix: +${widget.study30MinReward} points",
+                              style: TextStyle(
+                                  fontFamily: 'Amino',
+                                  fontSize: 18,
+                                  color: Colors.green),
+                            ),
+                            SizedBox(height: 10),
+                          ],
+                          if (displayedMissions.isEmpty)
+                            Text(
+                              "No missions completed yet.",
+                              style: TextStyle(
+                                  fontFamily: 'Amino',
+                                  fontSize: 18,
+                                  color: Colors.red),
+                            ),
+                          //   for (var i = 0; i < displayedMissions.length; i++)
+                          //     Padding(
+                          //       padding:
+                          //           const EdgeInsets.only(bottom: 8, left: 10),
+                          //       child: Row(children: [
+                          //         Icon(Icons.arrow_right, size: 18),
+                          //         Text(
+                          //           displayedMissions[i].text,
+                          //           style: TextStyle(
+                          //               fontSize: 14, fontFamily: 'Amino'),
+                          //         ),
+                          //       ]),
+                          //     ),
                         ],
                       ),
                     );
@@ -267,7 +294,8 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
               onPressed: () {
                 setState(() {
                   //update data and send data
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);});
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                });
               },
               style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Colors.deepPurple),
