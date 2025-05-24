@@ -65,25 +65,25 @@ class _SettingsState extends State<Settings> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Settings', style: kHeadingFont),
-        // leading: Padding(
-        //   padding: const EdgeInsets.all(8.0),
-        //   child: Container(
-        //     decoration: BoxDecoration(
-        //       shape: BoxShape.circle,
-        //       boxShadow: [
-        //         BoxShadow(
-        //           blurRadius: 10,
-        //           spreadRadius: 1,
-        //         )
-        //       ],
-        //       border: Border.all(color: Colors.white54, width: 1),
-        //     ),
-        //     child: IconButton(
-        //       icon: const Icon(Icons.arrow_back, color: Colors.white),
-        //       onPressed: () => Navigator.pop(context),
-        //     ),
-        //   ),
-        // ),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                )
+              ],
+              border: Border.all(color: Colors.white54, width: 1),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -96,7 +96,7 @@ class _SettingsState extends State<Settings> {
               ),
             ),
           ),
-
+          
           Container(
             decoration: BoxDecoration(
               gradient: RadialGradient(
@@ -111,7 +111,7 @@ class _SettingsState extends State<Settings> {
               ),
             ),
           ),
-
+          
           // Content
           SafeArea(
             child: Padding(
@@ -120,9 +120,9 @@ class _SettingsState extends State<Settings> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 30),
-
+                  
                   const SizedBox(height: 30),
-
+                  
                   // Setting Cards
                   _buildSettingCard(
                     icon: Icons.notifications,
@@ -142,15 +142,14 @@ class _SettingsState extends State<Settings> {
                         if (!val) {
                           await NotifService().cancelAllNotifications();
                         } else {
-                          await NotifService()
-                              .scheduleDailyCustomNotifications();
+                          await NotifService().scheduleDailyCustomNotifications();
                         }
                       },
                     ),
                   ),
-
+                  
                   const SizedBox(height: 30),
-
+                  
                   _buildSettingCard(
                     icon: Icons.restart_alt,
                     title: "Clear Database",
@@ -158,15 +157,14 @@ class _SettingsState extends State<Settings> {
                     iconColor: Colors.redAccent,
                     textColor: Colors.white,
                     trailing: Container(
-                      width: 40,
+                      width: 40, 
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.redAccent.withOpacity(0.2),
                       ),
                       child: IconButton(
-                        icon:
-                            Icon(Icons.delete_forever, color: Colors.redAccent),
+                        icon: Icon(Icons.delete_forever, color: Colors.redAccent),
                         onPressed: () async {
                           _showDeleteConfirmation();
                         },
@@ -273,14 +271,17 @@ class _SettingsState extends State<Settings> {
           backgroundColor: kOnyx,
           title: Text(
             "Confirm Deletion",
-            style: TextStyle(color: Colors.white, fontFamily: 'Arimo'),
+            style: TextStyle(
+                color: Colors.white, fontFamily: 'Arimo'),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "Type 'clear' to confirm deletion of all data.",
-                style: TextStyle(color: Colors.white70, fontFamily: 'Arimo'),
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontFamily: 'Arimo'),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -291,7 +292,8 @@ class _SettingsState extends State<Settings> {
                   hintText: "Type 'clear' here",
                   hintStyle: TextStyle(color: Colors.white38),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
+                    borderSide:
+                        BorderSide(color: Colors.white24),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: kPurple),
@@ -302,13 +304,16 @@ class _SettingsState extends State<Settings> {
           ),
           actions: [
             TextButton(
-              child: Text("Cancel", style: TextStyle(color: Colors.white)),
+              child: Text("Cancel",
+                  style: TextStyle(color: Colors.white)),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text("Delete", style: TextStyle(color: Colors.redAccent)),
+              child: Text("Delete",
+                  style: TextStyle(color: Colors.redAccent)),
               onPressed: () async {
-                if (confirmText.trim().toLowerCase() == "clear") {
+                if (confirmText.trim().toLowerCase() ==
+                    "clear") {
                   await widget.isar.clearDb();
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -316,16 +321,19 @@ class _SettingsState extends State<Settings> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("Database cleared.",
-                          style: TextStyle(fontFamily: 'Arimo')),
+                          style:
+                              TextStyle(fontFamily: 'Arimo')),
                       backgroundColor: Colors.redAccent,
                     ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("Type 'clear' to confirm.",
+                      content: Text(
+                          "Type 'clear' to confirm.",
                           style: TextStyle(
-                              fontFamily: 'Arimo', color: Colors.white)),
+                              fontFamily: 'Arimo',
+                              color: Colors.white)),
                       backgroundColor: Colors.grey[800],
                     ),
                   );

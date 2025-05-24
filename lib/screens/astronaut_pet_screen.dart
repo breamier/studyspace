@@ -5,8 +5,6 @@ import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
 import 'package:studyspace/services/astro_hp_service.dart';
-import 'package:studyspace/services/isar_service.dart';
-
 import '../models/astronaut_pet.dart';
 import 'astronaut_traveling_screen.dart';
 
@@ -21,7 +19,6 @@ class AstronautPetScreen extends StatefulWidget {
 class _AstronautPetScreenState extends State<AstronautPetScreen>
     with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
-  final IsarService _isarService = IsarService();
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
 
@@ -68,7 +65,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     if (mounted) {
       setState(() {
         _getCurrentItems();
-        _currentPet = _isarService.getCurrentPet();
+        _currentPet = widget.isar.getCurrentPet();
       });
     }
   }
@@ -77,14 +74,17 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     setState(() {
       _currentAstronaut = _itemManager.getCurrentAstronaut();
       _currentSpaceship = _itemManager.getCurrentSpaceship();
+      
+      // Debug prints to help troubleshoot
+      print('Current Astronaut: $_currentAstronaut');
+      print('Current Spaceship: $_currentSpaceship');
     });
   }
 
-  // object has changed value
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // refresh pet data every time the screen is shown
+
     setState(() {
       _currentPet = widget.isar.getCurrentPet();
     });
@@ -179,13 +179,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
                             offset: Offset(0, _floatingAnimation.value),
                             child: Transform.rotate(
                               angle: _rotationAnimation.value,
-                              child: Hero(
-                                tag: 'selected-image',
-                                child: Image.asset(
-                                  _getDisplayImage(),
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
+                              child: _buildLayeredDisplay(),
                             ),
                           );
                         },
@@ -203,6 +197,186 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         isar: widget.isar,
       ),
     );
+  }
+
+  Widget _buildLayeredDisplay() {
+    return Hero(
+      tag: 'selected-image',
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            child: Image.asset(
+              'assets/moon.png',
+              fit: BoxFit.contain,
+              height: MediaQuery.of(context).size.height * 0.4,
+            ),
+          ),
+          
+          if (_currentAstronaut != null)
+            _buildAstronautPosition(_currentAstronaut!),
+          
+          if (_currentSpaceship != null)
+            _buildSpaceshipPosition(_currentSpaceship!),
+        ],
+      ),
+    );
+  }
+
+  // Custom positioning for astronauts based on their type
+  Widget _buildAstronautPosition(Map<String, dynamic> astronaut) {
+    Map<String, double> position = _getAstronautPosition(astronaut['image']);
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * position['top']!,
+      right: MediaQuery.of(context).size.width * position['right']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          astronaut['image'],
+          fit: BoxFit.contain,
+          height: MediaQuery.of(context).size.height * position['height']!,
+          width: MediaQuery.of(context).size.width * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  // Custom positioning for spaceships based on their type
+  Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
+    Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * position['top']!,
+      left: MediaQuery.of(context).size.width * position['left']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          spaceship['image'],
+          fit: BoxFit.contain,
+          height: MediaQuery.of(context).size.height * position['height']!,
+          width: MediaQuery.of(context).size.width * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  // Define custom positions for each astronaut type
+  Map<String, double> _getAstronautPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/blue_astronaut.png':
+        return {
+          'top': 0.01,
+          'right': 0.18,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/orange_astronaut.png':
+        return {
+          'top': 0.03,
+          'right': 0.20,
+          'height': 0.14,
+          'width': 0.28,
+          'rotation': 25.0, 
+        };
+      
+      case 'assets/purple_astronaut.png':
+        return {
+          'top': 0.05,
+          'right': 0.20,
+          'height': 0.15,
+          'width': 0.27,
+          'rotation': 2.0, 
+        };
+      
+      case 'assets/black_astronaut.png':
+        return {
+          'top': 0.01,
+          'right': 0.18,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/green_astronaut.png':
+        return {
+          'top': 0.02,
+          'right': 0.28,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': 3.0, 
+        };
+      
+      default:
+        return {
+          'top': 0.13,
+          'right': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': 0.0,
+        };
+    }
+  }
+
+  // Define custom positions for each spaceship type
+  Map<String, double> _getSpaceshipPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/white_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.10,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -40.0, 
+        };
+      
+      case 'assets/purple_spaceship.png':
+        return {
+          'top': -0.02,
+          'left': 0.07,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -31.0,  
+        };
+      
+      case 'assets/orange_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -45.0, 
+        };
+      
+      case 'assets/black_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -45.0, 
+        };
+      
+      case 'assets/blue_spaceship.png':
+        return {
+          'top': -0.02,
+          'left': 0.07,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -31.0, 
+        };
+      
+      default:
+        return {
+          'top': 0.5,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -16.0,
+        };
+    }
   }
 
   Widget _buildHpProgressBar() {
@@ -298,33 +472,6 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     );
   }
 
-  String _getDisplayImage() {
-    if (_currentAstronaut == null && _currentSpaceship == null) {
-      return 'assets/moon_with_astronaut.png';
-    }
-
-    final astronaut = _currentAstronaut;
-    final spaceship = _currentSpaceship;
-
-    String? astronautColor = astronaut != null && astronaut['current'] == true
-        ? astronaut['name'].split(' ')[0].toLowerCase()
-        : null;
-
-    String? spaceshipColor = spaceship != null && spaceship['current'] == true
-        ? spaceship['name'].split(' ')[0].toLowerCase()
-        : null;
-
-    if (spaceshipColor != null) {
-      return 'assets/moon_with_${spaceshipColor}_spaceship.png';
-    }
-
-    if (astronautColor != null) {
-      return 'assets/moon_with_${astronautColor}_astronaut.png';
-    }
-
-    return 'assets/moon_with_astronaut.png';
-  }
-
   Widget _buildProgressBar(String iconPath, String label, double progress,
       Color startColor, Color endColor, Color textColor) {
     return Row(
@@ -383,90 +530,55 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   }
 
   Widget _buildStatsSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FutureBuilder<AstronautPet?>(
-                  future: _currentPet,
-                  builder: (context, snapshot) {
-                    final count = snapshot.data?.planetsCount ?? 0;
-                    return _buildStatHeader(
-                      'assets/planet_icon.png',
-                      'Planets Visited:',
-                      count.toString(),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                _buildActionButton(
-                  Icons.backpack,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            MarketplaceScreen(isar: widget.isar),
-                      ),
-                    ).then((_) => setState(() {}));
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildActionButton(
-                  Icons.edit,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EditAstronautScreen(isar: widget.isar),
-                      ),
-                    ).then((_) => setState(() {}));
-                  },
-                ),
-              ],
-            ),
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: FutureBuilder<AstronautPet?>(
+            future: _currentPet,
+            builder: (context, snapshot) {
+              final count = snapshot.data?.planetsCount ?? 0;
+              return _buildStatHeader(
+                'assets/planet_icon.png',
+                'Planets Visited:',
+                count.toString(),
+              );
+            },
           ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row(
-                //   children: [
-                //     Container(
-                //       margin: const EdgeInsets.only(right: 10),
-                //       child: Image.asset(
-                //         'assets/Satellite_icon.png',
-                //         width: 24,
-                //         height: 24,
-                //       ),
-                //     ),
-                //     const Text(
-                //       "Missions:",
-                //       style: TextStyle(
-                //         fontFamily: 'BrunoAceSC',
-                //         color: Colors.white,
-                //         fontSize: 14,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // _buildMissionsBox(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        
+        const SizedBox(width: 16),
+        _buildActionButton(
+          Icons.shopping_basket,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MarketplaceScreen(isar: widget.isar),
+              ),
+            ).then((_) => setState(() {})); 
+          },
+        ),
+        
+        const SizedBox(width: 12),
+        _buildActionButton(
+          Icons.edit,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditAstronautScreen(isar: widget.isar),
+              ),
+            ).then((_) => setState(() {})); 
+          },
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
@@ -526,31 +638,9 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           ),
         ),
       ),
-    );
+    ); 
   }
 
-  Widget _buildMissionsBox() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12, left: 25),
-      padding: const EdgeInsets.all(12),
-      width: 200,
-      height: 150,
-      decoration: BoxDecoration(
-        color: const Color(0xFF333333),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMissionProgress("Mission 1", 0.9),
-          const SizedBox(height: 12),
-          _buildMissionProgress("Mission 2", 0.4),
-          const SizedBox(height: 12),
-          _buildMissionProgress("Mission 3", 0.6),
-        ],
-      ),
-    );
-  }
 
   Widget _buildMissionProgress(String missionName, double progress) {
     return Column(

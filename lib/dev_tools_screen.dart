@@ -12,6 +12,7 @@ import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/services/scheduler.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
+import 'package:studyspace/screens/death_astronaut_screen.dart';
 
 class DevToolsScreen extends StatefulWidget {
   final IsarService isar;
@@ -214,6 +215,17 @@ class _DevToolsScreenState extends State<DevToolsScreen> {
                   );
                 },
                 child: const Text('Go to Replenished Astronaut Screen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            DeathAstronautScreen(isar: widget.isar)),
+                  );
+                },
+                child: const Text('Go to Death Astronaut Screen'),
               ),
               ElevatedButton(
                 onPressed: () {

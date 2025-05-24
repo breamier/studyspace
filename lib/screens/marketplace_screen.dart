@@ -13,20 +13,34 @@ class MarketplaceScreen extends StatefulWidget {
 }
 
 class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final Map<String, bool> _clickedButtons = {};
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  bool _showRoulette = false;
-  String _currentRouletteId = '';
+  
+  // Animation controllers for the loot box
+  late AnimationController _boxController;
+  late AnimationController _shakeController;
+  late AnimationController _openController;
+  late AnimationController _glowController;
+  late AnimationController _particleController;
+  
+  // Animations
+  late Animation<double> _boxScale;
+  late Animation<double> _shakeAnimation;
+  late Animation<double> _lidRotation;
+  late Animation<double> _lidOffset;
+  late Animation<double> _glowOpacity;
+  late Animation<double> _particleAnimation;
+  
+  bool _showLootBox = false;
+  String _currentLootBoxId = '';
   String? _selectedItem;
   int? _selectedIndex;
   bool _showResult = false;
+  bool _isShaking = false;
+  bool _isOpening = false;
 
-  final int _itemCost = 50;
-
-  List<Map<String, dynamic>> _rouletteItems = [];
-
+  final int _itemCost = 10;
+  List<Map<String, dynamic>> _lootBoxItems = [];
   final ItemManager _itemManager = ItemManager();
 
   bool _allAstronautsUnlocked = false;
@@ -35,16 +49,66 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+    
+    // Initialize animation controllers
+    _boxController = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
+    
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    
+    _openController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _particleController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    
+    // Initialize animations
+    _boxScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _boxController, curve: Curves.elasticOut),
+    );
+    
+    _shakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut),
+    );
+    
+    _lidRotation = Tween<double>(begin: 0.0, end: -0.6).animate(
+      CurvedAnimation(parent: _openController, curve: Curves.easeOutBack),
+    );
+    
+    _lidOffset = Tween<double>(begin: 0.0, end: -30.0).animate(
+      CurvedAnimation(parent: _openController, curve: Curves.easeOutBack),
+    );
+    
+    _glowOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+    
+    _particleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _particleController, curve: Curves.easeOut),
     );
 
-    _controller.addStatusListener((status) {
+    // Animation listeners
+    _shakeController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _startBoxOpening();
+      }
+    });
+    
+    _openController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
           _showResult = true;
@@ -68,7 +132,11 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _boxController.dispose();
+    _shakeController.dispose();
+    _openController.dispose();
+    _glowController.dispose();
+    _particleController.dispose();
     super.dispose();
   }
 
@@ -77,7 +145,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: _buildAppBar(),
-      body: _showRoulette ? _buildRouletteView() : _buildBody(),
+      body: _showLootBox ? _buildLootBoxView() : _buildBody(),
     );
   }
 
@@ -99,9 +167,10 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
             icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
             padding: EdgeInsets.zero,
             onPressed: () {
-              if (_showRoulette) {
+              if (_showLootBox) {
                 setState(() {
-                  _showRoulette = false;
+                  _showLootBox = false;
+                  _resetAnimations();
                 });
               } else {
                 Navigator.pop(context);
@@ -177,21 +246,21 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                   padding: const EdgeInsets.only(left: 70.0, right: 16.0),
                   child: Column(
                     children: [
-                      _buildRouletteItem(
-                        id: 'astronaut_roulette',
-                        image: 'assets/astronaut_roulette1.png',
-                        title: 'Astronaut Roulette',
+                      _buildLootBoxItem(
+                        id: 'astronaut_lootbox',
+                        image: 'assets/astronaut_lootbox.png',
+                        title: 'Astronaut Loot Box',
                         onBuy: () =>
-                            _attemptPurchase('astronaut_roulette', 'astronaut'),
+                            _attemptPurchase('astronaut_lootbox', 'astronaut'),
                         allUnlocked: _allAstronautsUnlocked,
                       ),
                       const SizedBox(height: 24),
-                      _buildRouletteItem(
-                        id: 'spaceship_roulette',
-                        image: 'assets/astronaut_roulette2.png',
-                        title: 'Spaceship Roulette',
+                      _buildLootBoxItem(
+                        id: 'spaceship_lootbox',
+                        image: 'assets/spaceship_lootbox.png',
+                        title: 'Spaceship Loot Box',
                         onBuy: () =>
-                            _attemptPurchase('spaceship_roulette', 'spaceship'),
+                            _attemptPurchase('spaceship_lootbox', 'spaceship'),
                         allUnlocked: _allSpaceshipsUnlocked,
                       ),
                     ],
@@ -220,7 +289,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     }
 
     bool success = _itemManager.deductPoints(_itemCost,
-        reason: 'Purchased $itemType roulette');
+        reason: 'Purchased $itemType loot box');
 
     if (!success) {
       _showInsufficientPointsDialog();
@@ -228,8 +297,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     }
 
     setState(() {});
-
-    _startRoulette(id, itemType);
+    _startLootBox(id, itemType);
   }
 
   void _showInsufficientPointsDialog() {
@@ -258,19 +326,19 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     );
   }
 
-  void _startRoulette(String id, String itemType) {
+  void _startLootBox(String id, String itemType) {
     _toggleButtonState(id);
 
-    _rouletteItems = [];
+    _lootBoxItems = [];
 
     if (itemType == 'astronaut') {
-      _rouletteItems = _itemManager.astronauts;
+      _lootBoxItems = _itemManager.astronauts;
     } else {
-      _rouletteItems = _itemManager.spaceships;
+      _lootBoxItems = _itemManager.spaceships;
     }
 
     final lockedItems =
-        _rouletteItems.where((item) => item['unlocked'] == false).toList();
+        _lootBoxItems.where((item) => item['unlocked'] == false).toList();
 
     if (lockedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -280,7 +348,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         ),
       );
       setState(() {
-        _showRoulette = false;
+        _showLootBox = false;
         _clickedButtons[id] = false;
       });
       return;
@@ -290,19 +358,54 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     final randomIndex = random.nextInt(lockedItems.length);
     _selectedItem = lockedItems[randomIndex]['name'];
     _selectedIndex =
-        _rouletteItems.indexWhere((item) => item['name'] == _selectedItem);
+        _lootBoxItems.indexWhere((item) => item['name'] == _selectedItem);
 
     setState(() {
-      _showRoulette = true;
-      _currentRouletteId = id;
+      _showLootBox = true;
+      _currentLootBoxId = id;
       _showResult = false;
+      _isShaking = false;
+      _isOpening = false;
     });
 
-    _controller.reset();
-    _controller.forward();
+    _resetAnimations();
+    _startBoxAnimation();
   }
 
-  Widget _buildRouletteView() {
+  void _resetAnimations() {
+    _boxController.reset();
+    _shakeController.reset();
+    _openController.reset();
+    _glowController.reset();
+    _particleController.reset();
+  }
+
+  void _startBoxAnimation() {
+    _boxController.forward().then((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _startBoxShaking();
+      });
+    });
+  }
+
+  void _startBoxShaking() {
+    setState(() {
+      _isShaking = true;
+    });
+    _shakeController.forward();
+  }
+
+  void _startBoxOpening() {
+    setState(() {
+      _isShaking = false;
+      _isOpening = true;
+    });
+    _openController.forward();
+    _glowController.repeat(reverse: true);
+    _particleController.forward();
+  }
+
+  Widget _buildLootBoxView() {
     return Stack(
       children: [
         Image.asset(
@@ -311,15 +414,13 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
           height: double.infinity,
           fit: BoxFit.cover,
         ),
-
-        // Roulette content
         Container(
           color: Colors.black.withOpacity(0.7),
           child: Column(
             children: [
               const SizedBox(height: 24),
               const Text(
-                'ITEM ROULETTE',
+                'LOOT BOX',
                 style: TextStyle(
                   fontFamily: 'BrunoAceSC',
                   color: Colors.white,
@@ -329,23 +430,24 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
               ),
               const SizedBox(height: 24),
               Expanded(
-                child:
-                    _showResult ? _buildResultView() : _buildSpinningRoulette(),
+                child: _showResult ? _buildResultView() : _buildAnimatedLootBox(),
               ),
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: ElevatedButton(
-                  onPressed: _showResult ? _navigateToEditScreen : null,
+                  onPressed: _showResult ? _navigateToEditScreen : (_isShaking ? null : _startBoxShaking),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _showResult ? const Color(0xFF9CDE7A) : Colors.grey,
+                    backgroundColor: _showResult ? const Color(0xFF9CDE7A) : 
+                                   (_isShaking ? Colors.grey : const Color(0xFFFFD700)),
                     minimumSize: const Size(200, 48),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
                   child: Text(
-                    _showResult ? 'CONTINUE' : 'SPINNING...',
+                    _showResult ? 'CONTINUE' : 
+                    _isShaking ? 'OPENING...' : 
+                    _isOpening ? 'OPENING...' : 'OPEN BOX',
                     style: const TextStyle(
                       fontFamily: 'BrunoAceSC',
                       fontSize: 18,
@@ -362,86 +464,238 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     );
   }
 
-  Widget _buildSpinningRoulette() {
+  Widget _buildAnimatedLootBox() {
     return Center(
       child: AnimatedBuilder(
-        animation: _animation,
+        animation: Listenable.merge([
+          _boxController,
+          _shakeController,
+          _openController,
+          _glowController,
+          _particleController,
+        ]),
         builder: (context, child) {
-          return Transform.rotate(
-            angle: _animation.value * 10 * pi,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                color: const Color(0xFF212121),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2,
+          double shakeOffset = 0;
+          if (_isShaking) {
+            shakeOffset = sin(_shakeAnimation.value * pi * 20) * 8;
+          }
+
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              // Particle effects
+              if (_isOpening) ..._buildParticleEffects(),
+              
+              // Glow effect
+              if (_isOpening)
+                AnimatedBuilder(
+                  animation: _glowController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 280,
+                      height: 280,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.yellowAccent.withOpacity(_glowOpacity.value * 0.6),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+              // Main loot box
+              Transform.scale(
+                scale: _boxScale.value,
+                child: Transform.translate(
+                  offset: Offset(shakeOffset, 0),
+                  child: SizedBox(
+                    width: 250,
+                    height: 250,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Box body
+                        Container(
+                          width: 200,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF8B4513),
+                                Color(0xFF654321),
+                                Color(0xFF4A2C17),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber, width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.5),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: _isOpening && _showResult ? 
+                            Center(
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.yellowAccent, width: 2),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Image.asset(
+                                    _lootBoxItems[_selectedIndex!]['image'],
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                            ) : null,
+                        ),
+
+                        // Box lid
+                        Positioned(
+                          top: 20 + _lidOffset.value,
+                          child: Transform.rotate(
+                            angle: _lidRotation.value,
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              width: 220,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFFA0522D),
+                                    Color(0xFF8B4513),
+                                  ],
+                                ),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(15),
+                                  topRight: Radius.circular(15),
+                                  bottomLeft: Radius.circular(8),
+                                  bottomRight: Radius.circular(8),
+                                ),
+                                border: Border.all(color: Colors.amber, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 60,
+                                  height: 15,
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.orange, width: 1),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        if (!_isOpening)
+                          Positioned(
+                            bottom: 80,
+                            child: Container(
+                              width: 30,
+                              height: 35,
+                              decoration: BoxDecoration(
+                                color: Colors.amber,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.orange, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.lock,
+                                color: Colors.brown,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  for (int i = 0; i < _rouletteItems.length; i++)
-                    _buildRouletteSegment(i, _rouletteItems[i]['name'],
-                        _rouletteItems[i]['image'], _rouletteItems[i]['color']),
-                ],
-              ),
-            ),
+            ],
           );
         },
       ),
     );
   }
 
-  Widget _buildRouletteSegment(
-      int index, String name, String imagePath, Color? itemColor) {
-    final double angle = (2 * pi / _rouletteItems.length) * index;
-    final double segmentAngle = 2 * pi / _rouletteItems.length;
-
-    final Color segmentColor =
-        itemColor ?? (index % 2 == 0 ? Colors.purple[800]! : Colors.blue[800]!);
-    final Color darkVariant = HSLColor.fromColor(segmentColor)
-        .withLightness(
-          (HSLColor.fromColor(segmentColor).lightness - 0.2).clamp(0.0, 1.0),
-        )
-        .toColor();
-
-    return Transform.rotate(
-      angle: angle,
-      child: ClipPath(
-        clipper: RouletteSegmentClipper(segmentAngle),
-        child: Container(
-          width: 250,
-          height: 250,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [segmentColor, darkVariant],
+  List<Widget> _buildParticleEffects() {
+    final particles = <Widget>[];
+    final random = Random();
+    
+    for (int i = 0; i < 15; i++) {
+      final angle = (2 * pi / 15) * i;
+      final distance = 100 * _particleAnimation.value;
+      final x = cos(angle) * distance;
+      final y = sin(angle) * distance;
+      
+      particles.add(
+        Positioned(
+          left: 200 + x,
+          top: 200 + y,
+          child: Transform.scale(
+            scale: 1.0 - _particleAnimation.value,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: [Colors.yellow, Colors.orange, Colors.amber][random.nextInt(3)],
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.yellow.withOpacity(0.6),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
             ),
-            border:
-                Border.all(color: Colors.white.withOpacity(0.5), width: 0.5),
           ),
         ),
-      ),
-    );
+      );
+    }
+    
+    return particles;
   }
 
   Widget _buildResultView() {
-    if (_selectedIndex == null || _selectedIndex! >= _rouletteItems.length) {
+    if (_selectedIndex == null || _selectedIndex! >= _lootBoxItems.length) {
       return const Center(
         child: Text('Error: Invalid selection',
             style: TextStyle(color: Colors.white)),
       );
     }
 
-    final selectedItem = _rouletteItems[_selectedIndex!];
+    final selectedItem = _lootBoxItems[_selectedIndex!];
     final itemColor = selectedItem['color'] as Color?;
 
     final Color baseColor = itemColor ?? Colors.purple;
@@ -465,7 +719,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
           ),
           const SizedBox(height: 20),
           const Text(
-            'You got:',
+            'You found:',
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -525,14 +779,13 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   }
 
   void _navigateToEditScreen() {
-    if (_selectedIndex == null || _selectedIndex! >= _rouletteItems.length)
+    if (_selectedIndex == null || _selectedIndex! >= _lootBoxItems.length)
       return;
 
     final selectedItem =
-        Map<String, dynamic>.from(_rouletteItems[_selectedIndex!]);
+        Map<String, dynamic>.from(_lootBoxItems[_selectedIndex!]);
 
     selectedItem['unlocked'] = true;
-
     selectedItem['selected_image'] = selectedItem['image'];
 
     _itemManager.unlockItem(selectedItem['name'], selectedItem['type']);
@@ -559,7 +812,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
       child: Column(
         children: [
           _buildActionButton(
-            Icons.backpack,
+            Icons.shopping_basket,
             () {},
             backgroundColor: Colors.black,
             borderColor: Colors.white,
@@ -604,7 +857,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     );
   }
 
-  Widget _buildRouletteItem({
+  Widget _buildLootBoxItem({
     required String id,
     required String image,
     required String title,
@@ -626,7 +879,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: _buildRouletteImage(image),
+            child: _buildLootBoxImage(image),
           ),
 
           Text(
@@ -647,7 +900,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                 Image.asset('assets/shooting_star.png', width: 18, height: 18),
                 const SizedBox(width: 4),
                 const Text(
-                  "50",
+                  "10",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -687,7 +940,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     );
   }
 
-  Widget _buildRouletteImage(String image) {
+  Widget _buildLootBoxImage(String image) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF333333),
@@ -695,62 +948,15 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         border: Border.all(color: Colors.grey.shade700, width: 1),
       ),
       padding: const EdgeInsets.all(8.0),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset(
-            image,
-            height: 140,
-            fit: BoxFit.contain,
-          ),
-          Container(
-            width: 60,
-            height: 60,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text(
-                "?",
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-        ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.asset(
+          image,
+          width: 120,
+          height: 100,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
-}
-
-class RouletteSegmentClipper extends CustomClipper<Path> {
-  final double angle;
-
-  RouletteSegmentClipper(this.angle);
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-
-    path.moveTo(center.dx, center.dy);
-    path.lineTo(center.dx, 0);
-    path.arcTo(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      angle,
-      false,
-    );
-    path.close();
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => true;
 }

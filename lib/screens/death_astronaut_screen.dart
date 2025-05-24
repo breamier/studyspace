@@ -2,19 +2,93 @@ import 'package:flutter/material.dart';
 import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import '../services/isar_service.dart';
+import 'package:studyspace/item_manager.dart';
 
-class ReplenishedAstronautScreen extends StatefulWidget {
+class DeathAstronautScreen extends StatefulWidget {
   final IsarService isar;
-  const ReplenishedAstronautScreen({Key? key, required this.isar})
+  const DeathAstronautScreen({Key? key, required this.isar})
       : super(key: key);
 
   @override
-  State<ReplenishedAstronautScreen> createState() =>
-      _ReplenishedAstronautScreenState();
+  State<DeathAstronautScreen> createState() =>
+      _DeathAstronautScreenState();
 }
 
-class _ReplenishedAstronautScreenState
-    extends State<ReplenishedAstronautScreen> {
+class _DeathAstronautScreenState
+    extends State<DeathAstronautScreen> {
+  bool _showReviveDialog = false;
+  bool _isRevived = false;
+  final ItemManager _itemManager = ItemManager();
+  Map<String, dynamic>? _currentAstronaut;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentAstronaut();
+    // Show revive dialog after 3 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && !_isRevived) {
+        setState(() {
+          _showReviveDialog = true;
+        });
+      }
+    });
+  }
+
+  void _getCurrentAstronaut() {
+    setState(() {
+      _currentAstronaut = _itemManager.getCurrentAstronaut();
+    });
+  }
+
+  String _getDeadAstronautImage() {
+    if (_currentAstronaut == null) {
+      return 'assets/dead_astronaut.png'; 
+    }
+
+    String currentImage = _currentAstronaut!['image'];
+    
+    // Map current astronaut images to their dead counterparts
+    switch (currentImage) {
+      case 'assets/orange_astronaut.png':
+        return 'assets/dead_orange_astronaut.png';
+      case 'assets/blue_astronaut.png':
+        return 'assets/dead_blue_astronaut.png';
+      case 'assets/green_astronaut.png':
+        return 'assets/dead_green_astronaut.png';
+      case 'assets/black_astronaut.png':
+        return 'assets/dead_black_astronaut.png';
+      case 'assets/purple_astronaut.png':
+        return 'assets/dead_purple_astronaut.png';
+      default:
+        return 'assets/dead_astronaut.png';
+    }
+  }
+
+  String _getRevivedAstronautImage() {
+    if (_currentAstronaut == null) {
+      return 'assets/revived_astronaut.png'; 
+    }
+
+    String currentImage = _currentAstronaut!['image'];
+    
+    // Map current astronaut images to their revived counterparts
+    switch (currentImage) {
+      case 'assets/orange_astronaut.png':
+        return 'assets/revived_orange_astronaut.png';
+      case 'assets/blue_astronaut.png':
+        return 'assets/revived_blue_astronaut.png';
+      case 'assets/green_astronaut.png':
+        return 'assets/revived_green_astronaut.png';
+      case 'assets/black_astronaut.png':
+        return 'assets/revived_black_astronaut.png';
+      case 'assets/purple_astronaut.png':
+        return 'assets/revived_purple_astronaut.png';
+      default:
+        return 'assets/revived_astronaut.png'; 
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,9 +113,9 @@ class _ReplenishedAstronautScreenState
             ),
           ),
         ),
-        title: const Text(
-          "Home",
-          style: TextStyle(
+        title: Text(
+          _isRevived ? "Home" : "Character Death",
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -63,9 +137,9 @@ class _ReplenishedAstronautScreenState
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                const Text(
-                  '93',
-                  style: TextStyle(
+                Text(
+                  '${_itemManager.userPoints}',
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w500),
@@ -86,20 +160,39 @@ class _ReplenishedAstronautScreenState
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildProgressBar('assets/astronaut_icon.png', 'HP', 1.0,
-                      Colors.red.shade700, Colors.red.shade400, Colors.white),
+                  _buildProgressBar(
+                    'assets/astronaut_icon.png', 
+                    'HP', 
+                    _isRevived ? 0.30 : 0.0,
+                    _isRevived ? Colors.green.shade700 : Colors.red.shade700, 
+                    _isRevived ? Colors.green.shade400 : Colors.red.shade400, 
+                    Colors.white
+                  ),
                   const SizedBox(height: 12),
                   _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
                       Colors.grey.shade500, Colors.grey.shade400, Colors.black),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
+                  Text(
+                    _isRevived 
+                        ? "YOUR ASTRONAUT HAS BEEN MIRACULOUSLY REVIVED!" 
+                        : "YOUR ASTRONAUT DIDN'T MAKE IT...",
+                    style: const TextStyle(
+                      fontFamily: 'BrunoAceSC',
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
                       child: Image.asset(
-                        'assets/replenished_astronaut.png',
+                        _isRevived ? _getRevivedAstronautImage() : _getDeadAstronautImage(),
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -108,10 +201,107 @@ class _ReplenishedAstronautScreenState
               ),
             ),
           ),
+          // Revive Dialog Overlay
+          if (_showReviveDialog && !_isRevived)
+            Container(
+              color: Colors.black.withOpacity(0.8),
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2A2A2A),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.help_outline,
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "REVIVE ASTRONAUT?",
+                        style: TextStyle(
+                          fontFamily: 'BrunoAceSC',
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/shooting_star.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            "10",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      GestureDetector(
+                          onTap: () {
+                            // Deduct points for revival if there are enough points
+                            if (_itemManager.deductPoints(10, reason: 'Astronaut Revival')) {
+                              setState(() {
+                                _showReviveDialog = false;
+                                _isRevived = true;
+                              });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Insufficient points for revival!'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                        child: Container(
+                          width: 120,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(color: Colors.grey.shade300, width: 1),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "YES",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
+
+
 
   Widget _buildProgressBar(String iconPath, String label, double progress,
       Color startColor, Color endColor, Color textColor) {
@@ -186,7 +376,7 @@ class _ReplenishedAstronautScreenState
                     'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionButton(
-                  Icons.backpack,
+                  Icons.shopping_basket,
                   () {
                     Navigator.push(
                       context,
@@ -278,7 +468,6 @@ class _ReplenishedAstronautScreenState
       ),
     );
   }
-
 
   Widget _buildMissionProgress(String missionName, double progress) {
     return Column(
