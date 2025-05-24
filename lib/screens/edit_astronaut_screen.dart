@@ -557,27 +557,38 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                   count.toString(),
                 );
               },
-            ),
-          ),
-          
-          const SizedBox(width: 16),
-          _buildActionIcon(
-            Icons.shopping_basket,
-            () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MarketplaceScreen(isar: widget.isar),
+            flex: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder<AstronautPet?>(
+                  future: _currentPet,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data?.planetsCount ?? 0;
+                    return _buildStatHeader(
+                      'assets/planet_icon.png',
+                      'Planets Visited:',
+                      count.toString(),
+                    );
+                  },
                 ),
-              ).then((_) => setState(() {})); 
-            },
-          ),
-          
-          const SizedBox(width: 12),
-          _buildActionIcon(
-            Icons.edit,
-            () {}, 
-            backgroundColor: Colors.black,
+                _buildActionIcon(
+                  Icons.backpack,
+                  () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            MarketplaceScreen(isar: widget.isar),
+                      )),
+                ),
+                const SizedBox(height: 16),
+                _buildActionIcon(
+                  Icons.edit,
+                  () {},
+                  backgroundColor: Colors.black,
+                ),
+              ],
+            ),
           ),
         ],
       ),
