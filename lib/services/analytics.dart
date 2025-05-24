@@ -46,8 +46,9 @@ class Analytics {
     final allSessions = await isar.getAllSessions();
     if (allSessions.isEmpty) return 0;
     final total = await getTotalStudyTime();
-    print("Average Session Duration: ${total ~/ allSessions.length}");
-    return total ~/ allSessions.length;
+    final allSessionsCount = await getTotalSessionsCompleted();
+    print("Average Session Duration: ${total ~/ allSessionsCount}");
+    return total ~/ allSessionsCount;
   }
 
   Future<int> getFocusStreak() async {

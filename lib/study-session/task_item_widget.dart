@@ -14,11 +14,11 @@ class TaskItemWidget extends StatefulWidget {
 
   const TaskItemWidget(
       {super.key,
-        required this.subtopic,
-        required this.goalId,
-        required this.deleteMode,
-        required this.notifyParent,
-        required this.index});
+      required this.subtopic,
+      required this.goalId,
+      required this.deleteMode,
+      required this.notifyParent,
+      required this.index});
 
   @override
   State<TaskItemWidget> createState() {
@@ -64,18 +64,18 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
       children: [
         widget.deleteMode
             ? IconButton(
-            onPressed: () {
-              _deleteSubtopic();
-              setState(() {});
-            },
-            icon: Icon(Icons.remove_circle))
+                onPressed: () {
+                  _deleteSubtopic();
+                  setState(() {});
+                },
+                icon: Icon(Icons.remove_circle))
             : Checkbox(
-            value: widget.subtopic.completed,
-            onChanged: (value) {
-              setState(() {
-                widget.subtopic.completed = value!;
-              });
-            }),
+                value: widget.subtopic.completed,
+                onChanged: (value) {
+                  setState(() {
+                    widget.subtopic.completed = value!;
+                  });
+                }),
         Expanded(child: activityInputField()),
       ],
     );
@@ -83,15 +83,14 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
-      onChanged: (text)=> setState(() {
-        _updateGoal(widget.subtopic.name,text,
-            widget.subtopic.completed);
-        widget.subtopic.name =text;
-        if(_textEditingController.text == ""){
-          _deleteSubtopic();
-        }
-      }),
-
+        onChanged: (text) => setState(() {
+              _updateGoal(
+                  widget.subtopic.name, text, widget.subtopic.completed);
+              widget.subtopic.name = text;
+              if (_textEditingController.text == "") {
+                _deleteSubtopic();
+              }
+            }),
         readOnly: widget.deleteMode,
         controller: _textEditingController,
         decoration: InputDecoration(
@@ -102,7 +101,7 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
             _updateGoal(widget.subtopic.name, _textEditingController.text,
                 widget.subtopic.completed);
             widget.subtopic.name = _textEditingController.text;
-            if(_textEditingController.text == "\u200c"){
+            if (_textEditingController.text == "\u200c") {
               _deleteSubtopic();
             }
             FocusScope.of(context).unfocus();
@@ -113,11 +112,10 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   }
 
   _updateGoal(String old, String updated, bool completed) async {
-
     goal = _isarService.getGoalById(widget.goalId);
     widget.subtopic.name = updated;
-    _isarService.updateSubtopic(await goal.then((g) => g!), widget.index, widget.subtopic);
-
+    _isarService.updateSubtopic(
+        await goal.then((g) => g!), widget.index, widget.subtopic);
   }
 
   _deleteSubtopic() {

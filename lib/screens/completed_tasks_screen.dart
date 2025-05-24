@@ -193,7 +193,11 @@ class _CompletedTaskCardState extends State<CompletedTaskCard> {
               Text('Subtopics Learned:', style: kBodyFont),
               const SizedBox(height: 8),
               if ((task['subtopics'] as List).isEmpty)
-                Text('No subtopics recorded', style: kBodyFont)
+                const Text(
+                  "No subtopics added",
+                  style: TextStyle(
+                      color: Colors.white54, fontStyle: FontStyle.italic),
+                )
               else
                 Column(
                   children: (task['subtopics'] as List).map<Widget>((sub) {
