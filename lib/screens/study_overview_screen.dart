@@ -72,22 +72,8 @@ class _StudyOverviewState extends State<StudyOverview> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 14, 14, 14),
-      //extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        // leading: Padding(
-        //   padding: const EdgeInsets.all(8.0),
-        //   child: Container(
-        //     decoration: BoxDecoration(
-        //       shape: BoxShape.circle,
-        //       border: Border.all(color: Colors.white54, width: 1),
-        //     ),
-        //     child: IconButton(
-        //       icon: const Icon(Icons.arrow_back, color: Colors.white),
-        //       onPressed: () => Navigator.pop(context),
-        //     ),
-        //   ),
-        // ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -188,14 +174,15 @@ class _StudyOverviewState extends State<StudyOverview> {
                             child: StudyGoalCard(
                               title: goal.goalName,
                               dueDate: dueDate,
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         TopicOverview(goalId: goal.id),
                                   ),
                                 );
+                                _refreshGoals();
                               },
                             ),
                           );

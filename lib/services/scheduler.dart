@@ -175,8 +175,6 @@ class Scheduler {
       goal: goal,
     );
 
-    await _isarService.addSession(session, goal);
-
     final scheduler = Scheduler();
     goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
 
