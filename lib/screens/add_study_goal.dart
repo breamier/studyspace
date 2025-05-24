@@ -71,6 +71,12 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
                       ),
                       prefixIcon: const Icon(Icons.book_outlined),
                     ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please add a name for your goal';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 15),
                   const Align(
@@ -95,6 +101,12 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
                       ),
                       prefixIcon: const Icon(Icons.calendar_month_outlined),
                     ),
+                    validator: (value) {
+                      if (_start.text.isEmpty) {
+                        return 'Please select a start date';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 15),
                   const Align(
@@ -116,6 +128,25 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
                       ),
                       prefixIcon: const Icon(Icons.calendar_month_outlined),
                     ),
+                    validator: (value) {
+                      if (_end.text.isEmpty) {
+                        return 'Please select an end date';
+                      }
+                      if (_start.text.isNotEmpty && _end.text.isNotEmpty) {
+                        try {
+                          final startDate =
+                              DateFormat('MM/dd/yyyy').parse(_start.text);
+                          final endDate =
+                              DateFormat('MM/dd/yyyy').parse(_end.text);
+                          if (!endDate.isAfter(startDate)) {
+                            return 'End date must be after start date';
+                          }
+                        } catch (_) {
+                          return 'Invalid date format';
+                        }
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 15),
                   const Align(
