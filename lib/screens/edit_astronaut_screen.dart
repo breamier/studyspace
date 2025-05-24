@@ -519,9 +519,17 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatHeader(
-                    'assets/planet_icon.png', 'Planets Visited:', '2'),
-                const SizedBox(height: 24),
+                FutureBuilder<AstronautPet?>(
+                  future: _currentPet,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data?.planetsCount ?? 0;
+                    return _buildStatHeader(
+                      'assets/planet_icon.png',
+                      'Planets Visited:',
+                      count.toString(),
+                    );
+                  },
+                ),
                 _buildActionIcon(
                   Icons.backpack,
                   () => Navigator.push(

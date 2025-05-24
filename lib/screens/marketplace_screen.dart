@@ -473,8 +473,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
           ),
           const SizedBox(height: 30),
           Container(
-            width: 200,
-            height: 200,
+            width: MediaQuery.of(context).size.width * 0.6,
+            height: MediaQuery.of(context).size.width * 0.6,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
