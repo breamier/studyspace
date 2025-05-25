@@ -545,7 +545,6 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Planets Visited section
           Expanded(
             child: FutureBuilder<AstronautPet?>(
               future: _currentPet,
@@ -557,38 +556,25 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                   count.toString(),
                 );
               },
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FutureBuilder<AstronautPet?>(
-                  future: _currentPet,
-                  builder: (context, snapshot) {
-                    final count = snapshot.data?.planetsCount ?? 0;
-                    return _buildStatHeader(
-                      'assets/planet_icon.png',
-                      'Planets Visited:',
-                      count.toString(),
-                    );
-                  },
-                ),
-                _buildActionIcon(
-                  Icons.backpack,
-                  () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            MarketplaceScreen(isar: widget.isar),
-                      )),
-                ),
-                const SizedBox(height: 16),
-                _buildActionIcon(
-                  Icons.edit,
-                  () {},
-                  backgroundColor: Colors.black,
-                ),
-              ],
             ),
+          ),
+          
+          const SizedBox(width: 16),
+          _buildActionIcon(
+            Icons.backpack,
+            () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      MarketplaceScreen(isar: widget.isar),
+                )),
+          ),
+          
+          const SizedBox(width: 12),
+          _buildActionIcon(
+            Icons.edit,
+            () {},
+            backgroundColor: Colors.black,
           ),
         ],
       ),
