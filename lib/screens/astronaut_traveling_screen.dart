@@ -27,6 +27,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
   final ItemManager _itemManager = ItemManager();
   TravelState _travelState = TravelState.arrived;
   late final ValueNotifier<bool> _itemChangeNotifier;
+  
+  Map<String, dynamic>? _currentAstronaut;
+  Map<String, dynamic>? _currentSpaceship;
 
   late AnimationController _sizeController;
   late AnimationController _positionController;
@@ -48,9 +51,10 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
 
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
+    
+    _getCurrentItems();
 
     _currentPet = widget.isar.getCurrentPet();
-    // load pet and set the travel state
     _currentPet.then((pet) {
       if (pet != null) {
         setState(() {
@@ -69,7 +73,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               }
             });
           } else {
-            // default is the buildArrived state
             _travelState = TravelState.arrived;
           }
         });
@@ -148,11 +151,19 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
 
   void _handleItemChanged() {
     if (mounted) {
+      _getCurrentItems();
       setState(() {
         // Trigger rebuild to update user points display
         _currentPet = _isarService.getCurrentPet();
       });
     }
+  }
+  
+  void _getCurrentItems() {
+    setState(() {
+      _currentAstronaut = _itemManager.getCurrentAstronaut();
+      _currentSpaceship = _itemManager.getCurrentSpaceship();
+    });
   }
 
   @override
@@ -227,7 +238,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
           ),
         ],
       ),
-      // Only show bottom navigation bar when not in "arrived" state
       bottomNavigationBar: _travelState != TravelState.arrived
           ? CustomBottomNavBar(
               currentIndex: -1,
@@ -246,7 +256,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
       case TravelState.arrived:
         return _buildArrivedView();
       default:
-        return _buildLaunchView(); // Default case to handle any potential issues
+        return _buildLaunchView(); 
     }
   }
 
@@ -278,7 +288,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                 setState(() {
                   _travelState = TravelState.traveling;
 
-                  // Auto transition to arrived state after 5 seconds
                   Future.delayed(const Duration(seconds: 5), () async {
                     if (mounted) {
                       setState(() {
@@ -295,10 +304,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                 });
               },
               child: Center(
-                child: Image.asset(
-                  'assets/moon_with_spaceship.png',
-                  fit: BoxFit.contain,
-                ),
+                child: _buildLayeredDisplay(),
               ),
             ),
           ),
@@ -320,7 +326,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         pet.planetsCount += 1;
         widget.isar.updatePet(pet);
 
-        // --- NEW: If in arrived state and progress is full, trigger travel ---
         if (_travelState == TravelState.arrived && progress >= 1.0) {
           Future.microtask(() async {
             pet.progress = 0.0;
@@ -331,7 +336,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               setState(() {
                 _travelState = TravelState.traveling;
               });
-              //  auto-transition to arrived after 5s
               Future.delayed(const Duration(seconds: 5), () async {
                 if (mounted) {
                   setState(() {
@@ -347,7 +351,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               });
             }
           });
-          // show a placeholder while transitioning
           return SizedBox.shrink();
         }
 
@@ -429,7 +432,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     );
   }
 
-  // NEW PLANET 2
+  // NEW PLANET 2 - Updated to show Saturn with layered display
   Widget _buildArrivedView() {
     return SingleChildScrollView(
       child: Column(
@@ -452,22 +455,223 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.4,
             ),
-            child: AnimatedBuilder(
-              animation: _arrivalController,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, _bounceAnimation.value * 0.5),
-                  child: Image.asset(
-                    'assets/new_planet.png',
-                    fit: BoxFit.contain,
-                  ),
-                );
-              },
+            child: Center(
+              child: _buildSaturnLayeredDisplay(),
             ),
           ),
         ],
       ),
     );
+  }
+  
+  Widget _buildLayeredDisplay() {
+    return Hero(
+      tag: 'selected-image',
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            child: Image.asset(
+              'assets/moon.png',
+              fit: BoxFit.contain,
+              height: MediaQuery.of(context).size.height * 0.4,
+            ),
+          ),
+          
+          if (_currentAstronaut != null && _currentAstronaut!['current'] == true)
+            _buildAstronautPosition(_currentAstronaut!),
+          
+          if (_currentSpaceship != null && _currentSpaceship!['current'] == true)
+            _buildSpaceshipPosition(_currentSpaceship!),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSaturnLayeredDisplay() {
+    return AnimatedBuilder(
+      animation: _arrivalController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _bounceAnimation.value * 0.5),
+          child: Hero(
+            tag: 'saturn-scene',
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  child: Image.asset(
+                    'assets/saturn.png',
+                    fit: BoxFit.contain,
+                    height: MediaQuery.of(context).size.height * 0.4,
+                  ),
+                ),
+
+                if (_currentAstronaut != null && _currentAstronaut!['current'] == true)
+                  _buildAstronautPosition(_currentAstronaut!),
+                
+                if (_currentSpaceship != null && _currentSpaceship!['current'] == true)
+                  _buildSpaceshipPosition(_currentSpaceship!),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAstronautPosition(Map<String, dynamic> astronaut) {
+    Map<String, double> position = _getAstronautPosition(astronaut['image']);
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * position['top']!,
+      right: MediaQuery.of(context).size.width * position['right']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          astronaut['image'],
+          fit: BoxFit.contain,
+          height: MediaQuery.of(context).size.height * position['height']!,
+          width: MediaQuery.of(context).size.width * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
+    Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * position['top']!,
+      left: MediaQuery.of(context).size.width * position['left']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          spaceship['image'],
+          fit: BoxFit.contain,
+          height: MediaQuery.of(context).size.height * position['height']!,
+          width: MediaQuery.of(context).size.width * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  Map<String, double> _getAstronautPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/blue_astronaut.png':
+        return {
+          'top': 0.01,
+          'right': 0.18,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/orange_astronaut.png':
+        return {
+          'top': 0.03,
+          'right': 0.20,
+          'height': 0.14,
+          'width': 0.28,
+          'rotation': 15.0, 
+        };
+      
+      case 'assets/purple_astronaut.png':
+        return {
+          'top': 0.05,
+          'right': 0.18,
+          'height': 0.15,
+          'width': 0.27,
+          'rotation': 2.0, 
+        };
+      
+      case 'assets/black_astronaut.png':
+        return {
+          'top': 0.01,
+          'right': 0.18,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/green_astronaut.png':
+        return {
+          'top': 0.02,
+          'right': 0.23,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': 10.0,
+        };
+      
+      default:
+        return {
+          'top': 0.01,
+          'right': 0.18,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -7.0,
+        };
+    }
+  }
+
+  // Define custom positions for each spaceship type
+  Map<String, double> _getSpaceshipPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/white_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.15,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -40.0, 
+        };
+   
+      case 'assets/purple_spaceship.png':
+        return {
+          'top': -0.02,
+          'left': 0.10,
+          'height': 0.14,
+          'width': 0.27,
+          'rotation': -18.0, 
+        };
+ 
+      case 'assets/orange_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.15,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -40.0, 
+        };
+
+      case 'assets/black_spaceship.png':
+        return {
+          'top': 0.08,
+          'left': 0.15,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -45.0,
+        };
+      
+
+      case 'assets/blue_spaceship.png':
+        return {
+          'top': -0.02,
+          'left': 0.10,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -40.0, 
+        };
+
+      default:
+        return {
+          'top': 0.10,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -16.0,
+        };
+    }
   }
 
   Widget _buildDistantStars() {
@@ -578,90 +782,55 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
   }
 
   Widget _buildStatsSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FutureBuilder<AstronautPet?>(
-                  future: _currentPet,
-                  builder: (context, snapshot) {
-                    final count = snapshot.data?.planetsCount ?? 0;
-                    return _buildStatHeader(
-                      'assets/planet_icon.png',
-                      'Planets Visited:',
-                      count.toString(),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                _buildActionButton(
-                  Icons.backpack,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            MarketplaceScreen(isar: widget.isar),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildActionButton(
-                  Icons.edit,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EditAstronautScreen(isar: widget.isar),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: FutureBuilder<AstronautPet?>(
+            future: _currentPet,
+            builder: (context, snapshot) {
+              final count = snapshot.data?.planetsCount ?? 0;
+              return _buildStatHeader(
+                'assets/planet_icon.png',
+                'Planets Visited:',
+                count.toString(),
+              );
+            },
           ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row(
-                //   children: [
-                //     Container(
-                //       margin: const EdgeInsets.only(right: 10),
-                //       child: Image.asset(
-                //         'assets/Satellite_icon.png',
-                //         width: 24,
-                //         height: 24,
-                //       ),
-                //     ),
-                //     const Text(
-                //       "Missions:",
-                //       style: TextStyle(
-                //         fontFamily: 'BrunoAceSC',
-                //         color: Colors.white,
-                //         fontSize: 14,
-                //       ),
-                //     ),
-                //   ],
-                // ),
-                // _buildMissionsBox(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        
+        const SizedBox(width: 16),
+        _buildActionButton(
+          Icons.shopping_basket,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MarketplaceScreen(isar: widget.isar),
+              ),
+            ).then((_) => setState(() {})); 
+          },
+        ),
+        
+        const SizedBox(width: 12),
+        _buildActionButton(
+          Icons.edit,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditAstronautScreen(isar: widget.isar),
+              ),
+            ).then((_) => setState(() {})); 
+          },
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
@@ -724,28 +893,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     );
   }
 
-  Widget _buildMissionsBox() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12, left: 25),
-      padding: const EdgeInsets.all(12),
-      width: 200,
-      height: 150,
-      decoration: BoxDecoration(
-        color: const Color(0xFF333333),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildMissionProgress("Mission 1", 0.9),
-          const SizedBox(height: 12),
-          _buildMissionProgress("Mission 2", 0.4),
-          const SizedBox(height: 12),
-          _buildMissionProgress("Mission 3", 0.6),
-        ],
-      ),
-    );
-  }
 
   Widget _buildMissionProgress(String missionName, double progress) {
     return Column(
