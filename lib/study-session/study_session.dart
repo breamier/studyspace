@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/screens/dashboard_screen.dart';
@@ -16,11 +14,11 @@ class StudySession extends StatefulWidget {
   final Id goalId;
   final String imgLoc;
   final IsarService isarService;
-  const StudySession(
-      {super.key,
-      required this.goalId,
-      required this.imgLoc,
-      required this.isarService});
+
+  const StudySession({super.key,
+    required this.goalId,
+    required this.imgLoc,
+    required this.isarService});
 
   @override
   State<StudySession> createState() {
@@ -28,7 +26,8 @@ class StudySession extends StatefulWidget {
   }
 }
 
-class _StateStudySession extends State<StudySession> {
+class _StateStudySession extends State<StudySession>
+    with TickerProviderStateMixin {
   final IsarService _isarService = IsarService();
   late Future<Goal?> goal;
   Timer? timer;
@@ -67,9 +66,15 @@ class _StateStudySession extends State<StudySession> {
     "No, Thanks",
   ];
 
+  late AnimationController _floatingController;
+  late Animation<double> _floatingAnimation;
+  late Animation<double> _rotationAnimation;
+
   @override
   void dispose() {
     timer?.cancel();
+    _floatingController.dispose();
+
     super.dispose();
   }
 
@@ -91,6 +96,19 @@ class _StateStudySession extends State<StudySession> {
         _isLoading = false;
       });
     });
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )
+      ..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -6.0, end: 6.0)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
+
+    _rotationAnimation = Tween<double>(begin: -0.2, end: -0.1)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
   }
 
   @override
@@ -147,8 +165,15 @@ class _StateStudySession extends State<StudySession> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SizedBox(
+                  height: MediaQuery
+                      .sizeOf(context)
+                      .height *
+                      0.1), // Add space below the app bar
               timerStack(),
-              SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
+              SizedBox(height: MediaQuery
+                  .sizeOf(context)
+                  .height * 0.1),
               Text("current session",
                   style: TextStyle(
                     fontFamily: "Amino",
@@ -166,11 +191,16 @@ class _StateStudySession extends State<StudySession> {
                 goalId: widget.goalId,
               ),
               SizedBox(
-                height: MediaQuery.sizeOf(context).height * 0.1,
+                height: MediaQuery
+                    .sizeOf(context)
+                    .height * 0.1,
               ),
               Padding(
                   padding: EdgeInsets.symmetric(
-                      horizontal: MediaQuery.of(context).size.width * 0.040),
+                      horizontal: MediaQuery
+                          .of(context)
+                          .size
+                          .width * 0.040),
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -187,16 +217,22 @@ class _StateStudySession extends State<StudySession> {
                           ),
                         )),
                         backgroundColor:
-                            WidgetStateProperty.all(Colors.deepPurple),
+                        WidgetStateProperty.all(Colors.deepPurple),
                         padding: WidgetStateProperty.all(EdgeInsets.symmetric(
-                            horizontal: MediaQuery.sizeOf(context).width * 0.15,
+                            horizontal: MediaQuery
+                                .sizeOf(context)
+                                .width * 0.15,
                             vertical:
-                                MediaQuery.sizeOf(context).height * 0.02))),
+                            MediaQuery
+                                .sizeOf(context)
+                                .height * 0.02))),
                     child: Text("Finish Study Session",
                         style: TextStyle(
                             fontFamily: 'Arimo',
                             fontWeight: FontWeight.bold,
-                            fontSize: MediaQuery.sizeOf(context).width * 0.04,
+                            fontSize: MediaQuery
+                                .sizeOf(context)
+                                .width * 0.04,
                             color: Colors.white)),
                   )),
             ],
@@ -224,14 +260,15 @@ class _StateStudySession extends State<StudySession> {
           strDuration,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: "Digital-7", // Use a digital font if available
-            fontSize: 64,
+            fontFamily: "Digital-7",
+            // Use a digital font if available
+            fontSize: 50,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             shadows: [
               Shadow(
                 blurRadius: 16,
-                color: Colors.deepPurpleAccent.withOpacity(0.7),
+                color: Colors.deepPurpleAccent.withValues(alpha: 0.7),
                 offset: Offset(0, 0),
               ),
             ],
@@ -246,7 +283,7 @@ class _StateStudySession extends State<StudySession> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: "Digital-7",
-              fontSize: 32,
+              fontSize: 25,
               fontWeight: FontWeight.bold,
               color: Colors.white,
               shadows: [
@@ -266,8 +303,12 @@ class _StateStudySession extends State<StudySession> {
 
   Widget timerContainer() {
     return Container(
-      width: MediaQuery.sizeOf(context).width * 0.75,
-      height: MediaQuery.sizeOf(context).width * 0.75,
+      width: MediaQuery
+          .sizeOf(context)
+          .width * 0.65,
+      height: MediaQuery
+          .sizeOf(context)
+          .width * 0.65,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -283,7 +324,7 @@ class _StateStudySession extends State<StudySession> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.5),
+            color: Colors.deepPurple.withValues(alpha: 0.5),
             blurRadius: 32,
             spreadRadius: 4,
             offset: Offset(0, 8),
@@ -323,8 +364,12 @@ class _StateStudySession extends State<StudySession> {
           shadowColor: WidgetStateProperty.all(Colors.transparent),
           elevation: WidgetStateProperty.all(0),
           minimumSize: WidgetStateProperty.all(Size(
-              MediaQuery.sizeOf(context).width * 0.15,
-              MediaQuery.sizeOf(context).width * 0.15)),
+              MediaQuery
+                  .sizeOf(context)
+                  .width * 0.15,
+              MediaQuery
+                  .sizeOf(context)
+                  .width * 0.15)),
           overlayColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
         ),
         child: Icon(
@@ -343,7 +388,18 @@ class _StateStudySession extends State<StudySession> {
       children: [
         timerContainer(),
         Positioned(
-          bottom: MediaQuery.sizeOf(context).height * -0.03,
+          left: MediaQuery
+              .sizeOf(context)
+              .width * 0.2,
+          top: MediaQuery
+              .sizeOf(context)
+              .height * -0.1,
+          child: _buildLayeredDisplay(),
+        ),
+        Positioned(
+          bottom: MediaQuery
+              .sizeOf(context)
+              .height * -0.03,
           child: timerButton(),
         ),
       ],
@@ -374,7 +430,10 @@ class _StateStudySession extends State<StudySession> {
       color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.90,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width * 0.90,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             border: Border.symmetric(
@@ -410,7 +469,9 @@ class _StateStudySession extends State<StudySession> {
                       children: [
                         SizedBox(
                           width: double.infinity,
-                          height: MediaQuery.sizeOf(context).width * 0.1,
+                          height: MediaQuery
+                              .sizeOf(context)
+                              .width * 0.1,
                           child: ElevatedButton(
                             onPressed: () {
                               setState(() {
@@ -431,7 +492,9 @@ class _StateStudySession extends State<StudySession> {
                         SizedBox(height: 10),
                         SizedBox(
                           width: double.infinity,
-                          height: MediaQuery.sizeOf(context).width * 0.1,
+                          height: MediaQuery
+                              .sizeOf(context)
+                              .width * 0.1,
                           child: ElevatedButton(
                             onPressed: () {
                               setState(() {
@@ -488,7 +551,10 @@ class _StateStudySession extends State<StudySession> {
       color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.85,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width * 0.85,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.grey[800],
@@ -521,19 +587,24 @@ class _StateStudySession extends State<StudySession> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => StudySessionEnd(
-                                    goalId: widget.goalId,
-                                    duration: time,
-                                    imgLoc: widget.imgLoc,
-                                    start: start,
-                                    end: DateTime.now())));
+                                builder: (context) =>
+                                    StudySessionEnd(
+                                        goalId: widget.goalId,
+                                        duration: time,
+                                        imgLoc: widget.imgLoc,
+                                        start: start,
+                                        end: DateTime.now())));
                       },
                       style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.deepPurple,
                           minimumSize: Size(
-                              MediaQuery.sizeOf(context).width * 0.4,
-                              MediaQuery.sizeOf(context).width * 0.1),
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.4,
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.1),
                           elevation: 3),
                       child: Text(
                         "Yes",
@@ -545,8 +616,12 @@ class _StateStudySession extends State<StudySession> {
                           backgroundColor: Colors.grey,
                           foregroundColor: Colors.white,
                           minimumSize: Size(
-                              MediaQuery.sizeOf(context).width * 0.4,
-                              MediaQuery.sizeOf(context).width * 0.1),
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.4,
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.1),
                           elevation: 3),
                       child: Text(
                         "Cancel",
@@ -567,7 +642,10 @@ class _StateStudySession extends State<StudySession> {
       color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.85,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width * 0.85,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.grey[800],
@@ -603,15 +681,19 @@ class _StateStudySession extends State<StudySession> {
                             builder: (context) =>
                                 DashboardScreen(isar: _isarService),
                           ),
-                          (route) => false,
+                              (route) => false,
                         );
                       },
                       style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: Colors.deepPurple,
                           minimumSize: Size(
-                              MediaQuery.sizeOf(context).width * 0.4,
-                              MediaQuery.sizeOf(context).width * 0.1),
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.4,
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.1),
                           elevation: 3),
                       child: Text(
                         "Main Menu",
@@ -624,8 +706,12 @@ class _StateStudySession extends State<StudySession> {
                           backgroundColor: Colors.grey,
                           foregroundColor: Colors.white,
                           minimumSize: Size(
-                              MediaQuery.sizeOf(context).width * 0.4,
-                              MediaQuery.sizeOf(context).width * 0.1),
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.4,
+                              MediaQuery
+                                  .sizeOf(context)
+                                  .width * 0.1),
                           elevation: 3),
                       child: Text(
                         "Stay",
@@ -638,6 +724,38 @@ class _StateStudySession extends State<StudySession> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLayeredDisplay() {
+    return AnimatedBuilder(
+      animation: _floatingController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _floatingAnimation.value),
+          child: Transform.rotate(
+            angle: _rotationAnimation.value,
+            child: Hero(
+              tag: 'selected-image',
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    child: Image.asset(
+                      'assets/purple_astronaut.png',
+                      fit: BoxFit.contain,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
