@@ -18,7 +18,6 @@ class AstronautPet {
   String shipType = 'default';
 
   bool isTraveling = false;
-  bool hasArrived = false;
 
   AstronautPet();
 
