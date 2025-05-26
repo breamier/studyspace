@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import '../services/isar_service.dart';
+import 'package:studyspace/item_manager.dart';
 
 class ReplenishedAstronautScreen extends StatefulWidget {
   final IsarService isar;
@@ -14,7 +15,72 @@ class ReplenishedAstronautScreen extends StatefulWidget {
 }
 
 class _ReplenishedAstronautScreenState
-    extends State<ReplenishedAstronautScreen> {
+    extends State<ReplenishedAstronautScreen>
+    with TickerProviderStateMixin {
+  final ItemManager _itemManager = ItemManager();
+  Map<String, dynamic>? _currentAstronaut;
+  Map<String, dynamic>? _currentSpaceship;
+
+  // Animation controllers
+  late AnimationController _floatingController;
+  late Animation<double> _floatingAnimation;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentItems();
+
+    // Initialize floating animation
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -6.0, end: 6.0)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
+
+    _rotationAnimation = Tween<double>(begin: -0.03, end: 0.03)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
+  }
+
+  @override
+  void dispose() {
+    _floatingController.dispose();
+    super.dispose();
+  }
+
+  void _getCurrentItems() {
+    setState(() {
+      _currentAstronaut = _itemManager.getCurrentAstronaut();
+      _currentSpaceship = _itemManager.getCurrentSpaceship();
+    });
+  }
+  
+  // Method to get the replenished astronaut image based on current selection
+  String _getReplenishedAstronautImage() {
+    if (_currentAstronaut == null) {
+      return 'assets/replenished_blue_astronaut.png'; // Default fallback
+    }
+    
+    switch (_currentAstronaut!['image']) {
+      case 'assets/blue_astronaut.png':
+        return 'assets/replenished_blue_astronaut.png';
+      case 'assets/orange_astronaut.png':
+        return 'assets/replenished_orange_astronaut.png';
+      case 'assets/green_astronaut.png':
+        return 'assets/replenished_green_astronaut.png';
+      case 'assets/purple_astronaut.png':
+        return 'assets/replenished_purple_astronaut.png';
+      case 'assets/black_astronaut.png':
+        return 'assets/replenished_black_astronaut.png';
+      default:
+        return 'assets/replenished_blue_astronaut.png'; // Default fallback
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,9 +129,9 @@ class _ReplenishedAstronautScreenState
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                const Text(
-                  '93',
-                  style: TextStyle(
+                Text(
+                  '${_itemManager.userPoints}',
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w500),
@@ -98,9 +164,17 @@ class _ReplenishedAstronautScreenState
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-                      child: Image.asset(
-                        'assets/replenished_astronaut.png',
-                        fit: BoxFit.contain,
+                      child: AnimatedBuilder(
+                        animation: _floatingController,
+                        builder: (context, child) {
+                          return Transform.translate(
+                            offset: Offset(0, _floatingAnimation.value),
+                            child: Transform.rotate(
+                              angle: _rotationAnimation.value,
+                              child: _buildLayeredDisplay(),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -186,7 +260,7 @@ class _ReplenishedAstronautScreenState
                     'assets/planet_icon.png', 'Planets Visited:', '2'),
                 const SizedBox(height: 24),
                 _buildActionButton(
-                  Icons.backpack,
+                  Icons.shopping_basket,
                   () {
                     Navigator.push(
                       context,
@@ -279,30 +353,183 @@ class _ReplenishedAstronautScreenState
     );
   }
 
-
-  Widget _buildMissionProgress(String missionName, double progress) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          missionName,
-          style: const TextStyle(
-            fontFamily: 'Arimo',
-            color: Colors.white,
-            fontSize: 14,
+  Widget _buildLayeredDisplay() {
+    return Hero(
+      tag: 'selected-image',
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            child: Image.asset(
+              'assets/moon.png',
+              fit: BoxFit.contain,
+              height: MediaQuery.of(context).size.height * 0.4,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.black,
-            color: Colors.white,
-            minHeight: 6,
-          ),
-        ),
-      ],
+          
+          if (_currentAstronaut != null)
+            _buildReplenishedAstronautPosition(_currentAstronaut!),
+          
+          if (_currentSpaceship != null)
+            _buildSpaceshipPosition(_currentSpaceship!),
+        ],
+      ),
     );
+  }
+
+  // Custom positioning for replenished astronauts based on their type
+  Widget _buildReplenishedAstronautPosition(Map<String, dynamic> astronaut) {
+    Map<String, double> position = _getAstronautPosition(astronaut['image']);
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * position['top']!,
+      right: MediaQuery.of(context).size.width * position['right']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          _getReplenishedAstronautImage(),
+          fit: BoxFit.contain,
+          height: MediaQuery.of(context).size.height * position['height']!,
+          width: MediaQuery.of(context).size.width * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  // Custom positioning for spaceships based on their type
+  Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
+    Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
+    
+    return Positioned(
+      top: MediaQuery.of(context).size.height * position['top']!,
+      left: MediaQuery.of(context).size.width * position['left']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          spaceship['image'],
+          fit: BoxFit.contain,
+          height: MediaQuery.of(context).size.height * position['height']!,
+          width: MediaQuery.of(context).size.width * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  // Define custom positions for each astronaut type
+  Map<String, double> _getAstronautPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/blue_astronaut.png':
+        return {
+          'top': 0.00,
+          'right': 0.20,
+          'height': 0.14,
+          'width': 0.26,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/orange_astronaut.png':
+        return {
+          'top': 0.00,
+          'right': 0.20,
+          'height': 0.15,
+          'width': 0.28,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/purple_astronaut.png':
+        return {
+          'top': 0.01,
+          'right': 0.20,
+          'height': 0.15,
+          'width': 0.27,
+          'rotation': -1.0, 
+        };
+      
+      case 'assets/black_astronaut.png':
+        return {
+          'top': 0.00,
+          'right': 0.20,
+          'height': 0.15,
+          'width': 0.26,
+          'rotation': -7.0, 
+        };
+      
+      case 'assets/green_astronaut.png':
+        return {
+          'top': 0.01,
+          'right': 0.20,
+          'height': 0.15,
+          'width': 0.26,
+          'rotation': -1.0, 
+        };
+      
+      default:
+        return {
+          'top': 0.13,
+          'right': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': 0.0,
+        };
+    }
+  }
+
+  // Define custom positions for each spaceship type
+  Map<String, double> _getSpaceshipPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/white_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.10,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -40.0, 
+        };
+      
+      case 'assets/purple_spaceship.png':
+        return {
+          'top': -0.02,
+          'left': 0.07,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -31.0,  
+        };
+      
+      case 'assets/orange_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -45.0, 
+        };
+      
+      case 'assets/black_spaceship.png':
+        return {
+          'top': 0.10,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -45.0, 
+        };
+      
+      case 'assets/blue_spaceship.png':
+        return {
+          'top': -0.02,
+          'left': 0.07,
+          'height': 0.13,
+          'width': 0.26,
+          'rotation': -31.0, 
+        };
+      
+      default:
+        return {
+          'top': 0.5,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -16.0,
+        };
+    }
   }
 }

@@ -14,25 +14,179 @@ class DeathAstronautScreen extends StatefulWidget {
       _DeathAstronautScreenState();
 }
 
-class _DeathAstronautScreenState
-    extends State<DeathAstronautScreen> {
+class _DeathAstronautScreenState extends State<DeathAstronautScreen>
+    with TickerProviderStateMixin {
   bool _showReviveDialog = false;
   bool _isRevived = false;
   final ItemManager _itemManager = ItemManager();
   Map<String, dynamic>? _currentAstronaut;
 
+  // Animation controllers
+  late AnimationController _deathAnimationController;
+  late AnimationController _reviveAnimationController;
+  late AnimationController _dialogAnimationController;
+  late AnimationController _hpBarAnimationController;
+  late AnimationController _floatingAnimationController;
+
+  // Animations
+  late Animation<double> _deathFadeAnimation;
+  late Animation<double> _deathScaleAnimation;
+  late Animation<double> _reviveScaleAnimation;
+  late Animation<double> _reviveGlowAnimation;
+  late Animation<double> _dialogScaleAnimation;
+  late Animation<double> _dialogOpacityAnimation;
+  late Animation<double> _hpBarAnimation;
+  late Animation<double> _floatingAnimation;
+
   @override
   void initState() {
     super.initState();
     _getCurrentAstronaut();
-    // Show revive dialog after 3 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    _initializeAnimations();
+    _startDeathAnimation();
+
+    // Show revive dialog after death animation completes
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted && !_isRevived) {
-        setState(() {
-          _showReviveDialog = true;
-        });
+        _showReviveDialogWithAnimation();
       }
     });
+  }
+
+  void _initializeAnimations() {
+    // Death animation controller
+    _deathAnimationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
+    // Revive animation controller
+    _reviveAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    // Dialog animation controller
+    _dialogAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    // HP bar animation controller
+    _hpBarAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    // Floating animation controller
+    _floatingAnimationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    // Death animations
+    _deathFadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.3,
+    ).animate(CurvedAnimation(
+      parent: _deathAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _deathScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.9,
+    ).animate(CurvedAnimation(
+      parent: _deathAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Revive animations
+    _reviveScaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _reviveAnimationController,
+      curve: Curves.elasticOut,
+    ));
+
+    _reviveGlowAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _reviveAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Dialog animations
+    _dialogScaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _dialogAnimationController,
+      curve: Curves.elasticOut,
+    ));
+
+    _dialogOpacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _dialogAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // HP bar animation
+    _hpBarAnimation = Tween<double>(
+      begin: 0.0,
+      end: 0.30,
+    ).animate(CurvedAnimation(
+      parent: _hpBarAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Floating animation
+    _floatingAnimation = Tween<double>(
+      begin: 0.0,
+      end: 10.0,
+    ).animate(CurvedAnimation(
+      parent: _floatingAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Start continuous floating animation when revived
+    _floatingAnimationController.repeat(reverse: true);
+  }
+
+  void _startDeathAnimation() {
+    _deathAnimationController.forward();
+  }
+
+  void _showReviveDialogWithAnimation() {
+    setState(() {
+      _showReviveDialog = true;
+    });
+    _dialogAnimationController.forward();
+  }
+
+  void _startReviveAnimation() {
+    _dialogAnimationController.reverse().then((_) {
+      setState(() {
+        _showReviveDialog = false;
+        _isRevived = true;
+      });
+      _reviveAnimationController.forward();
+      _hpBarAnimationController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _deathAnimationController.dispose();
+    _reviveAnimationController.dispose();
+    _dialogAnimationController.dispose();
+    _hpBarAnimationController.dispose();
+    _floatingAnimationController.dispose();
+    super.dispose();
   }
 
   void _getCurrentAstronaut() {
@@ -43,11 +197,11 @@ class _DeathAstronautScreenState
 
   String _getDeadAstronautImage() {
     if (_currentAstronaut == null) {
-      return 'assets/dead_astronaut.png'; 
+      return 'assets/dead_astronaut.png';
     }
 
     String currentImage = _currentAstronaut!['image'];
-    
+
     // Map current astronaut images to their dead counterparts
     switch (currentImage) {
       case 'assets/orange_astronaut.png':
@@ -67,11 +221,11 @@ class _DeathAstronautScreenState
 
   String _getRevivedAstronautImage() {
     if (_currentAstronaut == null) {
-      return 'assets/revived_astronaut.png'; 
+      return 'assets/revived_astronaut.png';
     }
 
     String currentImage = _currentAstronaut!['image'];
-    
+
     // Map current astronaut images to their revived counterparts
     switch (currentImage) {
       case 'assets/orange_astronaut.png':
@@ -85,7 +239,7 @@ class _DeathAstronautScreenState
       case 'assets/purple_astronaut.png':
         return 'assets/revived_purple_astronaut.png';
       default:
-        return 'assets/revived_astronaut.png'; 
+        return 'assets/revived_astronaut.png';
     }
   }
 
@@ -160,30 +314,52 @@ class _DeathAstronautScreenState
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildProgressBar(
-                    'assets/astronaut_icon.png', 
-                    'HP', 
-                    _isRevived ? 0.30 : 0.0,
-                    _isRevived ? Colors.green.shade700 : Colors.red.shade700, 
-                    _isRevived ? Colors.green.shade400 : Colors.red.shade400, 
-                    Colors.white
+                  AnimatedBuilder(
+                    animation: _hpBarAnimation,
+                    builder: (context, child) {
+                      return _buildProgressBar(
+                        'assets/astronaut_icon.png',
+                        'HP',
+                        _isRevived ? _hpBarAnimation.value : 0.0,
+                        _isRevived ? Colors.green.shade700 : Colors.red.shade700,
+                        _isRevived ? Colors.green.shade400 : Colors.red.shade400,
+                        Colors.white,
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
-                  _buildProgressBar('assets/rocket_icon.png', 'Progress', 0.85,
-                      Colors.grey.shade500, Colors.grey.shade400, Colors.black),
+                  _buildProgressBar(
+                    'assets/rocket_icon.png',
+                    'Progress',
+                    0.85,
+                    Colors.grey.shade500,
+                    Colors.grey.shade400,
+                    Colors.black,
+                  ),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
-                  Text(
-                    _isRevived 
-                        ? "YOUR ASTRONAUT HAS BEEN MIRACULOUSLY REVIVED!" 
-                        : "YOUR ASTRONAUT DIDN'T MAKE IT...",
-                    style: const TextStyle(
-                      fontFamily: 'BrunoAceSC',
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    child: Text(
+                      _isRevived
+                          ? "YOUR ASTRONAUT HAS BEEN MIRACULOUSLY REVIVED!"
+                          : "YOUR ASTRONAUT DIDN'T MAKE IT...",
+                      key: ValueKey(_isRevived),
+                      style: TextStyle(
+                        fontFamily: 'BrunoAceSC',
+                        color: _isRevived ? const Color(0xFFFFD700) : Colors.red.shade400, 
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        shadows: _isRevived ? [
+                          Shadow(
+                            color: Colors.amber.withOpacity(0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ] : null,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
                   ConstrainedBox(
@@ -191,10 +367,7 @@ class _DeathAstronautScreenState
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-                      child: Image.asset(
-                        _isRevived ? _getRevivedAstronautImage() : _getDeadAstronautImage(),
-                        fit: BoxFit.contain,
-                      ),
+                      child: _buildAnimatedAstronaut(),
                     ),
                   ),
                 ],
@@ -203,105 +376,351 @@ class _DeathAstronautScreenState
           ),
           // Revive Dialog Overlay
           if (_showReviveDialog && !_isRevived)
-            Container(
-              color: Colors.black.withOpacity(0.8),
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 32),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2A),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.help_outline,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "REVIVE ASTRONAUT?",
-                        style: TextStyle(
-                          fontFamily: 'BrunoAceSC',
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/shooting_star.png',
-                            width: 20,
-                            height: 20,
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "10",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      GestureDetector(
-                          onTap: () {
-                            // Deduct points for revival if there are enough points
-                            if (_itemManager.deductPoints(10, reason: 'Astronaut Revival')) {
-                              setState(() {
-                                _showReviveDialog = false;
-                                _isRevived = true;
-                              });
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Insufficient points for revival!'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
+            AnimatedBuilder(
+              animation: _dialogAnimationController,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _dialogOpacityAnimation.value,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.8),
+                    child: Center(
+                      child: Transform.scale(
+                        scale: _dialogScaleAnimation.value,
                         child: Container(
-                          width: 120,
-                          height: 50,
+                          margin: const EdgeInsets.symmetric(horizontal: 32),
+                          padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(25),
-                            border: Border.all(color: Colors.grey.shade300, width: 1),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              "YES",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            color: const Color(0xFF2A2A2A),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.3), width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.cyan.withOpacity(0.3),
+                                blurRadius: 20,
+                                spreadRadius: 2,
                               ),
-                            ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TweenAnimationBuilder(
+                                duration: const Duration(seconds: 2),
+                                tween: Tween<double>(begin: 0, end: 1),
+                                builder: (context, double value, child) {
+                                  return Transform.rotate(
+                                    angle: value * 2 * 3.14159,
+                                    child: const Icon(
+                                      Icons.help_outline,
+                                      color: Colors.cyan,
+                                      size: 48,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                "REVIVE ASTRONAUT?",
+                                style: TextStyle(
+                                  fontFamily: 'BrunoAceSC',
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  TweenAnimationBuilder(
+                                    duration: const Duration(milliseconds: 1500),
+                                    tween: Tween<double>(begin: 0.8, end: 1.2),
+                                    builder: (context, double value, child) {
+                                      return Transform.scale(
+                                        scale: value,
+                                        child: Image.asset(
+                                          'assets/shooting_star.png',
+                                          width: 20,
+                                          height: 20,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Text(
+                                    "10",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              GestureDetector(
+                                onTap: () {
+                                  // Deduct points for revival if there are enough points
+                                  if (_itemManager.deductPoints(10,
+                                      reason: 'Astronaut Revival')) {
+                                    _startReviveAnimation();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Insufficient points for revival!'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: TweenAnimationBuilder(
+                                  duration: const Duration(milliseconds: 1000),
+                                  tween: Tween<double>(begin: 0.9, end: 1.1),
+                                  builder: (context, double value, child) {
+                                    return Transform.scale(
+                                      scale: value,
+                                      child: Container(
+                                        width: 120,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(25),
+                                          border: Border.all(
+                                              color: Colors.grey.shade300,
+                                              width: 1),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.cyan.withOpacity(0.5),
+                                              blurRadius: 10,
+                                              spreadRadius: 1,
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            "YES",
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
         ],
       ),
     );
   }
 
+  Widget _buildAnimatedAstronaut() {
+    if (_isRevived) {
+      return AnimatedBuilder(
+        animation: Listenable.merge([
+          _reviveAnimationController,
+          _floatingAnimationController,
+        ]),
+        builder: (context, child) {
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Main astronaut image
+              Transform.translate(
+                offset: Offset(0, -_floatingAnimation.value),
+                child: Transform.scale(
+                  scale: _reviveScaleAnimation.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFD700).withOpacity(_reviveGlowAnimation.value * 0.0), 
+                          blurRadius: 25,
+                          spreadRadius: 8,
+                        ),
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(_reviveGlowAnimation.value * 0.2),
+                          blurRadius: 40,
+                          spreadRadius: 12,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      _getRevivedAstronautImage(),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+              // Sparkles
+              ..._buildSparkles(),
+            ],
+          );
+        },
+      );
+    } else {
+      return AnimatedBuilder(
+        animation: _deathAnimationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _deathScaleAnimation.value,
+            child: Opacity(
+              opacity: _deathFadeAnimation.value,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.3),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Image.asset(
+                  _getDeadAstronautImage(),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+  }
 
+  List<Widget> _buildSparkles() {
+    if (!_isRevived) return [];
+    
+    final sparkles = <Widget>[];
+    final sparklePositions = [
+      {'x': -50.0, 'y': -30.0, 'delay': 0.0, 'size': 8.0},
+      {'x': 40.0, 'y': -50.0, 'delay': 0.3, 'size': 6.0},
+      {'x': -30.0, 'y': 20.0, 'delay': 0.6, 'size': 10.0},
+      {'x': 60.0, 'y': 10.0, 'delay': 0.9, 'size': 7.0},
+      {'x': 0.0, 'y': -60.0, 'delay': 1.2, 'size': 9.0},
+      {'x': -60.0, 'y': -10.0, 'delay': 0.4, 'size': 5.0},
+      {'x': 35.0, 'y': 40.0, 'delay': 0.8, 'size': 8.0},
+      {'x': -20.0, 'y': -45.0, 'delay': 1.0, 'size': 6.0},
+    ];
+
+    for (final pos in sparklePositions) {
+      sparkles.add(
+        Positioned(
+          left: pos['x']! as double,
+          top: pos['y']! as double,
+          child: TweenAnimationBuilder(
+            duration: const Duration(milliseconds: 2000),
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            builder: (context, double value, child) {
+              final delayedValue = ((value - (pos['delay']! as double)).clamp(0.0, 1.0));
+              final sparkleOpacity = delayedValue < 0.5 
+                  ? delayedValue * 2 
+                  : (1.0 - delayedValue) * 2;
+              final sparkleScale = delayedValue < 0.5 
+                  ? delayedValue * 2 
+                  : 2.0 - (delayedValue * 2);
+              
+              return Transform.scale(
+                scale: sparkleScale,
+                child: Opacity(
+                  opacity: sparkleOpacity.clamp(0.0, 1.0),
+                  child: Container(
+                    width: pos['size']! as double,
+                    height: pos['size']! as double,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.white,
+                          const Color(0xFFFFD700), 
+                          Colors.amber.shade300,
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Container(
+                            width: (pos['size']! as double) * 0.3,
+                            height: (pos['size']! as double) * 0.3,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  Colors.white,
+                                  const Color(0xFFFFD700), 
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Cross sparkle effect
+                        Center(
+                          child: Container(
+                            width: pos['size']! as double,
+                            height: 1.5,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.white,
+                                  const Color(0xFFFFD700), 
+                                  Colors.white,
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: Container(
+                            width: 1.5,
+                            height: pos['size']! as double,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.white,
+                                  const Color(0xFFFFD700), 
+                                  Colors.white,
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return sparkles;
+  }
 
   Widget _buildProgressBar(String iconPath, String label, double progress,
       Color startColor, Color endColor, Color textColor) {

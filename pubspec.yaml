@@ -140,6 +140,11 @@ flutter:
     - assets/revived_green_astronaut.png
     - assets/revived_orange_astronaut.png
     - assets/revived_purple_astronaut.png
+    - assets/replenished_blue_astronaut.png
+    - assets/replenished_green_astronaut.png
+    - assets/replenished_purple_astronaut.png
+    - assets/replenished_orange_astronaut.png
+    - assets/replenished_black_astronaut.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
