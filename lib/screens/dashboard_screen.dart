@@ -10,6 +10,7 @@ import 'package:studyspace/item_manager.dart';
 import '../study-session/study_session_camera.dart';
 import '../widgets/navbar.dart';
 import '../dev_tools_screen.dart';
+import '../models/astronaut_pet.dart';
 
 // Font styles
 final TextStyle kHeadingFont = const TextStyle(
@@ -55,13 +56,21 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
   late Future<List<Goal>> _goalsFuture;
   late Future<List<Mission>> _missionsFuture;
+  late Future<AstronautPet?> _currentPet;
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
   late final ValueNotifier<bool> _itemChangeNotifier;
+  bool _hasArrivedOnNewPlanet = false;
+
+  // Animation controllers for floating effect
+  late AnimationController _floatingController;
+  late Animation<double> _floatingAnimation;
+  late Animation<double> _rotationAnimation;
 
   @override
   void initState() {
@@ -69,19 +78,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _refreshGoals();
     _refreshMissions();
     _getCurrentItems();
+    _checkPlanetStatus();
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
+
+    // Initialize floating animation
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -6.0, end: 6.0)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
+
+    _rotationAnimation = Tween<double>(begin: -0.03, end: 0.03)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
   }
 
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
+    _floatingController.dispose();
     super.dispose();
   }
 
   void _handleItemChanged() {
     if (mounted) {
       _getCurrentItems();
+      _checkPlanetStatus();
     }
   }
 
@@ -92,31 +118,331 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  String _getDisplayImage() {
-    if (_currentAstronaut == null && _currentSpaceship == null) {
-      return 'assets/moon_with_astronaut.png';
+  void _checkPlanetStatus() {
+    _currentPet = widget.isar.getCurrentPet();
+    _currentPet.then((pet) {
+      if (mounted && pet != null) {
+        setState(() {
+          _hasArrivedOnNewPlanet = pet.hasArrived && !pet.isTraveling;
+        });
+      }
+    });
+  }
+
+  // Build the layered display - shows Saturn if astronaut has arrived on new planet
+  Widget _buildLayeredDisplay() {
+    return AnimatedBuilder(
+      animation: _floatingController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _floatingAnimation.value),
+          child: Transform.rotate(
+            angle: _rotationAnimation.value,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Show Saturn if astronaut has arrived on new planet, otherwise show Moon
+                Image.asset(
+                  _hasArrivedOnNewPlanet ? 'assets/saturn.png' : 'assets/moon.png',
+                  fit: BoxFit.contain,
+                  height: 280,
+                ),
+                
+                if (_currentAstronaut != null)
+                  _buildAstronautPosition(_currentAstronaut!),
+                
+                if (_currentSpaceship != null)
+                  _buildSpaceshipPosition(_currentSpaceship!),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Custom positioning for astronauts based on their type
+  Widget _buildAstronautPosition(Map<String, dynamic> astronaut) {
+    Map<String, double> position = _getAstronautPosition(astronaut['image']);
+    
+    return Positioned(
+      top: 280 * position['top']!,
+      right: 280 * position['right']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          astronaut['image'],
+          fit: BoxFit.contain,
+          height: 280 * position['height']!,
+          width: 280 * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  // Custom positioning for spaceships based on their type
+  Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
+    Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
+    
+    return Positioned(
+      top: 280 * position['top']!,
+      left: 280 * position['left']!,
+      child: Transform.rotate(
+        angle: position['rotation']! * 3.14159 / 180,
+        child: Image.asset(
+          spaceship['image'],
+          fit: BoxFit.contain,
+          height: 280 * position['height']!,
+          width: 280 * position['width']!,
+        ),
+      ),
+    );
+  }
+
+  Map<String, double> _getAstronautPosition(String imagePath) {
+    // If on Saturn, use different positioning
+    if (_hasArrivedOnNewPlanet) {
+      return _getSaturnAstronautPosition(imagePath);
     }
-
-    final astronaut = _currentAstronaut;
-    final spaceship = _currentSpaceship;
-
-    String? astronautColor = astronaut != null && astronaut['current'] == true
-        ? astronaut['name'].split(' ')[0].toLowerCase()
-        : null;
-
-    String? spaceshipColor = spaceship != null && spaceship['current'] == true
-        ? spaceship['name'].split(' ')[0].toLowerCase()
-        : null;
-
-    if (spaceshipColor != null) {
-      return 'assets/moon_with_${spaceshipColor}_spaceship.png';
+    
+    // Original Moon positions
+    switch (imagePath) {
+      case 'assets/blue_astronaut.png':
+        return {
+          'top': -0.05,
+          'right': 0.25,
+          'height': 0.50,
+          'width': 0.30,
+          'rotation': -7.0,
+        };
+      
+      case 'assets/orange_astronaut.png':
+        return {
+          'top': -0.12,
+          'right': 0.20,
+          'height': 0.70,
+          'width': 0.40,
+          'rotation': 25.0,
+        };
+      
+      case 'assets/purple_astronaut.png':
+        return {
+          'top': 0.05,
+          'right': 0.20,
+          'height': 0.50,
+          'width': 0.40,
+          'rotation': 2.0,
+        };
+      
+      case 'assets/black_astronaut.png':
+        return {
+          'top': -0.05,
+          'right': 0.25,
+          'height': 0.50,
+          'width': 0.28,
+          'rotation': -7.0,
+        };
+      
+      case 'assets/green_astronaut.png':
+        return {
+          'top': -0.05,
+          'right': 0.30,
+          'height': 0.50,
+          'width': 0.30,
+          'rotation': 10.0,
+        };
+      
+      default:
+        return {
+          'top': 0.13,
+          'right': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': 0.0,
+        };
     }
+  }
 
-    if (astronautColor != null) {
-      return 'assets/moon_with_${astronautColor}_astronaut.png';
+  // Saturn-specific astronaut positions
+  Map<String, double> _getSaturnAstronautPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/blue_astronaut.png':
+        return {
+          'top': -0.02,
+          'right': 0.28,
+          'height': 0.35,
+          'width': 0.25,
+          'rotation': -7.0,
+        };
+      
+      case 'assets/orange_astronaut.png':
+        return {
+          'top': -0.05,
+          'right': 0.25,
+          'height': 0.40,
+          'width': 0.30,
+          'rotation': 15.0,
+        };
+      
+      case 'assets/purple_astronaut.png':
+        return {
+          'top': 0.02,
+          'right': 0.28,
+          'height': 0.35,
+          'width': 0.28,
+          'rotation': 2.0,
+        };
+      
+      case 'assets/black_astronaut.png':
+        return {
+          'top': -0.02,
+          'right': 0.28,
+          'height': 0.35,
+          'width': 0.25,
+          'rotation': -7.0,
+        };
+      
+      case 'assets/green_astronaut.png':
+        return {
+          'top': -0.01,
+          'right': 0.32,
+          'height': 0.35,
+          'width': 0.25,
+          'rotation': 10.0,
+        };
+      
+      default:
+        return {
+          'top': -0.02,
+          'right': 0.28,
+          'height': 0.35,
+          'width': 0.25,
+          'rotation': -7.0,
+        };
     }
+  }
 
-    return 'assets/moon_with_astronaut.png';
+  Map<String, double> _getSpaceshipPosition(String imagePath) {
+    // If on Saturn, use different positioning
+    if (_hasArrivedOnNewPlanet) {
+      return _getSaturnSpaceshipPosition(imagePath);
+    }
+    
+    // Original Moon positions
+    switch (imagePath) {
+      case 'assets/white_spaceship.png':
+        return {
+          'top': 0.13,
+          'left': 0.15,
+          'height': 0.50,
+          'width': 0.25,
+          'rotation': -40.0,
+        };
+      
+      case 'assets/purple_spaceship.png':
+        return {
+          'top': -0.18,
+          'left': 0.07,
+          'height': 0.50,
+          'width': 0.30,
+          'rotation': -31.0,
+        };
+      
+      case 'assets/orange_spaceship.png':
+        return {
+          'top': 0.18,
+          'left': 0.15,
+          'height': 0.40,
+          'width': 0.25,
+          'rotation': -40.0,
+        };
+      
+      case 'assets/black_spaceship.png':
+        return {
+          'top': 0.18,
+          'left': 0.15,
+          'height': 0.40,
+          'width': 0.25,
+          'rotation': -40.0,
+        };
+      
+      case 'assets/blue_spaceship.png':
+        return {
+          'top': -0.10,
+          'left': 0.10,
+          'height': 0.50,
+          'width': 0.30,
+          'rotation': -40.0,
+        };
+      
+      default:
+        return {
+          'top': 0.5,
+          'left': 0.08,
+          'height': 0.12,
+          'width': 0.25,
+          'rotation': -16.0,
+        };
+    }
+  }
+
+  // Saturn-specific spaceship positions
+  Map<String, double> _getSaturnSpaceshipPosition(String imagePath) {
+    switch (imagePath) {
+      case 'assets/white_spaceship.png':
+        return {
+          'top': 0.08,
+          'left': 0.18,
+          'height': 0.35,
+          'width': 0.22,
+          'rotation': -40.0,
+        };
+   
+      case 'assets/purple_spaceship.png':
+        return {
+          'top': -0.08,
+          'left': 0.12,
+          'height': 0.38,
+          'width': 0.25,
+          'rotation': -18.0,
+        };
+ 
+      case 'assets/orange_spaceship.png':
+        return {
+          'top': 0.08,
+          'left': 0.18,
+          'height': 0.35,
+          'width': 0.22,
+          'rotation': -40.0,
+        };
+
+      case 'assets/black_spaceship.png':
+        return {
+          'top': 0.06,
+          'left': 0.18,
+          'height': 0.35,
+          'width': 0.22,
+          'rotation': -45.0,
+        };
+
+      case 'assets/blue_spaceship.png':
+        return {
+          'top': -0.06,
+          'left': 0.12,
+          'height': 0.37,
+          'width': 0.24,
+          'rotation': -40.0,
+        };
+
+      default:
+        return {
+          'top': 0.08,
+          'left': 0.12,
+          'height': 0.35,
+          'width': 0.22,
+          'rotation': -16.0,
+        };
+    }
   }
 
   Future<List<Goal>> _fetchGoals() async {
@@ -166,6 +492,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onPressed: () {
                   _refreshGoals();
                   _refreshMissions();
+                  _checkPlanetStatus(); // Also refresh planet status
                 }),
             IconButton(
               icon: const Icon(Icons.help_outline, color: kWhite),
@@ -349,13 +676,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       },
                     ),
-                    //preview of astronaut
+                    // Layered display of astronaut and spaceship
                     const SizedBox(height: 30),
+                    
+                    // Show current planet status
+                    FutureBuilder<AstronautPet?>(
+                      future: _currentPet,
+                      builder: (context, petSnapshot) {
+                        if (petSnapshot.hasData && petSnapshot.data != null) {
+                          final pet = petSnapshot.data!;
+                          if (pet.hasArrived && !pet.isTraveling) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  'Your astronaut has arrived on Saturn! 🪐',
+                                  style: kBodyFont.copyWith(
+                                    fontSize: 12,
+                                    fontFamily: 'Arimo',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    
                     Center(
-                      child: Image.asset(
-                        _getDisplayImage(),
-                        height: 280,
-                      ),
+                      child: _buildLayeredDisplay(),
                     ),
                     const SizedBox(height: 80),
                   ],

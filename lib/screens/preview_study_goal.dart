@@ -169,20 +169,35 @@ class PreviewStudyGoal extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               Column(
-                children: goal.subtopics
-                    .map((s) => ListTile(
-                          leading: const Icon(
-                            Icons.track_changes,
-                            color: Colors.white,
-                          ),
-                          title: Text(
-                            s.name,
-                            style: const TextStyle(color: Colors.white),
+                children: goal.subtopics.isEmpty
+                    ? [
+                        ListTile(
+                          leading: const Icon(Icons.info_outline,
+                              color: Colors.white54),
+                          title: const Text(
+                            "No subtopics added.",
+                            style: TextStyle(
+                                color: Colors.white54,
+                                fontStyle: FontStyle.italic),
                           ),
                           dense: true,
                           contentPadding: EdgeInsets.zero,
-                        ))
-                    .toList(),
+                        )
+                      ]
+                    : goal.subtopics
+                        .map((s) => ListTile(
+                              leading: const Icon(
+                                Icons.track_changes,
+                                color: Colors.white,
+                              ),
+                              title: Text(
+                                s.name,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ))
+                        .toList(),
               ),
               const SizedBox(height: 20),
               FutureBuilder<List<DateTime>>(

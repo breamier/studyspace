@@ -112,6 +112,51 @@ class _TopicOverviewState extends State<TopicOverview> {
     await _isarService.updateGoal(_goal!);
   }
 
+  Future<void> _showDeleteGoalDialog() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 22, 22, 22),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.white, width: 2.0),
+        ),
+        title: const Text(
+          'Delete Goal?',
+          style: TextStyle(color: Colors.white, fontFamily: 'Arimo'),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this goal? This action cannot be undone.',
+          style: TextStyle(color: Colors.white70, fontFamily: 'Arimo'),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          TextButton(
+              child: const Text('Delete',
+                  style: TextStyle(color: Colors.redAccent)),
+              onPressed: () => {
+                    Navigator.pop(context, true),
+                  }),
+        ],
+      ),
+    );
+    if (confirm == true && _goal != null) {
+      await _isarService.deleteGoal(_goal!);
+      if (mounted) {
+        Navigator.pop(context); // Go back after deletion
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Goal deleted.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   void _showDeleteSubtopicDialog() {
     final selectedSubtopics =
         _goal!.subtopics.where((s) => !s.completed).toList();
@@ -498,6 +543,16 @@ class _TopicOverviewState extends State<TopicOverview> {
               Navigator.pop(context);
             },
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: IconButton(
+                icon: Icon(Icons.delete,
+                    color: Colors.redAccent, size: deviceWidth * 0.065),
+                onPressed: _showDeleteGoalDialog,
+              ),
+            )
+          ],
         ),
         body: Container(
           width: deviceWidth,
@@ -609,147 +664,14 @@ class _TopicOverviewState extends State<TopicOverview> {
                         padding: EdgeInsets.symmetric(
                           horizontal: deviceWidth * 0.04,
                         ),
-                      child:StudySessionTasks(goalId: _goal!.id) ,
+                        child: StudySessionTasks(goalId: _goal!.id),
                       ),
-                      //   child: Row(
-                      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //     children: [
-                      //       Text(
-                      //         "Subtopics",
-                      //         style: TextStyle(
-                      //           color: Colors.white,
-                      //           fontSize: deviceWidth * 0.06,
-                      //           fontWeight: FontWeight.bold,
-                      //           fontFamily: 'Arimo',
-                      //         ),
-                      //       ),
-                      //       IconButton(
-                      //         icon: Icon(
-                      //           Icons.delete,
-                      //           color: const Color.fromRGBO(176, 152, 228, 1),
-                      //           size: deviceWidth * 0.07,
-                      //         ),
-                      //         onPressed: () {
-                      //           if (_goal != null &&
-                      //               _goal!.subtopics.any((s) => !s.completed)) {
-                      //             _showDeleteSubtopicDialog();
-                      //           } else {
-                      //             ScaffoldMessenger.of(context).showSnackBar(
-                      //               SnackBar(
-                      //                 content: Text(
-                      //                   'No incomplete subtopics to delete',
-                      //                   style: TextStyle(
-                      //                     fontFamily: 'Arimo',
-                      //                   ),
-                      //                 ),
-                      //                 backgroundColor: const Color.fromARGB(
-                      //                     194, 109, 68, 221),
-                      //               ),
-                      //             );
-                      //           }
-                      //         },
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-                      // ..._subtopicControllers.asMap().entries.map(
-                      //   (entry) {
-                      //     final index = entry.key;
-                      //     final controller = entry.value;
-                      //     final isNew = index >= _goal!.subtopics.length;
-                      //     final subtopic =
-                      //         isNew ? null : _goal!.subtopics[index];
-                      //
-                      //     return Padding(
-                      //       padding: EdgeInsets.symmetric(
-                      //         horizontal: deviceWidth * 0.04,
-                      //         vertical: deviceHeight * 0.00,
-                      //       ),
-                      //       child: Row(
-                      //         children: [
-                      //           if (!isNew)
-                      //             SizedBox(
-                      //               width: deviceWidth * 0.04,
-                      //               height: deviceWidth * 0.04,
-                      //               child: Checkbox(
-                      //                 value: subtopic?.completed ?? false,
-                      //                 onChanged: (value) =>
-                      //                     _toggleSubtopicCompletion(index),
-                      //                 shape: RoundedRectangleBorder(
-                      //                   borderRadius: BorderRadius.circular(5),
-                      //                 ),
-                      //                 side: const BorderSide(
-                      //                   color: Colors.white,
-                      //                   width: 1.5,
-                      //                 ),
-                      //               ),
-                      //             ),
-                      //           if (!isNew) SizedBox(width: deviceWidth * 0.03),
-                      //           Expanded(
-                      //             child: TextFormField(
-                      //               controller: controller,
-                      //               style: TextStyle(
-                      //                 color: Colors.white,
-                      //                 fontSize: deviceWidth * 0.04,
-                      //                 fontFamily: 'Arimo',
-                      //               ),
-                      //               decoration: InputDecoration(
-                      //                 hintText: isNew ? "New subtopic" : null,
-                      //                 hintStyle: TextStyle(
-                      //                   color: Colors.grey,
-                      //                   fontSize: deviceWidth * 0.04,
-                      //                   fontFamily: 'Arimo',
-                      //                 ),
-                      //                 border: InputBorder.none,
-                      //               ),
-                      //               onChanged: (value) => _saveSubtopics(),
-                      //               focusNode: isNew &&
-                      //                       index ==
-                      //                           _subtopicControllers.length - 1
-                      //                   ? _newSubtopicFocusNode
-                      //                   : null,
-                      //             ),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
                       Padding(
                         padding: EdgeInsets.only(
                           left: deviceWidth * 0.02,
                           right: deviceWidth * 0.04,
                           top: deviceHeight * 0.01,
                         ),
-                        // child: Row(
-                        //   children: [
-                        //     SizedBox(
-                        //       width: deviceWidth * 0.03,
-                        //       height: deviceWidth * 0.09,
-                        //       child: Container(
-                        //         child: IconButton(
-                        //           padding: EdgeInsets.zero,
-                        //           icon: Icon(
-                        //             Icons.add,
-                        //             size: deviceWidth * 0.08,
-                        //             color: const Color.fromARGB(
-                        //                 187, 187, 187, 187),
-                        //           ),
-                        //           onPressed: _addNewSubtopicField,
-                        //         ),
-                        //       ),
-                        //     ),
-                        //     SizedBox(width: deviceWidth * 0.06),
-                            // Text(
-                            //   "Add a subtopic",
-                            //   style: TextStyle(
-                            //     color: Colors.white,
-                            //     fontSize: deviceWidth * 0.04,
-                            //     fontFamily: 'Arimo',
-                            //   ),
-                            // ),
-                          // ],
-                        // ),
                       ),
                       SizedBox(height: deviceHeight * 0.04),
                       Padding(
@@ -796,126 +718,6 @@ class _TopicOverviewState extends State<TopicOverview> {
       ),
     );
   }
-
-  // Widget _buildPhotoCard() {
-  //   final sessions = _goal?.sessions.toList() ?? [];
-  //   final images = sessions
-  //       .map((s) => s.imgPath)
-  //       .where((path) => path != null && path.isNotEmpty)
-  //       .toList();
-
-  //   return Card(
-  //     // color: const Color.fromRGBO(176, 152, 228, 1),
-  //     color: const Color.fromARGB(255, 83, 23, 107),
-  //     margin: EdgeInsets.symmetric(horizontal: deviceWidth * 0.04),
-  //     child: Padding(
-  //       padding: EdgeInsets.all(deviceWidth * 0.04),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Text(
-  //             "Photos",
-  //             style: TextStyle(
-  //               color: Colors.white,
-  //               fontSize: deviceWidth * 0.045,
-  //               fontWeight: FontWeight.bold,
-  //               fontFamily: 'Arimo',
-  //             ),
-  //           ),
-  //           Text(
-  //             "${images.length} photos",
-  //             style: TextStyle(
-  //               color: Colors.white,
-  //               fontSize: deviceWidth * 0.035,
-  //               fontFamily: 'Arimo',
-  //             ),
-  //           ),
-  //           SizedBox(height: deviceHeight * 0.01),
-  //           Container(
-  //             height: deviceHeight * 0.25,
-  //             width: double.infinity,
-  //             decoration: BoxDecoration(
-  //               color: const Color.fromARGB(255, 68, 67, 67),
-  //               borderRadius: BorderRadius.circular(4),
-  //             ),
-  //             child: images.isEmpty
-  //                 ? Center(
-  //                     child: Text(
-  //                       "No photos yet.",
-  //                       style: TextStyle(
-  //                         color: Colors.white70,
-  //                         fontFamily: 'Arimo',
-  //                         fontSize: deviceWidth * 0.04,
-  //                       ),
-  //                     ),
-  //                   )
-  //                 : GridView.builder(
-  //                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-  //                       crossAxisCount: deviceWidth > 600 ? 4 : 2,
-  //                       crossAxisSpacing: 8,
-  //                       mainAxisSpacing: 8,
-  //                       childAspectRatio: 1.2,
-  //                     ),
-  //                     itemCount: images.length,
-  //                     itemBuilder: (context, index) {
-  //                       final imgPath = images[index];
-  //                       return GestureDetector(
-  //                         onTap: () {
-  //                           showDialog(
-  //                             context: context,
-  //                             barrierColor: Colors.black.withOpacity(0.4),
-  //                             barrierDismissible: true,
-  //                             builder: (_) => Dialog(
-  //                               backgroundColor: Colors.transparent,
-  //                               child: Stack(
-  //                                 children: [
-  //                                   BackdropFilter(
-  //                                     filter: ImageFilter.blur(
-  //                                         sigmaX: 8, sigmaY: 8),
-  //                                     child: Container(
-  //                                       color: Colors.transparent,
-  //                                     ),
-  //                                   ),
-  //                                   GestureDetector(
-  //                                     behavior: HitTestBehavior.opaque,
-  //                                     onTap: () => Navigator.of(context).pop(),
-  //                                     child: Center(
-  //                                       child: GestureDetector(
-  //                                         onTap: () {},
-  //                                         child: InteractiveViewer(
-  //                                           child: ClipRRect(
-  //                                             borderRadius:
-  //                                                 BorderRadius.circular(16),
-  //                                             child: Image.file(
-  //                                               File(imgPath),
-  //                                               fit: BoxFit.contain,
-  //                                             ),
-  //                                           ),
-  //                                         ),
-  //                                       ),
-  //                                     ),
-  //                                   ),
-  //                                 ],
-  //                               ),
-  //                             ),
-  //                           );
-  //                         },
-  //                         child: ClipRRect(
-  //                           borderRadius: BorderRadius.circular(8),
-  //                           child: Image.file(
-  //                             File(imgPath),
-  //                             fit: BoxFit.cover,
-  //                           ),
-  //                         ),
-  //                       );
-  //                     },
-  //                   ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildPhotoCard() {
     final sessions = _goal?.sessions.toList() ?? [];
