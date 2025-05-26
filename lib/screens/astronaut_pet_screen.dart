@@ -16,6 +16,9 @@ class AstronautPetScreen extends StatefulWidget {
   State<AstronautPetScreen> createState() => _AstronautPetScreenState();
 }
 
+// track pet travel state
+enum PetTravelState { idle, readyToLaunch, traveling, arrived }
+
 class _AstronautPetScreenState extends State<AstronautPetScreen>
     with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
@@ -31,6 +34,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   late Animation<double> _floatingAnimation;
   late Animation<double> _rotationAnimation;
 
+  // default pet travel state is idle
+  PetTravelState _petTravelState = PetTravelState.idle;
   @override
   void initState() {
     super.initState();
@@ -388,7 +393,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("No finished study sessions yet!",
+          return Text("please add your first goal",
               style: TextStyle(color: Colors.white));
         }
 
@@ -416,7 +421,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return CircularProgressIndicator();
         }
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("Add a Study Goal/Study Now!",
+          return Text("please add your first goal",
               style: TextStyle(color: Colors.white));
         }
         final pet = snapshot.data!;
@@ -439,13 +444,13 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return SizedBox.shrink();
         }
 
-        // If progress is full and not already traveling/arrived, go to traveling screen
-        if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
+        // If progress is full , not travelling,
+        if (progress >= 1.0 && !pet.isTraveling) {
           Future.microtask(() async {
             pet.progress = 0.0;
             pet.isTraveling = true;
-            pet.hasArrived = false;
             pet.planetsCount += 1;
+
             await widget.isar.updatePet(pet);
             if (mounted) {
               Navigator.pushReplacement(
@@ -582,36 +587,29 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          margin: const EdgeInsets.only(right: 10),
-          child: Image.asset(
-            iconPath,
-            width: 24,
-            height: 24,
+        Image.asset(
+          iconPath,
+          width: 24,
+          height: 24,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 14,
           ),
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 18,
           ),
         ),
       ],

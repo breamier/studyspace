@@ -505,12 +505,10 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         }
 
         // If progress is full and not already traveling/arrived, go to traveling screen
-        if (progress >= 1.0 && !pet.isTraveling && !pet.hasArrived) {
+        if (progress >= 1.0 && !pet.isTraveling) {
           Future.microtask(() async {
             pet.progress = 0.0;
             pet.isTraveling = true;
-            pet.hasArrived = false;
-            pet.planetsCount += 1;
 
             await widget.isar.updatePet(pet);
             if (mounted) {
@@ -583,32 +581,29 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          margin: const EdgeInsets.only(right: 10),
-          child: Image.asset(iconPath, width: 24, height: 24),
+        Image.asset(
+          iconPath,
+          width: 24,
+          height: 24,
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 18,
           ),
         ),
       ],

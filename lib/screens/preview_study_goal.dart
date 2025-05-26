@@ -281,6 +281,14 @@ class PreviewStudyGoal extends StatelessWidget {
                         await Scheduler().initializeSessions(goal);
                     goal.upcomingSessionDates = sessionDates;
                     await IsarService().addGoal(goal);
+
+                    // initialize hp and mission progress - check if the new added goal is the first goal
+                    final allGoals = await IsarService().getAllGoals();
+
+                    if (allGoals.length == 1) {
+                      await IsarService().initializeDefaultPet();
+                    }
+
                     if (context.mounted) {
                       // Navigator.popUntil(context, (route) => route.isFirst);
                       Navigator.pushAndRemoveUntil(

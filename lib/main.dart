@@ -68,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
     isarService = IsarService();
     await NotifService().initNotification();
     await isarService.initializeDailyMissions();
-    isarService.initializeDefaultPet();
 
     setState(() {
       hasSeenTutorial = seen;
