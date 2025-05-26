@@ -1,20 +1,25 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:isar/isar.dart';
-import 'package:studyspace/main.dart';
 
 import '../models/goal.dart';
 import '../models/mission.dart';
+import '../models/session.dart';
 import '../services/isar_service.dart';
+import '../services/astro_hp_service.dart';
 
 class StudySessionRewards extends StatefulWidget {
   final Id goalId;
   final int? study30MinReward;
+  final Session session;
 
-  const StudySessionRewards(
-      {super.key, required this.goalId, this.study30MinReward});
+  const StudySessionRewards({
+    super.key,
+    required this.goalId,
+    this.study30MinReward,
+    required this.session,
+  });
 
   @override
   State<StudySessionRewards> createState() => _StudySessionRewardsState();
@@ -122,107 +127,112 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
             // Mission Board
             Spacer(),
             Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.sizeOf(context).width * 0.045),
-                child: FutureBuilder<List<Mission>>(
-                  future: _missionsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final missions = snapshot.data ?? [];
-                    final displayedMissions = missions.take(3).toList();
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white),
-                        color: const Color.fromARGB(40, 189, 183, 183),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Completed Missions',
+              padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.sizeOf(context).width * 0.045),
+              child: FutureBuilder<List<Mission>>(
+                future: _missionsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final missions = snapshot.data ?? [];
+                  // find the 30-min mission if completed
+                  final filtered = missions.where(
+                    (m) => m.text == 'Study 30 minutes straight' && m.completed,
+                  );
+                  final study30MinMission =
+                      filtered.isNotEmpty ? filtered.first : null;
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white),
+                      color: const Color.fromARGB(40, 189, 183, 183),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Completed Missions',
+                            style: TextStyle(
+                              fontFamily: 'BrunoAceSC',
+                              fontSize: 18,
+                            )),
+                        SizedBox(height: 10),
+                        if (study30MinMission != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              study30MinMission.text,
                               style: TextStyle(
-                                fontFamily: 'BrunoAceSC',
+                                  fontFamily: 'Amino',
+                                  fontSize: 18,
+                                  color: Colors.green),
+                            ),
+                          )
+                        else
+                          Text(
+                            "You have not completed any mission",
+                            style: TextStyle(
+                                fontFamily: 'Amino',
                                 fontSize: 18,
-                              )),
-                          if (widget.study30MinReward != null) ...[
-                            Text(
-                              "You completed 'Study 30 minutes straight'!",
-                              style: TextStyle(
-                                  fontFamily: 'Amino',
-                                  fontSize: 18,
-                                  color: Colors.green),
-                            ),
-                            Text(
-                              "Lumix: +${widget.study30MinReward} points",
-                              style: TextStyle(
-                                  fontFamily: 'Amino',
-                                  fontSize: 18,
-                                  color: Colors.green),
-                            ),
-                            SizedBox(height: 10),
-                          ],
-                          if (displayedMissions.isEmpty)
-                            Text(
-                              "No missions completed yet.",
-                              style: TextStyle(
-                                  fontFamily: 'Amino',
-                                  fontSize: 18,
-                                  color: Colors.red),
-                            ),
-                          //   for (var i = 0; i < displayedMissions.length; i++)
-                          //     Padding(
-                          //       padding:
-                          //           const EdgeInsets.only(bottom: 8, left: 10),
-                          //       child: Row(children: [
-                          //         Icon(Icons.arrow_right, size: 18),
-                          //         Text(
-                          //           displayedMissions[i].text,
-                          //           style: TextStyle(
-                          //               fontSize: 14, fontFamily: 'Amino'),
-                          //         ),
-                          //       ]),
-                          //     ),
-                        ],
-                      ),
-                    );
-                  },
-                )),
-            // Mission Board
+                                color: Colors.red),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 30),
+            // Rewards Board
             Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.045),
-                child: FutureBuilder<List<Mission>>(
-                  future: _missionsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final missions = snapshot.data ?? [];
-                    final displayedMissions = missions.take(3).toList();
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white),
-                        color: const Color.fromARGB(40, 189, 183, 183),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(children: [
-                            Icon(Icons.star),
-                            Text('Rewards',
-                                style: TextStyle(
-                                  fontFamily: 'BrunoAceSC',
-                                  fontSize: 18,
-                                ))
-                          ]),
-                          SizedBox(height: 10),
-                          Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.045),
+              child: FutureBuilder<List<Mission>>(
+                future: _missionsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final missions = snapshot.data ?? [];
+                  // find the 30-min mission if completed
+                  final study30MinMission = missions
+                      .where((m) =>
+                          m.text == 'Study 30 minutes straight' && m.completed)
+                      .cast<Mission?>()
+                      .firstWhere((_) => true, orElse: () => null);
+                  // calculate hp increase for this session
+                  return FutureBuilder<double>(
+                    future: _goal != null
+                        ? AstroHpService(_isarService).calculateHpIncrease(
+                            session: widget.session,
+                            goal: _goal!,
+                          )
+                        : Future.value(0.0),
+                    builder: (context, hpSnapshot) {
+                      final hpIncrease = hpSnapshot.data ?? 0.0;
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white),
+                          color: const Color.fromARGB(40, 189, 183, 183),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(children: [
+                              Icon(Icons.star),
+                              Text('Rewards',
+                                  style: TextStyle(
+                                    fontFamily: 'BrunoAceSC',
+                                    fontSize: 18,
+                                  ))
+                            ]),
+                            SizedBox(height: 10),
+                            // hp increase by fetching hpIncrease from the hp_service
+                            Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 10),
                               decoration: BoxDecoration(
@@ -236,65 +246,52 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
                                 child: Row(children: [
                                   Icon(Icons.rocket_launch_outlined, size: 18),
                                   Text(
-                                    "Experience",
+                                    "Health Points",
                                     style: TextStyle(
                                         fontSize: 14, fontFamily: 'Amino'),
                                   ),
                                   Spacer(),
-                                  Text("+10")
+                                  Text("+${hpIncrease.toStringAsFixed(1)} HP")
                                 ]),
-                              )),
-                          SizedBox(height: 10),
-                          Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white),
-                                color: Colors.white24,
-                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: 8, top: 8, left: 10),
-                                child: Row(children: [
-                                  Icon(Icons.map_outlined, size: 18),
-                                  Text(
-                                    "Experience",
-                                    style: TextStyle(
-                                        fontSize: 14, fontFamily: 'Amino'),
-                                  ),
-                                  Spacer(),
-                                  Text("+10")
-                                ]),
-                              )),
-                          SizedBox(height: 10),
-                          Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.white),
-                                color: Colors.white24,
-                                borderRadius: BorderRadius.circular(12),
+                            ),
+                            SizedBox(height: 10),
+                            // reward points by fetching reward points from the mission
+                            if (study30MinMission != null) ...[
+                              Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white),
+                                  color: Colors.white24,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: 8, top: 8, left: 10),
+                                  child: Row(children: [
+                                    Icon(Icons.map_outlined, size: 18),
+                                    Text(
+                                      "Lumix",
+                                      style: TextStyle(
+                                          fontSize: 14, fontFamily: 'Amino'),
+                                    ),
+                                    Spacer(),
+                                    Text(
+                                        "+${study30MinMission.rewardPoints} pts")
+                                  ]),
+                                ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: 8, top: 8, left: 10),
-                                child: Row(children: [
-                                  Icon(Icons.stars_outlined, size: 18),
-                                  Text(
-                                    "Resource Points",
-                                    style: TextStyle(
-                                        fontSize: 14, fontFamily: 'Amino'),
-                                  ),
-                                  Spacer(),
-                                  Text("+10")
-                                ]),
-                              )),
-                        ],
-                      ),
-                    );
-                  },
-                )),
+                              SizedBox(height: 10),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
             Spacer(),
             ElevatedButton(
               onPressed: () {

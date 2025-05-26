@@ -1,9 +1,11 @@
 // lib/services/mission_service.dart
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:intl/intl.dart';
 import '../models/mission.dart';
 import '../models/astronaut_pet.dart';
+import '../item_manager.dart';
 
 final List<MissionData> dailyMissions = [
   MissionData(
@@ -121,6 +123,10 @@ class MissionService {
       double progressIncrease = mission.rewardPoints / 100.0;
       pet.progress = min(1.0, pet.progress + progressIncrease);
       await isar.astronautPets.put(pet);
+
+      debugPrint("adding points to item manager: ${mission.rewardPoints}");
+      await ItemManager()
+          .addPoints(mission.rewardPoints, reason: "Mission completed");
     }
   }
 
