@@ -39,7 +39,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   bool _isShaking = false;
   bool _isOpening = false;
 
-  final int _itemCost = 10;
+  final int _itemCost = 100;
   List<Map<String, dynamic>> _lootBoxItems = [];
   final ItemManager _itemManager = ItemManager();
 

@@ -362,14 +362,7 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                     },
                   ),
                   const SizedBox(height: 12),
-                  _buildProgressBar(
-                    'assets/rocket_icon.png',
-                    'Progress',
-                    0.85,
-                    Colors.grey.shade500,
-                    Colors.grey.shade400,
-                    Colors.black,
-                  ),
+                  _buildMissionProgressBar(),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
                   AnimatedSwitcher(
@@ -937,29 +930,30 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
     );
   }
 
-  Widget _buildMissionProgress(String missionName, double progress) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          missionName,
-          style: const TextStyle(
-            fontFamily: 'Arimo',
-            color: Colors.white,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.black,
-            color: Colors.white,
-            minHeight: 6,
-          ),
-        ),
-      ],
+  Widget _buildMissionProgressBar() {
+    return FutureBuilder<AstronautPet?>(
+      future: _currentPet,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Text("please add your first goal",
+              style: TextStyle(color: Colors.white));
+        }
+        final pet = snapshot.data!;
+        final progress = pet.progress;
+
+        // If pet has arrived, show the progress bar
+        return _buildProgressBar(
+          'assets/rocket_icon.png',
+          'Progress: ${(progress * 100).toStringAsFixed(0)}%',
+          progress,
+          Colors.blue,
+          Colors.green,
+          Colors.white,
+        );
+      },
     );
   }
 }

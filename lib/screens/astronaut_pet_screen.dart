@@ -42,11 +42,11 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     super.initState();
     _currentPet = widget.isar.getCurrentPet();
     _getCurrentItems();
-    //_itemChangeNotifier = _itemManager.itemChangedNotifier;
-    //_itemChangeNotifier.addListener(_handleItemChanged);
+    _itemChangeNotifier = _itemManager.itemChangedNotifier;
+    _itemChangeNotifier.addListener(_handleItemChanged);
 
     // for item manager
-    _itemChangeNotifier = ItemManager().itemChangedNotifier;
+    //_itemChangeNotifier = ItemManager().itemChangedNotifier;
     _itemChangeNotifier.addListener(_onPointsChanged);
 
     // Initialize floating animation

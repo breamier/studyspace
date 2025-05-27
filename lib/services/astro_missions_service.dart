@@ -101,9 +101,15 @@ class MissionService {
         await isar.missions.put(mission);
 
         // Update user progress and pet HP
-        await _applyMissionReward(mission);
+        // await _applyMissionReward(mission);
       }
     });
+
+    // Now, outside the transaction, apply the reward
+    final mission = await isar.missions.get(missionId);
+    if (mission != null) {
+      await _applyMissionReward(mission);
+    }
   }
 
   // fail a mission
@@ -122,7 +128,9 @@ class MissionService {
     if (pet != null) {
       double progressIncrease = mission.rewardPoints / 100.0;
       pet.progress = min(1.0, pet.progress + progressIncrease);
-      await isar.astronautPets.put(pet);
+      await isar.writeTxn(() async {
+        await isar.astronautPets.put(pet);
+      });
 
       debugPrint("adding points to item manager: ${mission.rewardPoints}");
       await ItemManager()
