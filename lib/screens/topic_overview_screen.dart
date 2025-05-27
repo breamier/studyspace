@@ -503,17 +503,15 @@ class _TopicOverviewState extends State<TopicOverview> {
 
     final dateFormat = DateFormat('dd/MM/yyyy');
     final targetDate = dateFormat.format(_goal!.end);
-    final nextSessionDate =
-        dateFormat.format(DateTime.now().add(const Duration(days: 1)));
-    // Fetch the latest Session to add values in the Scheduler
-    // Scheduler().scheduleNextReview(
-    //   startDate: session.start,
-    //   endDate: goal.end,
-    //   difficulty: session.difficulty,
-    //   previousRepetitions: goal.reps,
-    //   previousInterval: goal.interval,
-    //   previousEaseFactor: goal.easeFactor
-    // );
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final nextSession = _goal!.upcomingSessionDates
+        .where((d) => d.isAfter(today))
+        .toList()
+      ..sort((a, b) => a.compareTo(b));
+    final nextSessionDate = nextSession.isNotEmpty
+        ? DateFormat('dd/MM/yyyy').format(nextSession.first)
+        : "No upcoming session";
 
     return WillPopScope(
       onWillPop: () async {

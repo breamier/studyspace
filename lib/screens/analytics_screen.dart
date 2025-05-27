@@ -207,7 +207,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               style: kBodyFont.copyWith(
                   color: kWhite, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(subject, style: kBodyFont.copyWith(fontSize: 12)),
+          Text("Ends on: $subject", style: kBodyFont.copyWith(fontSize: 12)),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.zero,

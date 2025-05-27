@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/main.dart';
 
@@ -96,6 +97,16 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
   }
 
   Widget _buildUI() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final nextSession = _goal!.upcomingSessionDates
+        .where((d) => d.isAfter(today))
+        .toList()
+      ..sort((a, b) => a.compareTo(b));
+    final nextSessionDate = nextSession.isNotEmpty
+        ? DateFormat('dd/MM/yyyy').format(nextSession.first)
+        : "No upcoming session";
+
     return SafeArea(
       child: SizedBox.expand(
         child: Column(
@@ -113,8 +124,7 @@ class _StudySessionRewardsState extends State<StudySessionRewards>
               "next study session schedule",
               style: TextStyle(fontFamily: 'BrunoAceSC', fontSize: 18),
             ),
-            Text(
-                '${_goal!.start.day}/${_goal!.start.month}/${_goal!.start.year}',
+            Text(nextSessionDate,
                 style: TextStyle(
                   fontFamily: 'BrunoAceSC',
                   fontSize: 18,
