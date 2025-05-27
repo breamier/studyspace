@@ -364,13 +364,13 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   setState(() {
                     _travelState = TravelState.arrived;
                   });
+                  await _setPetArrived();
                   final updatedPet = await widget.isar.getCurrentPet();
                   if (updatedPet != null) {
                     updatedPet.isTraveling = false;
                     await widget.isar.updatePet(updatedPet);
                   }
                 }
-                _setPetArrived();
               });
             }
           });
