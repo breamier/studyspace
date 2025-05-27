@@ -350,7 +350,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
           Future.microtask(() async {
             pet.progress = 0.0;
             pet.isTraveling = false;
-            pet.planetsCount += 1;
 
             await widget.isar.updatePet(pet);
             ItemManager().itemChangedNotifier.value =
