@@ -682,34 +682,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                     // Layered display of astronaut and spaceship
                     const SizedBox(height: 30),
 
-                    // Show current planet status
-                    FutureBuilder<AstronautPet?>(
-                      future: _currentPet,
-                      builder: (context, petSnapshot) {
-                        if (petSnapshot.hasData && petSnapshot.data != null) {
-                          final pet = petSnapshot.data!;
-                          if (pet.planetsCount >= 1) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: Text(
-                                  'Your astronaut has arrived on Saturn! 🪐',
-                                  style: kBodyFont.copyWith(
-                                    fontSize: 12,
-                                    fontFamily: 'Arimo',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-
                     Center(
                       child: _buildLayeredDisplay(),
                     ),

@@ -30,6 +30,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
 
   Map<String, dynamic>? _currentAstronaut;
   Map<String, dynamic>? _currentSpaceship;
+  int _userPoints = 0;
 
   late AnimationController _sizeController;
   late AnimationController _positionController;
@@ -53,6 +54,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     _itemChangeNotifier.addListener(_handleItemChanged);
 
     _getCurrentItems();
+    _loadUserPoints();
 
     _currentPet = widget.isar.getCurrentPet();
     _currentPet.then((pet) {
@@ -60,16 +62,14 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         setState(() {
           if (widget.forceArrived) {
             _travelState = TravelState.arrived;
-            _setPetArrived();
           } else if (pet.isTraveling) {
-            _travelState = TravelState.initial;
-            Future.delayed(const Duration(seconds: 10), () async {
+            _travelState = TravelState.traveling;
+            Future.delayed(const Duration(seconds: 5), () async {
               if (mounted) {
                 setState(() {
                   _travelState = TravelState.arrived;
                 });
-                await _setPetArrived();
-
+                // Remove hasArrived property usage since it doesn't exist
                 pet.isTraveling = false;
                 await widget.isar.updatePet(pet);
               }
@@ -136,7 +136,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         if (mounted) {
           setState(() {
             _travelState = TravelState.arrived;
-            _setPetArrived();
           });
         }
       });
@@ -155,8 +154,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
   void _handleItemChanged() {
     if (mounted) {
       _getCurrentItems();
+      _loadUserPoints();
       setState(() {
-        // Trigger rebuild to update user points display
+        // Trigger rebuild to update user points display and refresh UI
         _currentPet = _isarService.getCurrentPet();
       });
     }
@@ -169,12 +169,12 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     });
   }
 
-  // track if pet is traveling and set it to false when it arrives
-  Future<void> _setPetArrived() async {
-    final pet = await widget.isar.getCurrentPet();
-    if (pet != null && pet.isTraveling) {
-      pet.isTraveling = false;
-      await widget.isar.updatePet(pet);
+  void _loadUserPoints() async {
+    final points = await _itemManager.getUserPoints();
+    if (mounted) {
+      setState(() {
+        _userPoints = points;
+      });
     }
   }
 
@@ -226,20 +226,13 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                FutureBuilder<int>(
-                  future: ItemManager().getUserPoints(),
-                  builder: (context, snapshot) {
-                    final points = snapshot.data ?? 0;
-                    return Text(
-                      '$points',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    );
-                  },
-                )
+                Text(
+                  '$_userPoints',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500),
+                ),
               ],
             ),
           ),
@@ -312,9 +305,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                       setState(() {
                         _travelState = TravelState.arrived;
                       });
-                      await _setPetArrived();
                       final pet = await widget.isar.getCurrentPet();
                       if (pet != null) {
+                        // Remove hasArrived property usage since it doesn't exist
                         pet.isTraveling = false;
                         await widget.isar.updatePet(pet);
                       }
@@ -322,9 +315,8 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   });
                 });
               },
-              child: Image.asset(
-                'assets/moon_with_spaceship.png',
-                fit: BoxFit.contain,
+              child: Center(
+                child: _buildLayeredDisplay(),
               ),
             ),
           ),
@@ -343,16 +335,16 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         final pet = snapshot.data!;
         final hpPercent = pet.hp / 100.0;
         final progress = pet.progress;
-
         widget.isar.updatePet(pet);
 
         if (_travelState == TravelState.arrived && progress >= 1.0) {
           Future.microtask(() async {
             pet.progress = 0.0;
-            pet.isTraveling = false;
-
+            pet.isTraveling = true;
+            // Remove hasArrived property usage since it doesn't exist
             await widget.isar.updatePet(pet);
-
+            ItemManager().itemChangedNotifier.value =
+                !ItemManager().itemChangedNotifier.value;
             if (mounted) {
               setState(() {
                 _travelState = TravelState.traveling;
@@ -362,9 +354,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   setState(() {
                     _travelState = TravelState.arrived;
                   });
-                  await _setPetArrived();
                   final updatedPet = await widget.isar.getCurrentPet();
                   if (updatedPet != null) {
+                    // Remove hasArrived property usage since it doesn't exist
                     updatedPet.isTraveling = false;
                     await widget.isar.updatePet(updatedPet);
                   }
@@ -453,7 +445,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     );
   }
 
-  // NEW PLANET 2 - Updated to show Saturn with layered display
   Widget _buildArrivedView() {
     return SingleChildScrollView(
       child: Column(
@@ -635,7 +626,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     }
   }
 
-  // Define custom positions for each spaceship type
   Map<String, double> _getSpaceshipPosition(String imagePath) {
     switch (imagePath) {
       case 'assets/white_spaceship.png':
@@ -809,6 +799,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
+            flex: 2,
             child: FutureBuilder<AstronautPet?>(
               future: _currentPet,
               builder: (context, snapshot) {
@@ -920,7 +911,6 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
           style: const TextStyle(
             fontFamily: 'Arimo',
             color: Colors.white,
-            fontSize: 14,
           ),
         ),
         const SizedBox(height: 4),
