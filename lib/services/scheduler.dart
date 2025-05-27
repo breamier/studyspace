@@ -144,12 +144,28 @@ class Scheduler {
     required DateTime completedDate,
     required String newDifficulty,
   }) async {
-    goal.upcomingSessionDates.removeWhere((d) =>
-        d.year == completedDate.year &&
-        d.month == completedDate.month &&
-        d.day == completedDate.day);
-    goal.completedSessionDates.add(completedDate);
+    final today = DateTime(
+      completedDate.year,
+      completedDate.month,
+      completedDate.day,
+    );
 
+    // check if scheduled
+    final isScheduled = goal.upcomingSessionDates.any((d) =>
+        d.year == today.year && d.month == today.month && d.day == today.day);
+
+    // check if completed today
+    final alreadyCompletedToday = goal.completedSessionDates.any((d) =>
+        d.year == today.year && d.month == today.month && d.day == today.day);
+
+    final isFirstScheduledSessionToday = isScheduled && !alreadyCompletedToday;
+
+    // Always update difficulty
+    goal.difficulty = newDifficulty;
+
+    final scheduler = Scheduler();
+
+    // Update SM parameters
     int quality = Scheduler().mapDifficultyToQuality(newDifficulty);
 
     final sm = Sm();
@@ -159,11 +175,23 @@ class Scheduler {
       previousInterval: goal.interval,
       previousEaseFactor: goal.easeFactor,
     );
+    // If first session on scheduled date, update SM + recalculate
+    if (isFirstScheduledSessionToday) {
+      goal.reps = response.repetitions;
+      goal.interval = response.interval;
+      goal.easeFactor = response.easeFactor;
+      goal.difficulty = newDifficulty;
 
-    goal.reps = response.repetitions;
-    goal.interval = response.interval;
-    goal.easeFactor = response.easeFactor;
-    goal.difficulty = newDifficulty;
+      goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
+      print("SM updated. Upcoming session dates recalculated:");
+    } else {
+      // If not first session, just recalculate upcoming sessions based on new difficulty
+      goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
+      print("Only upcoming sessions recalculated.");
+    }
+
+    // Add completed date
+    goal.completedSessionDates.add(today);
 
     final session = Session()
       ..difficulty = newDifficulty
@@ -178,9 +206,6 @@ class Scheduler {
       goal: goal,
     );
 
-    final scheduler = Scheduler();
-    goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
-
     await IsarService().updateGoal(goal);
 
     print(
@@ -191,6 +216,7 @@ class Scheduler {
     }
   }
 
+  // Postpones the next Study Session
   Future<void> postponeStudySession({required Id goalId}) async {
     final goal = await IsarService().getGoalById(goalId);
     final today = DateTime.now();
