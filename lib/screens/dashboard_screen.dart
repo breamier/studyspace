@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
+import 'package:studyspace/screens/topic_overview_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
@@ -682,6 +683,34 @@ class _DashboardScreenState extends State<DashboardScreen>
                     // Layered display of astronaut and spaceship
                     const SizedBox(height: 30),
 
+                    // Show current planet status
+                    FutureBuilder<AstronautPet?>(
+                      future: _currentPet,
+                      builder: (context, petSnapshot) {
+                        if (petSnapshot.hasData && petSnapshot.data != null) {
+                          final pet = petSnapshot.data!;
+                          if (pet.hasArrived && !pet.isTraveling) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  'Your astronaut has arrived on Saturn! 🪐',
+                                  style: kBodyFont.copyWith(
+                                    fontSize: 12,
+                                    fontFamily: 'Arimo',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+
                     Center(
                       child: _buildLayeredDisplay(),
                     ),
@@ -773,13 +802,22 @@ class _DashboardScreenState extends State<DashboardScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () {
-              Navigator.push(
+              if (buttonText == 'View') {
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => StudySessionCamera(
-                            goalId: goalId,
-                            isarService: widget.isar,
-                          )));
+                    builder: (context) => TopicOverview(goalId: goalId),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StudySessionCamera(
+                              goalId: goalId,
+                              isarService: widget.isar,
+                            )));
+              }
             },
             child: Text(buttonText, style: kBodyFont),
           )

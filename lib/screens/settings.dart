@@ -65,25 +65,6 @@ class _SettingsState extends State<Settings> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Settings', style: kHeadingFont),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                )
-              ],
-              border: Border.all(color: Colors.white54, width: 1),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
       ),
       body: Stack(
         children: [

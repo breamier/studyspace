@@ -290,7 +290,6 @@ class PreviewStudyGoal extends StatelessWidget {
                     }
 
                     if (context.mounted) {
-                      // Navigator.popUntil(context, (route) => route.isFirst);
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(

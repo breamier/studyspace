@@ -144,12 +144,28 @@ class Scheduler {
     required DateTime completedDate,
     required String newDifficulty,
   }) async {
-    goal.upcomingSessionDates.removeWhere((d) =>
-        d.year == completedDate.year &&
-        d.month == completedDate.month &&
-        d.day == completedDate.day);
-    goal.completedSessionDates.add(completedDate);
+    final today = DateTime(
+      completedDate.year,
+      completedDate.month,
+      completedDate.day,
+    );
 
+    // check if scheduled
+    final isScheduled = goal.upcomingSessionDates.any((d) =>
+        d.year == today.year && d.month == today.month && d.day == today.day);
+
+    // check if completed today
+    final alreadyCompletedToday = goal.completedSessionDates.any((d) =>
+        d.year == today.year && d.month == today.month && d.day == today.day);
+
+    final isFirstScheduledSessionToday = isScheduled && !alreadyCompletedToday;
+
+    // Always update difficulty
+    goal.difficulty = newDifficulty;
+
+    final scheduler = Scheduler();
+
+    // Update SM parameters
     int quality = Scheduler().mapDifficultyToQuality(newDifficulty);
 
     final sm = Sm();
@@ -159,11 +175,23 @@ class Scheduler {
       previousInterval: goal.interval,
       previousEaseFactor: goal.easeFactor,
     );
+    // If first session on scheduled date, update SM + recalculate
+    if (isFirstScheduledSessionToday) {
+      goal.reps = response.repetitions;
+      goal.interval = response.interval;
+      goal.easeFactor = response.easeFactor;
+      goal.difficulty = newDifficulty;
 
-    goal.reps = response.repetitions;
-    goal.interval = response.interval;
-    goal.easeFactor = response.easeFactor;
-    goal.difficulty = newDifficulty;
+      goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
+      print("SM updated. Upcoming session dates recalculated:");
+    } else {
+      // If not first session, just recalculate upcoming sessions based on new difficulty
+      goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
+      print("Only upcoming sessions recalculated.");
+    }
+
+    // Add completed date
+    goal.completedSessionDates.add(today);
 
     final session = Session()
       ..difficulty = newDifficulty
@@ -178,9 +206,6 @@ class Scheduler {
       goal: goal,
     );
 
-    final scheduler = Scheduler();
-    goal.upcomingSessionDates = await scheduler.initializeSessions(goal);
-
     await IsarService().updateGoal(goal);
 
     print(
@@ -191,44 +216,57 @@ class Scheduler {
     }
   }
 
+  // Postpones the next Study Session
+
   Future<void> postponeStudySession({required Id goalId}) async {
     final goal = await IsarService().getGoalById(goalId);
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-
-    if (goal!.upcomingSessionDates.length <= 2) {
+    if (goal == null) {
+      print("Goal not found");
       return;
     }
 
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+
+    // Find the nearest upcoming session date from today
     goal.upcomingSessionDates.sort((a, b) => a.compareTo(b));
+    DateTime? nearest;
 
-    final firstDate = goal.upcomingSessionDates.first;
-    final lastDate = goal.upcomingSessionDates.last;
-
-    final middleDates = goal.upcomingSessionDates
-        .sublist(1, goal.upcomingSessionDates.length - 1);
-
-    if (todayDate.isBefore(middleDates.first)) {
-      // Case 1: today < first middle session
-      final postponedDate = middleDates.first.add(const Duration(days: 1));
-      middleDates[0] = postponedDate;
-    } else if (todayDate.isAfter(middleDates.first)) {
-      // Case 2: today > first middle session
-      final postponedDate = todayDate.add(const Duration(days: 1));
-      middleDates.removeWhere((d) => d.isBefore(todayDate));
-      middleDates.insert(0, postponedDate);
-    } else {
-      // Case 3: today == first middle session
-      final postponedDate = todayDate.add(const Duration(days: 1));
-      middleDates.add(postponedDate);
+    for (final date in goal.upcomingSessionDates) {
+      final normalized = DateTime(date.year, date.month, date.day);
+      if (!normalized.isBefore(normalizedToday)) {
+        nearest = normalized;
+        break;
+      }
     }
 
-    final updated = <DateTime>[firstDate, ...middleDates.toSet(), lastDate];
-    updated.sort((a, b) => a.compareTo(b));
-    goal.upcomingSessionDates = updated;
+    if (nearest == null) {
+      print("No upcoming sessions to postpone.");
+      return;
+    }
+
+    final postponed = nearest.add(Duration(days: 1));
+
+    // Remove original date and add the new one if it's not already in the list
+    goal.upcomingSessionDates.removeWhere((d) =>
+        d.year == nearest!.year &&
+        d.month == nearest.month &&
+        d.day == nearest.day);
+
+    final alreadyExists = goal.upcomingSessionDates.any((d) =>
+        d.year == postponed.year &&
+        d.month == postponed.month &&
+        d.day == postponed.day);
+
+    if (!alreadyExists) {
+      goal.upcomingSessionDates.add(postponed);
+    }
+
+    // Sort updated list
+    goal.upcomingSessionDates.sort((a, b) => a.compareTo(b));
 
     await IsarService().updateGoal(goal);
 
-    print("Postponed: updated upcoming dates: ${goal.upcomingSessionDates}");
+    print("Postponed session from $nearest to $postponed");
   }
 }
