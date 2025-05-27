@@ -16,7 +16,6 @@ class AstronautPet {
   int planetsCount = 0;
   String skinType = 'default';
   String shipType = 'default';
-  bool hasArrived = false;
 
   bool isTraveling = false;
 
