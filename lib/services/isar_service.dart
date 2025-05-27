@@ -10,6 +10,7 @@ import '../models/astronaut_pet.dart';
 
 import 'astro_missions_service.dart';
 import 'package:studyspace/models/hp_check_log.dart';
+import '../item_manager.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -145,7 +146,27 @@ class IsarService extends ChangeNotifier {
 
   Future<void> clearDb() async {
     final isar = await db;
-    await isar.writeTxn(() => isar.clear());
+    await isar.writeTxn(() async {
+      await isar.clear();
+
+      // Now add the default pet
+      final defaultPet = AstronautPet()
+        ..name = 'Sigma'
+        ..isAlive = true
+        ..hp = 100.0
+        ..progress = 0.0
+        ..progressPoints = 0
+        ..planetsCount = 0
+        ..skinType = 'assets/blue_astronaut.png'
+        ..shipType = 'assets/white_spaceship.png'
+        ..isTraveling = false
+        ..userPoints = 0;
+
+      await isar.astronautPets.put(defaultPet);
+    });
+
+    ItemManager().itemChangedNotifier.value =
+        !ItemManager().itemChangedNotifier.value;
   }
 
   Future<Isar> openDB() async {

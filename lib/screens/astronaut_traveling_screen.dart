@@ -352,8 +352,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
             pet.isTraveling = false;
 
             await widget.isar.updatePet(pet);
-            ItemManager().itemChangedNotifier.value =
-                !ItemManager().itemChangedNotifier.value;
+
             if (mounted) {
               setState(() {
                 _travelState = TravelState.traveling;

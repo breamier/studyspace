@@ -484,6 +484,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
             pet.planetsCount += 1;
 
             await widget.isar.updatePet(pet);
+
             if (mounted) {
               Navigator.pushReplacement(
                 context,
