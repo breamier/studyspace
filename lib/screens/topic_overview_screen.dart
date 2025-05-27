@@ -323,8 +323,19 @@ class _TopicOverviewState extends State<TopicOverview> {
 
   // postpone dialog
   void _postponeNotification() {
-    final tomorrow = DateTime.now().add(const Duration(days: 1));
-    final formattedDate = DateFormat('MM/dd/yyyy').format(tomorrow);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final nextSession = _goal!.upcomingSessionDates
+        .where((d) => !d.isBefore(today))
+        .toList()
+      ..sort((a, b) => a.compareTo(b));
+    final nextSessionDate = nextSession.isNotEmpty
+        ? nextSession.first.add(const Duration(days: 1))
+        : null;
+
+    final nextSessionDisplay = nextSessionDate != null
+        ? DateFormat('dd/MM/yyyy').format(nextSessionDate)
+        : "No upcoming session";
 
     showPopupCard(
       context: context,
@@ -366,7 +377,7 @@ class _TopicOverviewState extends State<TopicOverview> {
                           ),
                           SizedBox(height: deviceHeight * 0.02),
                           Text(
-                            "I'll move your mission to $formattedDate",
+                            "I'll move your mission to $nextSessionDisplay",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: deviceWidth * 0.035,
@@ -390,10 +401,17 @@ class _TopicOverviewState extends State<TopicOverview> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   ElevatedButton(
-                                    onPressed: () {
-                                      Scheduler().postponeStudySession(
+                                    onPressed: () async {
+                                      await Scheduler().postponeStudySession(
                                           goalId: widget.goalId);
                                       Navigator.pop(context);
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TopicOverview(
+                                              goalId: widget.goalId),
+                                        ),
+                                      );
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color.fromARGB(
@@ -506,7 +524,7 @@ class _TopicOverviewState extends State<TopicOverview> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final nextSession = _goal!.upcomingSessionDates
-        .where((d) => d.isAfter(today))
+        .where((d) => !d.isBefore(today))
         .toList()
       ..sort((a, b) => a.compareTo(b));
     final nextSessionDate = nextSession.isNotEmpty
@@ -545,7 +563,7 @@ class _TopicOverviewState extends State<TopicOverview> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: IconButton(
-                icon: Icon(Icons.delete,
+                icon: Icon(Icons.delete_outline_rounded,
                     color: Colors.redAccent, size: deviceWidth * 0.065),
                 onPressed: _showDeleteGoalDialog,
               ),

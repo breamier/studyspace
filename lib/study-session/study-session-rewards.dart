@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/main.dart';
+import 'package:studyspace/services/scheduler.dart';
 
 import '../models/goal.dart';
 import '../models/mission.dart';
