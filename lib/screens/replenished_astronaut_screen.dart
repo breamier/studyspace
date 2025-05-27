@@ -14,8 +14,7 @@ class ReplenishedAstronautScreen extends StatefulWidget {
       _ReplenishedAstronautScreenState();
 }
 
-class _ReplenishedAstronautScreenState
-    extends State<ReplenishedAstronautScreen>
+class _ReplenishedAstronautScreenState extends State<ReplenishedAstronautScreen>
     with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
   Map<String, dynamic>? _currentAstronaut;
@@ -58,13 +57,13 @@ class _ReplenishedAstronautScreenState
       _currentSpaceship = _itemManager.getCurrentSpaceship();
     });
   }
-  
+
   // Method to get the replenished astronaut image based on current selection
   String _getReplenishedAstronautImage() {
     if (_currentAstronaut == null) {
       return 'assets/replenished_blue_astronaut.png'; // Default fallback
     }
-    
+
     switch (_currentAstronaut!['image']) {
       case 'assets/blue_astronaut.png':
         return 'assets/replenished_blue_astronaut.png';
@@ -129,13 +128,20 @@ class _ReplenishedAstronautScreenState
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  '${_itemManager.userPoints}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500),
-                ),
+                FutureBuilder<int>(
+                  future: ItemManager().getUserPoints(),
+                  builder: (context, snapshot) {
+                    final points = snapshot.data ?? 0;
+                    return Text(
+                      '$points',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -366,10 +372,8 @@ class _ReplenishedAstronautScreenState
               height: MediaQuery.of(context).size.height * 0.4,
             ),
           ),
-          
           if (_currentAstronaut != null)
             _buildReplenishedAstronautPosition(_currentAstronaut!),
-          
           if (_currentSpaceship != null)
             _buildSpaceshipPosition(_currentSpaceship!),
         ],
@@ -380,7 +384,7 @@ class _ReplenishedAstronautScreenState
   // Custom positioning for replenished astronauts based on their type
   Widget _buildReplenishedAstronautPosition(Map<String, dynamic> astronaut) {
     Map<String, double> position = _getAstronautPosition(astronaut['image']);
-    
+
     return Positioned(
       top: MediaQuery.of(context).size.height * position['top']!,
       right: MediaQuery.of(context).size.width * position['right']!,
@@ -399,7 +403,7 @@ class _ReplenishedAstronautScreenState
   // Custom positioning for spaceships based on their type
   Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
     Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
-    
+
     return Positioned(
       top: MediaQuery.of(context).size.height * position['top']!,
       left: MediaQuery.of(context).size.width * position['left']!,
@@ -424,45 +428,45 @@ class _ReplenishedAstronautScreenState
           'right': 0.20,
           'height': 0.14,
           'width': 0.26,
-          'rotation': -7.0, 
+          'rotation': -7.0,
         };
-      
+
       case 'assets/orange_astronaut.png':
         return {
           'top': 0.00,
           'right': 0.20,
           'height': 0.15,
           'width': 0.28,
-          'rotation': -7.0, 
+          'rotation': -7.0,
         };
-      
+
       case 'assets/purple_astronaut.png':
         return {
           'top': 0.01,
           'right': 0.20,
           'height': 0.15,
           'width': 0.27,
-          'rotation': -1.0, 
+          'rotation': -1.0,
         };
-      
+
       case 'assets/black_astronaut.png':
         return {
           'top': 0.00,
           'right': 0.20,
           'height': 0.15,
           'width': 0.26,
-          'rotation': -7.0, 
+          'rotation': -7.0,
         };
-      
+
       case 'assets/green_astronaut.png':
         return {
           'top': 0.01,
           'right': 0.20,
           'height': 0.15,
           'width': 0.26,
-          'rotation': -1.0, 
+          'rotation': -1.0,
         };
-      
+
       default:
         return {
           'top': 0.13,
@@ -483,45 +487,45 @@ class _ReplenishedAstronautScreenState
           'left': 0.10,
           'height': 0.12,
           'width': 0.25,
-          'rotation': -40.0, 
+          'rotation': -40.0,
         };
-      
+
       case 'assets/purple_spaceship.png':
         return {
           'top': -0.02,
           'left': 0.07,
           'height': 0.13,
           'width': 0.26,
-          'rotation': -31.0,  
+          'rotation': -31.0,
         };
-      
+
       case 'assets/orange_spaceship.png':
         return {
           'top': 0.10,
           'left': 0.08,
           'height': 0.12,
           'width': 0.25,
-          'rotation': -45.0, 
+          'rotation': -45.0,
         };
-      
+
       case 'assets/black_spaceship.png':
         return {
           'top': 0.10,
           'left': 0.08,
           'height': 0.12,
           'width': 0.25,
-          'rotation': -45.0, 
+          'rotation': -45.0,
         };
-      
+
       case 'assets/blue_spaceship.png':
         return {
           'top': -0.02,
           'left': 0.07,
           'height': 0.13,
           'width': 0.26,
-          'rotation': -31.0, 
+          'rotation': -31.0,
         };
-      
+
       default:
         return {
           'top': 0.5,

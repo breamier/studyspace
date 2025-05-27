@@ -25,8 +25,6 @@ class AstronautTravelScreen extends StatefulWidget {
 class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     with TickerProviderStateMixin {
   final ItemManager _itemManager = ItemManager();
-
-  // set pet travel state to has arrived
   TravelState _travelState = TravelState.arrived;
   late final ValueNotifier<bool> _itemChangeNotifier;
 
@@ -62,13 +60,16 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         setState(() {
           if (widget.forceArrived) {
             _travelState = TravelState.arrived;
+            _setPetArrived();
           } else if (pet.isTraveling) {
-            _travelState = TravelState.traveling;
-            Future.delayed(const Duration(seconds: 5), () async {
+            _travelState = TravelState.initial;
+            Future.delayed(const Duration(seconds: 10), () async {
               if (mounted) {
                 setState(() {
                   _travelState = TravelState.arrived;
                 });
+                await _setPetArrived();
+
                 pet.isTraveling = false;
                 await widget.isar.updatePet(pet);
               }
@@ -135,6 +136,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         if (mounted) {
           setState(() {
             _travelState = TravelState.arrived;
+            _setPetArrived();
           });
         }
       });
@@ -165,6 +167,15 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
       _currentAstronaut = _itemManager.getCurrentAstronaut();
       _currentSpaceship = _itemManager.getCurrentSpaceship();
     });
+  }
+
+  // track if pet is traveling and set it to false when it arrives
+  Future<void> _setPetArrived() async {
+    final pet = await widget.isar.getCurrentPet();
+    if (pet != null && pet.isTraveling) {
+      pet.isTraveling = false;
+      await widget.isar.updatePet(pet);
+    }
   }
 
   @override
@@ -215,13 +226,20 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  '${_itemManager.userPoints}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500),
-                ),
+                FutureBuilder<int>(
+                  future: ItemManager().getUserPoints(),
+                  builder: (context, snapshot) {
+                    final points = snapshot.data ?? 0;
+                    return Text(
+                      '$points',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -288,12 +306,13 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
               onTap: () {
                 setState(() {
                   _travelState = TravelState.traveling;
-                  // Auto transition to arrived state after 5 seconds
-                  Future.delayed(const Duration(seconds: 10), () async {
+
+                  Future.delayed(const Duration(seconds: 5), () async {
                     if (mounted) {
                       setState(() {
                         _travelState = TravelState.arrived;
                       });
+                      await _setPetArrived();
                       final pet = await widget.isar.getCurrentPet();
                       if (pet != null) {
                         pet.isTraveling = false;
@@ -303,8 +322,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   });
                 });
               },
-              child: Center(
-                child: _buildLayeredDisplay(),
+              child: Image.asset(
+                'assets/moon_with_spaceship.png',
+                fit: BoxFit.contain,
               ),
             ),
           ),
@@ -332,6 +352,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
             pet.isTraveling = false;
 
             await widget.isar.updatePet(pet);
+
             if (mounted) {
               setState(() {
                 _travelState = TravelState.traveling;
@@ -341,6 +362,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   setState(() {
                     _travelState = TravelState.arrived;
                   });
+                  await _setPetArrived();
                   final updatedPet = await widget.isar.getCurrentPet();
                   if (updatedPet != null) {
                     updatedPet.isTraveling = false;
@@ -830,29 +852,36 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          iconPath,
-          width: 24,
-          height: 24,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'BrunoAceSC',
-            color: Colors.white,
-            fontSize: 14,
+        Container(
+          margin: const EdgeInsets.only(right: 10),
+          child: Image.asset(
+            iconPath,
+            width: 24,
+            height: 24,
           ),
         ),
-        const SizedBox(width: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            fontFamily: 'BrunoAceSC',
-            color: Colors.white,
-            fontSize: 18,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: 'BrunoAceSC',
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'BrunoAceSC',
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+              ),
+            ],
           ),
         ),
       ],

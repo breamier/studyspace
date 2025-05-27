@@ -15,14 +15,14 @@ class MarketplaceScreen extends StatefulWidget {
 class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     with TickerProviderStateMixin {
   final Map<String, bool> _clickedButtons = {};
-  
+
   // Animation controllers for the loot box
   late AnimationController _boxController;
   late AnimationController _shakeController;
   late AnimationController _openController;
   late AnimationController _glowController;
   late AnimationController _particleController;
-  
+
   // Animations
   late Animation<double> _boxScale;
   late Animation<double> _shakeAnimation;
@@ -30,7 +30,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   late Animation<double> _lidOffset;
   late Animation<double> _glowOpacity;
   late Animation<double> _particleAnimation;
-  
+
   bool _showLootBox = false;
   String _currentLootBoxId = '';
   String? _selectedItem;
@@ -39,7 +39,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   bool _isShaking = false;
   bool _isOpening = false;
 
-  final int _itemCost = 10;
+  final int _itemCost = 100;
   List<Map<String, dynamic>> _lootBoxItems = [];
   final ItemManager _itemManager = ItemManager();
 
@@ -49,54 +49,54 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controllers
     _boxController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _shakeController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     _openController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _glowController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     // Initialize animations
     _boxScale = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _boxController, curve: Curves.elasticOut),
     );
-    
+
     _shakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut),
     );
-    
+
     _lidRotation = Tween<double>(begin: 0.0, end: -0.6).animate(
       CurvedAnimation(parent: _openController, curve: Curves.easeOutBack),
     );
-    
+
     _lidOffset = Tween<double>(begin: 0.0, end: -30.0).animate(
       CurvedAnimation(parent: _openController, curve: Curves.easeOutBack),
     );
-    
+
     _glowOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
-    
+
     _particleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _particleController, curve: Curves.easeOut),
     );
@@ -107,7 +107,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         _startBoxOpening();
       }
     });
-    
+
     _openController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
@@ -202,11 +202,20 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         children: [
           Image.asset('assets/shooting_star.png', width: 25, height: 25),
           const SizedBox(width: 6),
-          Text(
-            '${_itemManager.userPoints}',
-            style: const TextStyle(
-                color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
-          ),
+          FutureBuilder<int>(
+            future: ItemManager().getUserPoints(),
+            builder: (context, snapshot) {
+              final points = snapshot.data ?? 0;
+              return Text(
+                '$points',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                ),
+              );
+            },
+          )
         ],
       ),
     );
@@ -282,15 +291,15 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     });
   }
 
-  void _attemptPurchase(String id, String itemType) {
-    if (_itemManager.userPoints < _itemCost) {
+  void _attemptPurchase(String id, String itemType) async {
+    int points = await _itemManager.getUserPoints();
+    if (points < _itemCost) {
       _showInsufficientPointsDialog();
       return;
     }
 
-    bool success = _itemManager.deductPoints(_itemCost,
+    bool success = await _itemManager.deductPoints(_itemCost,
         reason: 'Purchased $itemType loot box');
-
     if (!success) {
       _showInsufficientPointsDialog();
       return;
@@ -311,7 +320,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
             style: TextStyle(color: Colors.white, fontFamily: 'BrunoAceSC'),
           ),
           content: const Text(
-            'You need at least 50 points to buy an item.',
+            'You need at least 100 points to buy an item.',
             style: TextStyle(color: Colors.white),
           ),
           actions: [
@@ -430,24 +439,32 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
               ),
               const SizedBox(height: 24),
               Expanded(
-                child: _showResult ? _buildResultView() : _buildAnimatedLootBox(),
+                child:
+                    _showResult ? _buildResultView() : _buildAnimatedLootBox(),
               ),
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: ElevatedButton(
-                  onPressed: _showResult ? _navigateToEditScreen : (_isShaking ? null : _startBoxShaking),
+                  onPressed: _showResult
+                      ? _navigateToEditScreen
+                      : (_isShaking ? null : _startBoxShaking),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _showResult ? const Color(0xFF9CDE7A) : 
-                                   (_isShaking ? Colors.grey : const Color(0xFFFFD700)),
+                    backgroundColor: _showResult
+                        ? const Color(0xFF9CDE7A)
+                        : (_isShaking ? Colors.grey : const Color(0xFFFFD700)),
                     minimumSize: const Size(200, 48),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
                   child: Text(
-                    _showResult ? 'CONTINUE' : 
-                    _isShaking ? 'OPENING...' : 
-                    _isOpening ? 'OPENING...' : 'OPEN BOX',
+                    _showResult
+                        ? 'CONTINUE'
+                        : _isShaking
+                            ? 'OPENING...'
+                            : _isOpening
+                                ? 'OPENING...'
+                                : 'OPEN BOX',
                     style: const TextStyle(
                       fontFamily: 'BrunoAceSC',
                       fontSize: 18,
@@ -485,7 +502,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
             children: [
               // Particle effects
               if (_isOpening) ..._buildParticleEffects(),
-              
+
               // Glow effect
               if (_isOpening)
                 AnimatedBuilder(
@@ -498,7 +515,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.yellowAccent.withOpacity(_glowOpacity.value * 0.6),
+                            color: Colors.yellowAccent
+                                .withOpacity(_glowOpacity.value * 0.6),
                             blurRadius: 40,
                             spreadRadius: 10,
                           ),
@@ -543,24 +561,26 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                               ),
                             ],
                           ),
-                          child: _isOpening && _showResult ? 
-                            Center(
-                              child: Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.yellowAccent, width: 2),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Image.asset(
-                                    _lootBoxItems[_selectedIndex!]['image'],
-                                    fit: BoxFit.contain,
+                          child: _isOpening && _showResult
+                              ? Center(
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                          color: Colors.yellowAccent, width: 2),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Image.asset(
+                                        _lootBoxItems[_selectedIndex!]['image'],
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ) : null,
+                                )
+                              : null,
                         ),
 
                         // Box lid
@@ -587,7 +607,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                                   bottomLeft: Radius.circular(8),
                                   bottomRight: Radius.circular(8),
                                 ),
-                                border: Border.all(color: Colors.amber, width: 3),
+                                border:
+                                    Border.all(color: Colors.amber, width: 3),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.3),
@@ -603,14 +624,15 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                                   decoration: BoxDecoration(
                                     color: Colors.amber,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.orange, width: 1),
+                                    border: Border.all(
+                                        color: Colors.orange, width: 1),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        
+
                         if (!_isOpening)
                           Positioned(
                             bottom: 80,
@@ -620,7 +642,8 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                               decoration: BoxDecoration(
                                 color: Colors.amber,
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: Colors.orange, width: 2),
+                                border:
+                                    Border.all(color: Colors.orange, width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.3),
@@ -651,13 +674,13 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
   List<Widget> _buildParticleEffects() {
     final particles = <Widget>[];
     final random = Random();
-    
+
     for (int i = 0; i < 15; i++) {
       final angle = (2 * pi / 15) * i;
       final distance = 100 * _particleAnimation.value;
       final x = cos(angle) * distance;
       final y = sin(angle) * distance;
-      
+
       particles.add(
         Positioned(
           left: 200 + x,
@@ -668,7 +691,11 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: [Colors.yellow, Colors.orange, Colors.amber][random.nextInt(3)],
+                color: [
+                  Colors.yellow,
+                  Colors.orange,
+                  Colors.amber
+                ][random.nextInt(3)],
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -683,7 +710,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         ),
       );
     }
-    
+
     return particles;
   }
 

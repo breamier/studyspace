@@ -123,7 +123,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     _currentPet.then((pet) {
       if (mounted && pet != null) {
         setState(() {
-          _hasArrivedOnNewPlanet = !pet.isTraveling;
+          _hasArrivedOnNewPlanet =
+              pet.isTraveling == false && pet.planetsCount >= 1;
         });
       }
     });
@@ -687,7 +688,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       builder: (context, petSnapshot) {
                         if (petSnapshot.hasData && petSnapshot.data != null) {
                           final pet = petSnapshot.data!;
-                          if (!pet.isTraveling) {
+                          if (pet.planetsCount >= 1) {
                             return Center(
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 16.0),

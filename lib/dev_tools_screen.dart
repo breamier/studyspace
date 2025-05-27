@@ -13,6 +13,7 @@ import 'package:studyspace/services/scheduler.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'package:studyspace/screens/death_astronaut_screen.dart';
+import 'package:studyspace/item_manager.dart';
 
 class DevToolsScreen extends StatefulWidget {
   final IsarService isar;
@@ -261,6 +262,14 @@ class _DevToolsScreenState extends State<DevToolsScreen> {
                     );
                   },
                   child: const Text("StudySession")),
+              ElevatedButton(
+                onPressed: () async {
+                  await ItemManager().addPoints(10);
+                  int points = await ItemManager().getUserPoints();
+                  print('Current points: $points');
+                },
+                child: Text('Add 10 points'),
+              )
             ],
           ),
         ),
