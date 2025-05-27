@@ -24,6 +24,14 @@ final List<MissionData> dailyMissions = [
     20,
     10,
   ),
+  MissionData(
+    "Purchase a new ship from the shop",
+    MissionType.purchase,
+    MissionDifficulty.medium,
+    25,
+    20,
+    10,
+  ),
   // new mission here
 ];
 

@@ -62,14 +62,16 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         setState(() {
           if (widget.forceArrived) {
             _travelState = TravelState.arrived;
+            _setPetArrived();
           } else if (pet.isTraveling) {
-            _travelState = TravelState.traveling;
-            Future.delayed(const Duration(seconds: 5), () async {
+            _travelState = TravelState.initial;
+            Future.delayed(const Duration(seconds: 10), () async {
               if (mounted) {
                 setState(() {
                   _travelState = TravelState.arrived;
                 });
-                // Remove hasArrived property usage since it doesn't exist
+                await _setPetArrived();
+
                 pet.isTraveling = false;
                 await widget.isar.updatePet(pet);
               }
@@ -136,6 +138,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
         if (mounted) {
           setState(() {
             _travelState = TravelState.arrived;
+            _setPetArrived();
           });
         }
       });
@@ -175,6 +178,14 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
       setState(() {
         _userPoints = points;
       });
+    }
+  }
+
+  Future<void> _setPetArrived() async {
+    final pet = await widget.isar.getCurrentPet();
+    if (pet != null && pet.isTraveling) {
+      pet.isTraveling = false;
+      await widget.isar.updatePet(pet);
     }
   }
 
@@ -300,11 +311,12 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                 setState(() {
                   _travelState = TravelState.traveling;
 
-                  Future.delayed(const Duration(seconds: 5), () async {
+                  Future.delayed(const Duration(seconds: 10), () async {
                     if (mounted) {
                       setState(() {
                         _travelState = TravelState.arrived;
                       });
+                      await _setPetArrived();
                       final pet = await widget.isar.getCurrentPet();
                       if (pet != null) {
                         // Remove hasArrived property usage since it doesn't exist
@@ -315,8 +327,9 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   });
                 });
               },
-              child: Center(
-                child: _buildLayeredDisplay(),
+              child: Image.asset(
+                'assets/moon_with_spaceship.png',
+                fit: BoxFit.contain,
               ),
             ),
           ),
@@ -354,6 +367,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                   setState(() {
                     _travelState = TravelState.arrived;
                   });
+                  await _setPetArrived();
                   final updatedPet = await widget.isar.getCurrentPet();
                   if (updatedPet != null) {
                     // Remove hasArrived property usage since it doesn't exist

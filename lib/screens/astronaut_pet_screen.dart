@@ -53,8 +53,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     _itemChangeNotifier.addListener(_handleItemChanged);
 
     // for item manager
-     _itemChangeNotifier.addListener(_onPointsChanged);
-    
+    _itemChangeNotifier.addListener(_onPointsChanged);
+
     // Initialize floating animation
     _floatingController = AnimationController(
       duration: const Duration(seconds: 3),
@@ -224,7 +224,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-                      child: _shouldShowSaturn 
+                      child: _shouldShowSaturn
                           ? _buildSaturnLayeredDisplay()
                           : _buildMoonLayeredDisplay(),
                     ),
@@ -519,24 +519,23 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         }
         final pet = snapshot.data!;
         final progress = pet.progress;
-        
 
-        // If pet is traveling, always go to traveling screen
-        if (pet.isTraveling) {
-          Future.microtask(() {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      AstronautTravelScreen(isar: widget.isar),
-                ),
-              );
-            }
-          });
+        // // If pet is traveling, always go to traveling screen
+        // if (pet.isTraveling) {
+        //   Future.microtask(() {
+        //     if (mounted) {
+        //       Navigator.pushReplacement(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (context) =>
+        //               AstronautTravelScreen(isar: widget.isar),
+        //         ),
+        //       );
+        //     }
+        //   });
 
-          return SizedBox.shrink();
-        }
+        //   return SizedBox.shrink();
+        // }
 
         // If progress is full , not travelling,
         if (pet.hp > 1.0 && progress >= 1.0 && !pet.isTraveling) {
