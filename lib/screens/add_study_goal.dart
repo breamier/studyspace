@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:studyspace/models/goal.dart';
+import 'package:studyspace/screens/dashboard_screen.dart';
+import 'package:studyspace/services/isar_service.dart';
 import 'preview_study_goal.dart';
 
 class AddStudyGoal extends StatefulWidget {
-  const AddStudyGoal({super.key});
+  final IsarService isar;
+  const AddStudyGoal({super.key, required this.isar});
 
   @override
   State<AddStudyGoal> createState() => _AddStudyGoalState();
@@ -43,7 +46,13 @@ class _AddStudyGoalState extends State<AddStudyGoal> {
               ),
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              DashboardScreen(isar: widget.isar)));
+                },
               ),
             ),
           ),
