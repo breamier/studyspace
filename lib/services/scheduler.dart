@@ -144,7 +144,10 @@ class Scheduler {
     required DateTime completedDate,
     required String newDifficulty,
   }) async {
-    goal.upcomingSessionDates.remove(completedDate);
+    goal.upcomingSessionDates.removeWhere((d) =>
+        d.year == completedDate.year &&
+        d.month == completedDate.month &&
+        d.day == completedDate.day);
     goal.completedSessionDates.add(completedDate);
 
     int quality = Scheduler().mapDifficultyToQuality(newDifficulty);
