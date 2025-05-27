@@ -7,7 +7,6 @@ import 'package:studyspace/item_manager.dart';
 
 import '../services/astro_hp_service.dart';
 import '../models/astronaut_pet.dart';
-import '../services/isar_service.dart';
 
 enum TravelState { initial, traveling, arrived }
 
@@ -57,6 +56,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
     _getCurrentItems();
 
     _currentPet = widget.isar.getCurrentPet();
+    bool hasArrived = false;
     _currentPet.then((pet) {
       if (pet != null) {
         setState(() {
@@ -69,7 +69,7 @@ class _AstronautTravelScreenState extends State<AstronautTravelScreen>
                 setState(() {
                   _travelState = TravelState.arrived;
                 });
-                pet.hasArrived = true;
+                hasArrived = true;
                 pet.isTraveling = false;
                 await widget.isar.updatePet(pet);
               }

@@ -71,6 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   late AnimationController _floatingController;
   late Animation<double> _floatingAnimation;
   late Animation<double> _rotationAnimation;
+  bool hasArrived = false;
 
   @override
   void initState() {
@@ -123,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _currentPet.then((pet) {
       if (mounted && pet != null) {
         setState(() {
-          _hasArrivedOnNewPlanet = pet.hasArrived && !pet.isTraveling;
+          _hasArrivedOnNewPlanet = hasArrived && !pet.isTraveling;
         });
       }
     });
@@ -685,7 +686,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       builder: (context, petSnapshot) {
                         if (petSnapshot.hasData && petSnapshot.data != null) {
                           final pet = petSnapshot.data!;
-                          if (pet.hasArrived && !pet.isTraveling) {
+                          if (hasArrived && !pet.isTraveling) {
                             return Center(
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 16.0),

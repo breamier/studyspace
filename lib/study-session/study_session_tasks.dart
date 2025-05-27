@@ -89,7 +89,6 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
                   ]
                 ,
               );
-              return Text("error");
             }),
 
         !_deleteMode? TextFormField(
