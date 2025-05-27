@@ -69,6 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
     await NotifService().initNotification();
     await isarService.initializeDailyMissions();
 
+    final notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+    if (notificationsEnabled) {
+      await NotifService().scheduleDailyCustomNotifications();
+    }
     setState(() {
       hasSeenTutorial = seen;
     });
