@@ -2,6 +2,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'edit_astronaut_screen.dart';
 import 'package:studyspace/item_manager.dart';
+
+// missions imports
+import '../mission_manager.dart';
+import '../widgets/mission_modal.dart';
+import '../models/mission.dart';
 import '../services/isar_service.dart';
 
 class MarketplaceScreen extends StatefulWidget {
@@ -128,6 +133,32 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
 
     _allSpaceshipsUnlocked =
         spaceships.every((item) => item['unlocked'] == true);
+  }
+
+  void _onShipPurchased(BuildContext context) async {
+    final isarService = widget.isar;
+    final missions = await isarService.getMissions();
+    Mission? mission;
+    try {
+      mission = missions.firstWhere(
+        (m) => m.type == MissionType.purchase && !m.completed,
+      );
+    } catch (_) {
+      mission = null;
+    }
+    if (mission != null) {
+      await isarService.completeMission(mission.id);
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => MissionCompleteModal(
+          mission: mission!,
+          onContinue: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -816,6 +847,10 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     selectedItem['selected_image'] = selectedItem['image'];
 
     _itemManager.unlockItem(selectedItem['name'], selectedItem['type']);
+
+    if (selectedItem['type'] == 'spaceship') {
+      _onShipPurchased(context);
+    }
 
     setState(() {
       _checkAllItemsUnlocked();
