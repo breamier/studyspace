@@ -320,7 +320,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
             style: TextStyle(color: Colors.white, fontFamily: 'BrunoAceSC'),
           ),
           content: const Text(
-            'You need at least 50 points to buy an item.',
+            'You need at least 100 points to buy an item.',
             style: TextStyle(color: Colors.white),
           ),
           actions: [
