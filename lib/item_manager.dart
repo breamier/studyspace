@@ -196,4 +196,28 @@ class ItemManager {
           orElse: () => _spaceships[0]);
     }
   }
+
+  void resetUnlocksAndCurrent() {
+    // Reset astronauts
+    for (var astro in _astronauts) {
+      if (astro['name'] == 'Blue Astronaut') {
+        astro['unlocked'] = true;
+        astro['current'] = true;
+      } else {
+        astro['unlocked'] = false;
+        astro['current'] = false;
+      }
+    }
+    // Reset spaceships
+    for (var ship in _spaceships) {
+      if (ship['name'] == 'White Spaceship') {
+        ship['unlocked'] = true;
+        ship['current'] = true;
+      } else {
+        ship['unlocked'] = false;
+        ship['current'] = false;
+      }
+    }
+    itemChangedNotifier.value = !itemChangedNotifier.value;
+  }
 }

@@ -10,6 +10,7 @@ import '../models/astronaut_pet.dart';
 
 import 'astro_missions_service.dart';
 import 'package:studyspace/models/hp_check_log.dart';
+import '../item_manager.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -146,6 +147,12 @@ class IsarService extends ChangeNotifier {
   Future<void> clearDb() async {
     final isar = await db;
     await isar.writeTxn(() => isar.clear());
+
+    ItemManager().resetUnlocksAndCurrent();
+
+    ItemManager().itemChangedNotifier.value =
+        !ItemManager().itemChangedNotifier.value;
+    notifyListeners();
   }
 
   Future<Isar> openDB() async {
