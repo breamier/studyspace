@@ -217,44 +217,56 @@ class Scheduler {
   }
 
   // Postpones the next Study Session
+
   Future<void> postponeStudySession({required Id goalId}) async {
     final goal = await IsarService().getGoalById(goalId);
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-
-    if (goal!.upcomingSessionDates.length <= 2) {
+    if (goal == null) {
+      print("Goal not found");
       return;
     }
 
+    final today = DateTime.now();
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+
+    // Find the nearest upcoming session date from today
     goal.upcomingSessionDates.sort((a, b) => a.compareTo(b));
+    DateTime? nearest;
 
-    final firstDate = goal.upcomingSessionDates.first;
-    final lastDate = goal.upcomingSessionDates.last;
-
-    final middleDates = goal.upcomingSessionDates
-        .sublist(1, goal.upcomingSessionDates.length - 1);
-
-    if (todayDate.isBefore(middleDates.first)) {
-      // Case 1: today < first middle session
-      final postponedDate = middleDates.first.add(const Duration(days: 1));
-      middleDates[0] = postponedDate;
-    } else if (todayDate.isAfter(middleDates.first)) {
-      // Case 2: today > first middle session
-      final postponedDate = todayDate.add(const Duration(days: 1));
-      middleDates.removeWhere((d) => d.isBefore(todayDate));
-      middleDates.insert(0, postponedDate);
-    } else {
-      // Case 3: today == first middle session
-      final postponedDate = todayDate.add(const Duration(days: 1));
-      middleDates.add(postponedDate);
+    for (final date in goal.upcomingSessionDates) {
+      final normalized = DateTime(date.year, date.month, date.day);
+      if (!normalized.isBefore(normalizedToday)) {
+        nearest = normalized;
+        break;
+      }
     }
 
-    final updated = <DateTime>[firstDate, ...middleDates.toSet(), lastDate];
-    updated.sort((a, b) => a.compareTo(b));
-    goal.upcomingSessionDates = updated;
+    if (nearest == null) {
+      print("No upcoming sessions to postpone.");
+      return;
+    }
+
+    final postponed = nearest.add(Duration(days: 1));
+
+    // Remove original date and add the new one if it's not already in the list
+    goal.upcomingSessionDates.removeWhere((d) =>
+        d.year == nearest!.year &&
+        d.month == nearest.month &&
+        d.day == nearest.day);
+
+    final alreadyExists = goal.upcomingSessionDates.any((d) =>
+        d.year == postponed.year &&
+        d.month == postponed.month &&
+        d.day == postponed.day);
+
+    if (!alreadyExists) {
+      goal.upcomingSessionDates.add(postponed);
+    }
+
+    // Sort updated list
+    goal.upcomingSessionDates.sort((a, b) => a.compareTo(b));
 
     await IsarService().updateGoal(goal);
 
-    print("Postponed: updated upcoming dates: ${goal.upcomingSessionDates}");
+    print("Postponed session from $nearest to $postponed");
   }
 }
