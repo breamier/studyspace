@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/models/mission.dart';
+import 'package:studyspace/screens/topic_overview_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/screens/information_screen.dart';
 import 'package:studyspace/screens/astronaut_pet_screen.dart';
@@ -143,14 +144,16 @@ class _DashboardScreenState extends State<DashboardScreen>
               children: [
                 // Show Saturn if astronaut has arrived on new planet, otherwise show Moon
                 Image.asset(
-                  _hasArrivedOnNewPlanet ? 'assets/saturn.png' : 'assets/moon.png',
+                  _hasArrivedOnNewPlanet
+                      ? 'assets/saturn.png'
+                      : 'assets/moon.png',
                   fit: BoxFit.contain,
                   height: 280,
                 ),
-                
+
                 if (_currentAstronaut != null)
                   _buildAstronautPosition(_currentAstronaut!),
-                
+
                 if (_currentSpaceship != null)
                   _buildSpaceshipPosition(_currentSpaceship!),
               ],
@@ -164,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   // Custom positioning for astronauts based on their type
   Widget _buildAstronautPosition(Map<String, dynamic> astronaut) {
     Map<String, double> position = _getAstronautPosition(astronaut['image']);
-    
+
     return Positioned(
       top: 280 * position['top']!,
       right: 280 * position['right']!,
@@ -183,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   // Custom positioning for spaceships based on their type
   Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
     Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
-    
+
     return Positioned(
       top: 280 * position['top']!,
       left: 280 * position['left']!,
@@ -204,7 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (_hasArrivedOnNewPlanet) {
       return _getSaturnAstronautPosition(imagePath);
     }
-    
+
     // Original Moon positions
     switch (imagePath) {
       case 'assets/blue_astronaut.png':
@@ -215,7 +218,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.30,
           'rotation': -7.0,
         };
-      
+
       case 'assets/orange_astronaut.png':
         return {
           'top': -0.12,
@@ -224,7 +227,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.40,
           'rotation': 25.0,
         };
-      
+
       case 'assets/purple_astronaut.png':
         return {
           'top': 0.05,
@@ -233,7 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.40,
           'rotation': 2.0,
         };
-      
+
       case 'assets/black_astronaut.png':
         return {
           'top': -0.05,
@@ -242,7 +245,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.28,
           'rotation': -7.0,
         };
-      
+
       case 'assets/green_astronaut.png':
         return {
           'top': -0.05,
@@ -251,7 +254,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.30,
           'rotation': 10.0,
         };
-      
+
       default:
         return {
           'top': 0.13,
@@ -274,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': -7.0,
         };
-      
+
       case 'assets/orange_astronaut.png':
         return {
           'top': -0.05,
@@ -283,7 +286,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.30,
           'rotation': 15.0,
         };
-      
+
       case 'assets/purple_astronaut.png':
         return {
           'top': 0.02,
@@ -292,7 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.28,
           'rotation': 2.0,
         };
-      
+
       case 'assets/black_astronaut.png':
         return {
           'top': -0.02,
@@ -301,7 +304,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': -7.0,
         };
-      
+
       case 'assets/green_astronaut.png':
         return {
           'top': -0.01,
@@ -310,7 +313,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': 10.0,
         };
-      
+
       default:
         return {
           'top': -0.02,
@@ -327,7 +330,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (_hasArrivedOnNewPlanet) {
       return _getSaturnSpaceshipPosition(imagePath);
     }
-    
+
     // Original Moon positions
     switch (imagePath) {
       case 'assets/white_spaceship.png':
@@ -338,7 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': -40.0,
         };
-      
+
       case 'assets/purple_spaceship.png':
         return {
           'top': -0.18,
@@ -347,7 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.30,
           'rotation': -31.0,
         };
-      
+
       case 'assets/orange_spaceship.png':
         return {
           'top': 0.18,
@@ -356,7 +359,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': -40.0,
         };
-      
+
       case 'assets/black_spaceship.png':
         return {
           'top': 0.18,
@@ -365,7 +368,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': -40.0,
         };
-      
+
       case 'assets/blue_spaceship.png':
         return {
           'top': -0.10,
@@ -374,7 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.30,
           'rotation': -40.0,
         };
-      
+
       default:
         return {
           'top': 0.5,
@@ -397,7 +400,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.22,
           'rotation': -40.0,
         };
-   
+
       case 'assets/purple_spaceship.png':
         return {
           'top': -0.08,
@@ -406,7 +409,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           'width': 0.25,
           'rotation': -18.0,
         };
- 
+
       case 'assets/orange_spaceship.png':
         return {
           'top': 0.08,
@@ -678,7 +681,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                     // Layered display of astronaut and spaceship
                     const SizedBox(height: 30),
-                    
+
                     // Show current planet status
                     FutureBuilder<AstronautPet?>(
                       future: _currentPet,
@@ -706,7 +709,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         return const SizedBox.shrink();
                       },
                     ),
-                    
+
                     Center(
                       child: _buildLayeredDisplay(),
                     ),
@@ -798,13 +801,22 @@ class _DashboardScreenState extends State<DashboardScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () {
-              Navigator.push(
+              if (buttonText == 'View') {
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => StudySessionCamera(
-                            goalId: goalId,
-                            isarService: widget.isar,
-                          )));
+                    builder: (context) => TopicOverview(goalId: goalId),
+                  ),
+                );
+              } else {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StudySessionCamera(
+                              goalId: goalId,
+                              isarService: widget.isar,
+                            )));
+              }
             },
             child: Text(buttonText, style: kBodyFont),
           )
