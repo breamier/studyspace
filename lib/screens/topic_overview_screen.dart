@@ -563,7 +563,7 @@ class _TopicOverviewState extends State<TopicOverview> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: IconButton(
-                icon: Icon(Icons.delete,
+                icon: Icon(Icons.delete_outline_rounded,
                     color: Colors.redAccent, size: deviceWidth * 0.065),
                 onPressed: _showDeleteGoalDialog,
               ),
