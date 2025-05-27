@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/screens/dashboard_screen.dart';
@@ -16,6 +15,7 @@ class StudySession extends StatefulWidget {
   final Id goalId;
   final String imgLoc;
   final IsarService isarService;
+
   const StudySession(
       {super.key,
       required this.goalId,
@@ -28,7 +28,8 @@ class StudySession extends StatefulWidget {
   }
 }
 
-class _StateStudySession extends State<StudySession> {
+class _StateStudySession extends State<StudySession>
+    with TickerProviderStateMixin {
   final IsarService _isarService = IsarService();
   late Future<Goal?> goal;
   Timer? timer;
@@ -67,9 +68,15 @@ class _StateStudySession extends State<StudySession> {
     "No, Thanks",
   ];
 
+  late AnimationController _floatingController;
+  late Animation<double> _floatingAnimation;
+  late Animation<double> _rotationAnimation;
+
   @override
   void dispose() {
     timer?.cancel();
+    _floatingController.dispose();
+
     super.dispose();
   }
 
@@ -91,6 +98,18 @@ class _StateStudySession extends State<StudySession> {
         _isLoading = false;
       });
     });
+    _floatingController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -6.0, end: 6.0)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
+
+    _rotationAnimation = Tween<double>(begin: -0.2, end: -0.1)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_floatingController);
   }
 
   @override
@@ -147,6 +166,9 @@ class _StateStudySession extends State<StudySession> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              SizedBox(
+                  height: MediaQuery.sizeOf(context).height *
+                      0.1), // Add space below the app bar
               timerStack(),
               SizedBox(height: MediaQuery.sizeOf(context).height * 0.1),
               Text("current session",
@@ -224,14 +246,15 @@ class _StateStudySession extends State<StudySession> {
           strDuration,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontFamily: "Digital-7", // Use a digital font if available
-            fontSize: 64,
+            fontFamily: "Digital-7",
+            // Use a digital font if available
+            fontSize: 50,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             shadows: [
               Shadow(
                 blurRadius: 16,
-                color: Colors.deepPurpleAccent.withOpacity(0.7),
+                color: Colors.deepPurpleAccent.withValues(alpha: 0.7),
                 offset: Offset(0, 0),
               ),
             ],
@@ -246,7 +269,7 @@ class _StateStudySession extends State<StudySession> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: "Digital-7",
-              fontSize: 32,
+              fontSize: 25,
               fontWeight: FontWeight.bold,
               color: Colors.white,
               shadows: [
@@ -266,8 +289,8 @@ class _StateStudySession extends State<StudySession> {
 
   Widget timerContainer() {
     return Container(
-      width: MediaQuery.sizeOf(context).width * 0.75,
-      height: MediaQuery.sizeOf(context).width * 0.75,
+      width: MediaQuery.sizeOf(context).width * 0.65,
+      height: MediaQuery.sizeOf(context).width * 0.65,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -283,7 +306,7 @@ class _StateStudySession extends State<StudySession> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.5),
+            color: Colors.deepPurple.withValues(alpha: 0.5),
             blurRadius: 32,
             spreadRadius: 4,
             offset: Offset(0, 8),
@@ -295,42 +318,47 @@ class _StateStudySession extends State<StudySession> {
   }
 
   Widget timerButton() {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [Colors.deepPurpleAccent, Colors.purpleAccent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.deepPurpleAccent.withOpacity(0.5),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          isActive = !isActive;
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Colors.deepPurpleAccent, Colors.purpleAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            isActive = !isActive;
-          });
-        },
-        style: ButtonStyle(
-          shape: WidgetStateProperty.all(CircleBorder()),
-          backgroundColor: WidgetStateProperty.all(Colors.transparent),
-          shadowColor: WidgetStateProperty.all(Colors.transparent),
-          elevation: WidgetStateProperty.all(0),
-          minimumSize: WidgetStateProperty.all(Size(
-              MediaQuery.sizeOf(context).width * 0.15,
-              MediaQuery.sizeOf(context).width * 0.15)),
-          overlayColor: WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.deepPurpleAccent.withOpacity(0.5),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
-        child: Icon(
-          isActive ? Icons.pause_rounded : Icons.play_arrow_rounded,
-          color: Colors.white,
-          size: 40,
+        child: ElevatedButton(
+          onPressed: null,
+          // Disable the button's onPressed, handled by GestureDetector
+          style: ButtonStyle(
+            shape: WidgetStateProperty.all(CircleBorder()),
+            backgroundColor: WidgetStateProperty.all(Colors.transparent),
+            shadowColor: WidgetStateProperty.all(Colors.transparent),
+            elevation: WidgetStateProperty.all(0),
+            minimumSize: WidgetStateProperty.all(Size(
+                MediaQuery.sizeOf(context).width * 0.15,
+                MediaQuery.sizeOf(context).width * 0.15)),
+            overlayColor:
+                WidgetStateProperty.all(Colors.white.withOpacity(0.1)),
+          ),
+          child: Icon(
+            isActive ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: 40,
+          ),
         ),
       ),
     );
@@ -342,6 +370,11 @@ class _StateStudySession extends State<StudySession> {
       clipBehavior: Clip.none,
       children: [
         timerContainer(),
+        Positioned(
+          left: MediaQuery.sizeOf(context).width * 0.15,
+          top: MediaQuery.sizeOf(context).height * -0.1,
+          child: _buildLayeredDisplay(),
+        ),
         Positioned(
           bottom: MediaQuery.sizeOf(context).height * -0.03,
           child: timerButton(),
@@ -639,5 +672,83 @@ class _StateStudySession extends State<StudySession> {
         ),
       ),
     );
+  }
+
+  Widget _buildLayeredDisplay() {
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          AnimatedBuilder(
+            animation: _floatingController,
+            builder: (context, child) {
+              return SizedBox(
+                  child: Transform.translate(
+                offset: Offset(0, _floatingAnimation.value),
+                child: Transform.rotate(
+                  angle: _rotationAnimation.value,
+                  child: Hero(
+                    tag: 'selected-image',
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(
+                          child: Image.asset(
+                            'assets/purple_astronaut.png',
+                            fit: BoxFit.contain,
+                            height: MediaQuery.of(context).size.height * 0.15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ));
+            },
+          ),
+          SizedBox(
+            width: MediaQuery.sizeOf(context).width * 0.4,
+              child: AnimatedBuilder(
+            animation: AnimationController(
+              duration: const Duration(seconds: 3),
+              vsync: this,
+            )..repeat(reverse: true),
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, _floatingAnimation.value),
+                child: DefaultTextStyle(
+                  softWrap: true,
+                  textWidthBasis: TextWidthBasis.values[1],
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontFamily: "BrunoAceSC",
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 7.0,
+                        color: Colors.white,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  child: AnimatedTextKit(
+                    animatedTexts: [
+                      TyperAnimatedText("Keep up the great work!"),
+                      TyperAnimatedText("You're doing amazing!"),
+                      TyperAnimatedText("Stay focused, you're almost there!"),
+                      TyperAnimatedText("Every minute counts, keep going!"),
+                      TyperAnimatedText(
+                          "You're making progress, don't stop now!"),
+                      TyperAnimatedText("Your future self will thank you!"),
+                    ],
+                    isRepeatingAnimation: true,
+                    pause: const Duration(minutes: 10),
+                    repeatForever: true,
+                  ),
+                ),
+              );
+            },
+          ))
+        ]);
   }
 }
