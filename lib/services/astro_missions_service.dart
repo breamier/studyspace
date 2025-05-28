@@ -1,16 +1,18 @@
 // lib/services/mission_service.dart
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:intl/intl.dart';
 import '../models/mission.dart';
 import '../models/astronaut_pet.dart';
+import '../item_manager.dart';
 
 final List<MissionData> dailyMissions = [
   MissionData(
     "Take a picture before a study session",
     MissionType.selfie,
     MissionDifficulty.easy,
-    50,
+    25,
     20,
     10,
   ),
@@ -18,8 +20,24 @@ final List<MissionData> dailyMissions = [
     "Study 30 minutes straight",
     MissionType.study,
     MissionDifficulty.easy,
-    50,
+    25,
     20,
+    10,
+  ),
+  MissionData(
+    "Purchase a new ship from the shop",
+    MissionType.purchase,
+    MissionDifficulty.medium,
+    25,
+    20,
+    10,
+  ),
+  MissionData(
+    "Travel to your first 2 planets",
+    MissionType.travel,
+    MissionDifficulty.medium,
+    25,
+    30,
     10,
   ),
   // new mission here
@@ -37,7 +55,7 @@ class MissionService {
   Future<void> initializeDailyMissions() async {
     final todayKey = _getTodayKey();
 
-    // delete old missions that are not completed (in batches)
+    // 1. Delete old missions that are not for today and not completed
     final oldMissions = await isar.missions
         .filter()
         .not()
@@ -55,19 +73,19 @@ class MissionService {
       });
     }
 
-    // 2. Delete all today's missions
+    // 2. Check if today's missions already exist
     final todayMissions =
         await isar.missions.filter().dailyKeyEqualTo(todayKey).findAll();
     if (todayMissions.isNotEmpty) {
-      await isar.writeTxn(() async {
-        await isar.missions.deleteAll(todayMissions.map((m) => m.id).toList());
-      });
+      // Already initialized for today, do nothing!
+      return;
     }
 
-    // 3. Add up to 3 missions from dailyMissions
-    final missionsToAdd = dailyMissions.take(3).toList();
+    // 3. Add up to 3 missions from dailyMissions (randomized)
+    final missionsToAdd = List<MissionData>.from(dailyMissions)..shuffle();
+    final selectedMissions = missionsToAdd.take(3).toList();
     await isar.writeTxn(() async {
-      for (final missionData in missionsToAdd) {
+      for (final missionData in selectedMissions) {
         final mission = Mission(
           text: missionData.text,
           type: missionData.type,
@@ -99,9 +117,15 @@ class MissionService {
         await isar.missions.put(mission);
 
         // Update user progress and pet HP
-        await _applyMissionReward(mission);
+        // await _applyMissionReward(mission);
       }
     });
+
+    // Now, outside the transaction, apply the reward
+    final mission = await isar.missions.get(missionId);
+    if (mission != null) {
+      await _applyMissionReward(mission);
+    }
   }
 
   // fail a mission
@@ -120,7 +144,13 @@ class MissionService {
     if (pet != null) {
       double progressIncrease = mission.rewardPoints / 100.0;
       pet.progress = min(1.0, pet.progress + progressIncrease);
-      await isar.astronautPets.put(pet);
+      await isar.writeTxn(() async {
+        await isar.astronautPets.put(pet);
+      });
+
+      debugPrint("adding points to item manager: ${mission.rewardPoints}");
+      await ItemManager()
+          .addPoints(mission.rewardPoints, reason: "Mission completed");
     }
   }
 

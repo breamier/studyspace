@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../services/isar_service.dart';
+import '../models/astronaut_pet.dart';
+
 class ItemManager {
   static final ItemManager _instance = ItemManager._internal();
   factory ItemManager() => _instance;
   ItemManager._internal();
-  
-  int _userPoints = 100;
 
-  int get userPoints => _userPoints;
-  
+  final IsarService _isarService = IsarService();
+
+  Future<int> getUserPoints() async {
+    final pet = await _isarService.getCurrentPet();
+    return pet?.userPoints ?? 0;
+  }
+
   final List<Map<String, dynamic>> _transactions = [];
-  
-  List<Map<String, dynamic>> get transactions => 
+
+  List<Map<String, dynamic>> get transactions =>
       List<Map<String, dynamic>>.from(_transactions);
-  
+
   final ValueNotifier<bool> itemChangedNotifier = ValueNotifier<bool>(false);
-  
+
   final List<Map<String, dynamic>> _astronauts = [
     {
       'name': 'Blue Astronaut',
@@ -112,22 +118,22 @@ class ItemManager {
     },
   ];
 
-  List<Map<String, dynamic>> get astronauts => 
+  List<Map<String, dynamic>> get astronauts =>
       List<Map<String, dynamic>>.from(_astronauts);
 
-  List<Map<String, dynamic>> get spaceships => 
+  List<Map<String, dynamic>> get spaceships =>
       List<Map<String, dynamic>>.from(_spaceships);
 
-  List<Map<String, dynamic>> get unlockedAstronauts => 
+  List<Map<String, dynamic>> get unlockedAstronauts =>
       _astronauts.where((item) => item['unlocked'] == true).toList();
 
-  List<Map<String, dynamic>> get unlockedSpaceships => 
+  List<Map<String, dynamic>> get unlockedSpaceships =>
       _spaceships.where((item) => item['unlocked'] == true).toList();
 
   void unlockItem(String name, String type) {
     final items = type == 'astronaut' ? _astronauts : _spaceships;
     final index = items.indexWhere((item) => item['name'] == name);
-    
+
     if (index != -1) {
       items[index]['unlocked'] = true;
       itemChangedNotifier.value = !itemChangedNotifier.value;
@@ -136,60 +142,80 @@ class ItemManager {
 
   void setCurrentItem(String name, String type) {
     final items = type == 'astronaut' ? _astronauts : _spaceships;
-    
+
     for (final item in items) {
       item['current'] = false;
     }
-    
+
     final index = items.indexWhere((item) => item['name'] == name);
     if (index != -1) {
       items[index]['current'] = true;
     }
-    
+
     itemChangedNotifier.value = !itemChangedNotifier.value;
   }
-  
-  void addPoints(int amount, {String? reason}) {
-    if (amount <= 0) return;
-    
-    _userPoints += amount;
-    
-    _transactions.add({
-      'type': 'credit',
-      'amount': amount,
-      'reason': reason ?? 'Added points',
-      'timestamp': DateTime.now(),
-    });
+
+  Future<bool> deductPoints(int amount, {String? reason}) async {
+    final pet = await _isarService.getCurrentPet();
+    if (pet != null && pet.userPoints >= amount) {
+      pet.userPoints -= amount;
+      await _isarService.updatePet(pet);
+      itemChangedNotifier.value = !itemChangedNotifier.value;
+      return true;
+    }
+    return false;
   }
-  
-  bool deductPoints(int amount, {String? reason}) {
-    if (_userPoints < amount) return false;
-    
-    _userPoints -= amount;
-    
-    _transactions.add({
-      'type': 'debit',
-      'amount': amount,
-      'reason': reason ?? 'Deducted points',
-      'timestamp': DateTime.now(),
-    });
-    
-    return true;
+
+  Future<void> addPoints(int amount, {String? reason}) async {
+    final pet = await _isarService.getCurrentPet();
+    debugPrint("adding points from mission service item manager: $amount");
+    if (pet != null) {
+      pet.userPoints += amount;
+      await _isarService.updatePet(pet);
+      itemChangedNotifier.value = !itemChangedNotifier.value;
+      debugPrint("succesfully aded: $amount");
+    }
   }
-  
+
   Map<String, dynamic>? getCurrentAstronaut() {
     try {
       return _astronauts.firstWhere((item) => item['current'] == true);
     } catch (_) {
-      return _astronauts.firstWhere((item) => item['unlocked'] == true, orElse: () => _astronauts[0]);
+      return _astronauts.firstWhere((item) => item['unlocked'] == true,
+          orElse: () => _astronauts[0]);
     }
   }
-  
+
   Map<String, dynamic>? getCurrentSpaceship() {
     try {
       return _spaceships.firstWhere((item) => item['current'] == true);
     } catch (_) {
-      return _spaceships.firstWhere((item) => item['unlocked'] == true, orElse: () => _spaceships[0]);
+      return _spaceships.firstWhere((item) => item['unlocked'] == true,
+          orElse: () => _spaceships[0]);
     }
+  }
+
+  void resetUnlocksAndCurrent() {
+    // Reset astronauts
+    for (var astro in _astronauts) {
+      if (astro['name'] == 'Blue Astronaut') {
+        astro['unlocked'] = true;
+        astro['current'] = true;
+      } else {
+        astro['unlocked'] = false;
+        astro['current'] = false;
+      }
+    }
+    // Reset spaceships
+    for (var ship in _spaceships) {
+      if (ship['name'] == 'White Spaceship') {
+        ship['unlocked'] = true;
+        ship['current'] = true;
+      } else {
+        ship['unlocked'] = false;
+        ship['current'] = false;
+      }
+    }
+    itemChangedNotifier.value = !itemChangedNotifier.value;
   }
 }

@@ -7,6 +7,11 @@ import 'package:studyspace/item_manager.dart';
 import 'package:studyspace/services/astro_hp_service.dart';
 import '../models/astronaut_pet.dart';
 import 'astronaut_traveling_screen.dart';
+import 'death_astronaut_screen.dart';
+
+import '../widgets/mission_modal.dart';
+import '../models/mission.dart';
+import '../mission_manager.dart';
 
 class AstronautPetScreen extends StatefulWidget {
   final IsarService isar;
@@ -34,15 +39,35 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   late Animation<double> _floatingAnimation;
   late Animation<double> _rotationAnimation;
 
+  // Animation controller for Saturn bounce effect
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+
   // default pet travel state is idle
   PetTravelState _petTravelState = PetTravelState.idle;
+  bool _shouldShowSaturn = false;
+
+  // travel mission
+  int? _previousPlanetsCount;
+
   @override
   void initState() {
     super.initState();
     _currentPet = widget.isar.getCurrentPet();
     _getCurrentItems();
+    _checkSaturnDisplay();
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
+
+    // Initialize previous planets count
+    widget.isar.getCurrentPet().then((pet) {
+      if (pet != null) {
+        _previousPlanetsCount = pet.planetsCount;
+      }
+    });
+
+    // for item manager
+    _itemChangeNotifier.addListener(_onPointsChanged);
 
     // Initialize floating animation
     _floatingController = AnimationController(
@@ -57,21 +82,44 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     _rotationAnimation = Tween<double>(begin: -0.03, end: 0.03)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(_floatingController);
+
+    // Initialize bounce animation for Saturn
+    _bounceController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _bounceAnimation = Tween<double>(begin: 0.0, end: 10.0)
+        .chain(CurveTween(curve: Curves.easeInOut))
+        .animate(_bounceController);
   }
 
   @override
   void dispose() {
     _itemChangeNotifier.removeListener(_handleItemChanged);
+    _itemChangeNotifier.removeListener(_onPointsChanged);
+
     _floatingController.dispose();
+    _bounceController.dispose();
     super.dispose();
   }
 
-  void _handleItemChanged() {
+  void _checkSaturnDisplay() async {
+    final pet = await widget.isar.getCurrentPet();
+    if (pet != null && pet.planetsCount > 0) {
+      setState(() {
+        _shouldShowSaturn = true;
+      });
+    }
+  }
+
+  void _handleItemChanged() async {
     if (mounted) {
       setState(() {
         _getCurrentItems();
         _currentPet = widget.isar.getCurrentPet();
       });
+      _checkSaturnDisplay();
     }
   }
 
@@ -79,7 +127,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     setState(() {
       _currentAstronaut = _itemManager.getCurrentAstronaut();
       _currentSpaceship = _itemManager.getCurrentSpaceship();
-      
+
       // Debug prints to help troubleshoot
       print('Current Astronaut: $_currentAstronaut');
       print('Current Spaceship: $_currentSpaceship');
@@ -93,6 +141,11 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     setState(() {
       _currentPet = widget.isar.getCurrentPet();
     });
+    _checkSaturnDisplay();
+  }
+
+  void _onPointsChanged() {
+    if (mounted) setState(() {}); // This will rebuild the FutureBuilder
   }
 
   @override
@@ -143,13 +196,20 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  '${_itemManager.userPoints}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500),
-                ),
+                FutureBuilder<int>(
+                  future: ItemManager().getUserPoints(),
+                  builder: (context, snapshot) {
+                    final points = snapshot.data ?? 0;
+                    return Text(
+                      '$points',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -172,23 +232,15 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
                   const SizedBox(height: 12),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
+                  // Removed the arrival message text
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                     ),
                     child: Center(
-                      child: AnimatedBuilder(
-                        animation: _floatingController,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, _floatingAnimation.value),
-                            child: Transform.rotate(
-                              angle: _rotationAnimation.value,
-                              child: _buildLayeredDisplay(),
-                            ),
-                          );
-                        },
-                      ),
+                      child: _shouldShowSaturn
+                          ? _buildSaturnLayeredDisplay()
+                          : _buildMoonLayeredDisplay(),
                     ),
                   ),
                 ],
@@ -204,34 +256,73 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     );
   }
 
-  Widget _buildLayeredDisplay() {
-    return Hero(
-      tag: 'selected-image',
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            child: Image.asset(
-              'assets/moon.png',
-              fit: BoxFit.contain,
-              height: MediaQuery.of(context).size.height * 0.4,
+  Widget _buildMoonLayeredDisplay() {
+    return AnimatedBuilder(
+      animation: _floatingController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _floatingAnimation.value),
+          child: Transform.rotate(
+            angle: _rotationAnimation.value,
+            child: Hero(
+              tag: 'selected-image',
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    child: Image.asset(
+                      'assets/moon.png',
+                      fit: BoxFit.contain,
+                      height: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                  ),
+                  if (_currentAstronaut != null)
+                    _buildAstronautPosition(_currentAstronaut!),
+                  if (_currentSpaceship != null)
+                    _buildSpaceshipPosition(_currentSpaceship!),
+                ],
+              ),
             ),
           ),
-          
-          if (_currentAstronaut != null)
-            _buildAstronautPosition(_currentAstronaut!),
-          
-          if (_currentSpaceship != null)
-            _buildSpaceshipPosition(_currentSpaceship!),
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSaturnLayeredDisplay() {
+    return AnimatedBuilder(
+      animation: _bounceController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _bounceAnimation.value * 0.5),
+          child: Hero(
+            tag: 'saturn-scene',
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  child: Image.asset(
+                    'assets/saturn.png',
+                    fit: BoxFit.contain,
+                    height: MediaQuery.of(context).size.height * 0.4,
+                  ),
+                ),
+                if (_currentAstronaut != null)
+                  _buildAstronautPosition(_currentAstronaut!),
+                if (_currentSpaceship != null)
+                  _buildSpaceshipPosition(_currentSpaceship!),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   // Custom positioning for astronauts based on their type
   Widget _buildAstronautPosition(Map<String, dynamic> astronaut) {
     Map<String, double> position = _getAstronautPosition(astronaut['image']);
-    
+
     return Positioned(
       top: MediaQuery.of(context).size.height * position['top']!,
       right: MediaQuery.of(context).size.width * position['right']!,
@@ -250,7 +341,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   // Custom positioning for spaceships based on their type
   Widget _buildSpaceshipPosition(Map<String, dynamic> spaceship) {
     Map<String, double> position = _getSpaceshipPosition(spaceship['image']);
-    
+
     return Positioned(
       top: MediaQuery.of(context).size.height * position['top']!,
       left: MediaQuery.of(context).size.width * position['left']!,
@@ -275,45 +366,45 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           'right': 0.18,
           'height': 0.13,
           'width': 0.26,
-          'rotation': -7.0, 
+          'rotation': -7.0,
         };
-      
+
       case 'assets/orange_astronaut.png':
         return {
           'top': 0.03,
           'right': 0.20,
           'height': 0.14,
           'width': 0.28,
-          'rotation': 25.0, 
+          'rotation': 25.0,
         };
-      
+
       case 'assets/purple_astronaut.png':
         return {
           'top': 0.05,
           'right': 0.20,
           'height': 0.15,
           'width': 0.27,
-          'rotation': 2.0, 
+          'rotation': 2.0,
         };
-      
+
       case 'assets/black_astronaut.png':
         return {
           'top': 0.01,
           'right': 0.18,
           'height': 0.13,
           'width': 0.26,
-          'rotation': -7.0, 
+          'rotation': -7.0,
         };
-      
+
       case 'assets/green_astronaut.png':
         return {
           'top': 0.02,
           'right': 0.28,
           'height': 0.13,
           'width': 0.26,
-          'rotation': 3.0, 
+          'rotation': 3.0,
         };
-      
+
       default:
         return {
           'top': 0.13,
@@ -334,45 +425,45 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           'left': 0.10,
           'height': 0.12,
           'width': 0.25,
-          'rotation': -40.0, 
+          'rotation': -40.0,
         };
-      
+
       case 'assets/purple_spaceship.png':
         return {
           'top': -0.02,
           'left': 0.07,
           'height': 0.13,
           'width': 0.26,
-          'rotation': -31.0,  
+          'rotation': -31.0,
         };
-      
+
       case 'assets/orange_spaceship.png':
         return {
           'top': 0.10,
           'left': 0.08,
           'height': 0.12,
           'width': 0.25,
-          'rotation': -45.0, 
+          'rotation': -45.0,
         };
-      
+
       case 'assets/black_spaceship.png':
         return {
           'top': 0.10,
           'left': 0.08,
           'height': 0.12,
           'width': 0.25,
-          'rotation': -45.0, 
+          'rotation': -45.0,
         };
-      
+
       case 'assets/blue_spaceship.png':
         return {
           'top': -0.02,
           'left': 0.07,
           'height': 0.13,
           'width': 0.26,
-          'rotation': -31.0, 
+          'rotation': -31.0,
         };
-      
+
       default:
         return {
           'top': 0.5,
@@ -393,13 +484,29 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("please add your first goal",
+          return Text("Want an Astronaut?",
               style: TextStyle(color: Colors.white));
         }
 
         final pet = snapshot.data!;
         final hpPercent = pet.hp / 100.0;
         final hpColor = AstroHpService.getHpColor(hpPercent);
+
+        // if pet is ded, rip r/whoosh
+        if (pet.hp <= 0) {
+          pet.isAlive = false;
+          Future.microtask(() {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DeathAstronautScreen(isar: widget.isar),
+                ),
+              );
+            }
+          });
+          return SizedBox.shrink();
+        }
 
         return _buildProgressBar(
           'assets/astronaut_icon.png',
@@ -421,37 +528,40 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return CircularProgressIndicator();
         }
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("please add your first goal",
+          return Text("Add a Study Goal",
               style: TextStyle(color: Colors.white));
         }
         final pet = snapshot.data!;
         final progress = pet.progress;
 
-        // If pet is traveling, always go to traveling screen
-        if (pet.isTraveling) {
-          Future.microtask(() {
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      AstronautTravelScreen(isar: widget.isar),
-                ),
-              );
-            }
-          });
-
-          return SizedBox.shrink();
-        }
-
         // If progress is full , not travelling,
-        if (progress >= 1.0 && !pet.isTraveling) {
+        if (pet.hp > 1.0 && progress >= 1.0 && !pet.isTraveling) {
           Future.microtask(() async {
             pet.progress = 0.0;
             pet.isTraveling = true;
             pet.planetsCount += 1;
 
             await widget.isar.updatePet(pet);
+
+            debugPrint('hi');
+            // Show mission modal if planetCount is now 2
+            if (pet.planetsCount == 2) {
+              final missionManager = MissionManager(widget.isar);
+              final completedMission = await missionManager
+                  .completeMissionByType(MissionType.travel);
+              debugPrint("Completed mission: $completedMission");
+              if (completedMission != null) {
+                await showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => MissionCompleteModal(
+                    mission: completedMission,
+                    onContinue: () => Navigator.of(context).pop(),
+                  ),
+                );
+              }
+            }
+
             if (mounted) {
               Navigator.pushReplacement(
                 context,
@@ -535,55 +645,53 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   }
 
   Widget _buildStatsSection() {
-  return Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 16),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: FutureBuilder<AstronautPet?>(
-            future: _currentPet,
-            builder: (context, snapshot) {
-              final count = snapshot.data?.planetsCount ?? 0;
-              return _buildStatHeader(
-                'assets/planet_icon.png',
-                'Planets Visited:',
-                count.toString(),
-              );
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: FutureBuilder<AstronautPet?>(
+              future: _currentPet,
+              builder: (context, snapshot) {
+                final count = snapshot.data?.planetsCount ?? 0;
+                return _buildStatHeader(
+                  'assets/planet_icon.png',
+                  'Planets Visited:',
+                  count.toString(),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          _buildActionButton(
+            Icons.shopping_basket,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MarketplaceScreen(isar: widget.isar),
+                ),
+              ).then((_) => setState(() {}));
             },
           ),
-        ),
-        
-        const SizedBox(width: 16),
-        _buildActionButton(
-          Icons.shopping_basket,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MarketplaceScreen(isar: widget.isar),
-              ),
-            ).then((_) => setState(() {})); 
-          },
-        ),
-        
-        const SizedBox(width: 12),
-        _buildActionButton(
-          Icons.edit,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditAstronautScreen(isar: widget.isar),
-              ),
-            ).then((_) => setState(() {})); 
-          },
-        ),
-      ],
-    ),
-  );
-}
+          const SizedBox(width: 12),
+          _buildActionButton(
+            Icons.edit,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditAstronautScreen(isar: widget.isar),
+                ),
+              ).then((_) => setState(() {}));
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
@@ -636,9 +744,8 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           ),
         ),
       ),
-    ); 
+    );
   }
-
 
   Widget _buildMissionProgress(String missionName, double progress) {
     return Column(

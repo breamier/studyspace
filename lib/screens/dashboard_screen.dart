@@ -124,7 +124,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     _currentPet.then((pet) {
       if (mounted && pet != null) {
         setState(() {
-          _hasArrivedOnNewPlanet = pet.hasArrived && !pet.isTraveling;
+          _hasArrivedOnNewPlanet =
+              pet.isTraveling == false && pet.planetsCount >= 1;
         });
       }
     });
@@ -461,8 +462,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   // missions
   Future<List<Mission>> _loadMissions() async {
-    // Initialize daily missions if needed
-    await widget.isar.initializeDailyMissions();
     // Get today's missions
     return await widget.isar.getMissions();
   }
@@ -655,8 +654,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       ),
                                     ),
                                     TextButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
+                                      onPressed: () async {
+                                        await Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
@@ -664,6 +663,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                                     isar: widget.isar),
                                           ),
                                         );
+                                        _refreshMissions();
+                                        setState(() {});
                                       },
                                       label: Text(
                                         'Visit your\nAstronaut >>',

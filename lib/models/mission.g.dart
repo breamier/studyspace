@@ -222,6 +222,8 @@ const _MissiontypeEnumValueMap = {
   r'study': r'study',
   r'minor': r'minor',
   r'selfie': r'selfie',
+  r'travel': r'travel',
+  r'purchase': r'purchase',
   r'deepMindFocus': r'deepMindFocus',
   r'informationOverload': r'informationOverload',
 };
@@ -229,6 +231,8 @@ const _MissiontypeValueEnumMap = {
   r'study': MissionType.study,
   r'minor': MissionType.minor,
   r'selfie': MissionType.selfie,
+  r'travel': MissionType.travel,
+  r'purchase': MissionType.purchase,
   r'deepMindFocus': MissionType.deepMindFocus,
   r'informationOverload': MissionType.informationOverload,
 };

@@ -404,6 +404,16 @@ class _TopicOverviewState extends State<TopicOverview> {
                                     onPressed: () async {
                                       await Scheduler().postponeStudySession(
                                           goalId: widget.goalId);
+
+                                      // decrease HP and progress by 15%
+                                      final pet =
+                                          await _isarService.getCurrentPet();
+                                      if (pet != null) {
+                                        pet.hp = (pet.hp - 15).clamp(0, 100);
+                                        pet.progress = (pet.progress - 0.15)
+                                            .clamp(0.0, 1.0);
+                                        await _isarService.updatePet(pet);
+                                      }
                                       Navigator.pop(context);
                                       Navigator.pushReplacement(
                                         context,

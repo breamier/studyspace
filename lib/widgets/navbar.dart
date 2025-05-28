@@ -70,7 +70,7 @@ class CustomBottomNavBar extends StatelessWidget {
                   (currentIndex >= 0 && currentIndex <= 4) ? currentIndex : 0,
               showUnselectedLabels: true,
               onTap: (index) {
-                if (index != 2) {
+                if (index != 2 && index != currentIndex) {
                   _handleNavigation(context, index);
                 }
               },
