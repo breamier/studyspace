@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'marketplace_screen.dart';
 import 'edit_astronaut_screen.dart';
 import '../services/isar_service.dart';
+
 import 'package:studyspace/item_manager.dart';
+import 'package:studyspace/models/astronaut_pet.dart';
+import 'astronaut_pet_screen.dart';
+import 'dashboard_screen.dart';
 
 class DeathAstronautScreen extends StatefulWidget {
   final IsarService isar;
-  const DeathAstronautScreen({Key? key, required this.isar})
-      : super(key: key);
+  const DeathAstronautScreen({Key? key, required this.isar}) : super(key: key);
 
   @override
-  State<DeathAstronautScreen> createState() =>
-      _DeathAstronautScreenState();
+  State<DeathAstronautScreen> createState() => _DeathAstronautScreenState();
 }
 
 class _DeathAstronautScreenState extends State<DeathAstronautScreen>
@@ -20,6 +22,9 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
   bool _isRevived = false;
   final ItemManager _itemManager = ItemManager();
   Map<String, dynamic>? _currentAstronaut;
+
+  // use to update pet for hp and mission progress
+  late Future<AstronautPet?> _currentPet;
 
   // Animation controllers
   late AnimationController _deathAnimationController;
@@ -44,6 +49,8 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
     _getCurrentAstronaut();
     _initializeAnimations();
     _startDeathAnimation();
+
+    _currentPet = widget.isar.getCurrentPet();
 
     // Show revive dialog after death animation completes
     Future.delayed(const Duration(seconds: 3), () {
@@ -176,6 +183,24 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
       });
       _reviveAnimationController.forward();
       _hpBarAnimationController.forward();
+
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          // First, clear the stack and push DashboardScreen
+          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => DashboardScreen(isar: widget.isar),
+            ),
+            (route) => false,
+          );
+          // Then, push AstronautPetScreen on top of DashboardScreen
+          Navigator.of(context, rootNavigator: true).push(
+            MaterialPageRoute(
+              builder: (context) => AstronautPetScreen(isar: widget.isar),
+            ),
+          );
+        }
+      });
     });
   }
 
@@ -291,13 +316,20 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                   height: 25,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  '${_itemManager.userPoints}',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500),
-                ),
+                FutureBuilder<int>(
+                  future: ItemManager().getUserPoints(),
+                  builder: (context, snapshot) {
+                    final points = snapshot.data ?? 0;
+                    return Text(
+                      '$points',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -321,21 +353,16 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                         'assets/astronaut_icon.png',
                         'HP',
                         _isRevived ? _hpBarAnimation.value : 0.0,
-                        _isRevived ? Colors.green.shade700 : Colors.red.shade700,
-                        _isRevived ? Colors.green.shade400 : Colors.red.shade400,
+                        _isRevived ? Colors.red.shade700 : Colors.red.shade700,
+                        _isRevived
+                            ? const Color.fromARGB(255, 149, 19, 19)
+                            : Colors.red.shade400,
                         Colors.white,
                       );
                     },
                   ),
                   const SizedBox(height: 12),
-                  _buildProgressBar(
-                    'assets/rocket_icon.png',
-                    'Progress',
-                    0.85,
-                    Colors.grey.shade500,
-                    Colors.grey.shade400,
-                    Colors.black,
-                  ),
+                  _buildMissionProgressBar(),
                   _buildStatsSection(),
                   const SizedBox(height: 24),
                   AnimatedSwitcher(
@@ -347,16 +374,20 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                       key: ValueKey(_isRevived),
                       style: TextStyle(
                         fontFamily: 'BrunoAceSC',
-                        color: _isRevived ? const Color(0xFFFFD700) : Colors.red.shade400, 
+                        color: _isRevived
+                            ? const Color(0xFFFFD700)
+                            : Colors.red.shade400,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        shadows: _isRevived ? [
-                          Shadow(
-                            color: Colors.amber.withOpacity(0.5),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ] : null,
+                        shadows: _isRevived
+                            ? [
+                                Shadow(
+                                  color: Colors.amber.withOpacity(0.5),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -435,7 +466,8 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   TweenAnimationBuilder(
-                                    duration: const Duration(milliseconds: 1500),
+                                    duration:
+                                        const Duration(milliseconds: 1500),
                                     tween: Tween<double>(begin: 0.8, end: 1.2),
                                     builder: (context, double value, child) {
                                       return Transform.scale(
@@ -460,17 +492,28 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                                 ],
                               ),
                               const SizedBox(height: 24),
+
+                              // modal for revival confirmation
                               GestureDetector(
-                                onTap: () {
-                                  // Deduct points for revival if there are enough points
-                                  if (_itemManager.deductPoints(10,
-                                      reason: 'Astronaut Revival')) {
+                                onTap: () async {
+                                  // deduct points for revival if there are enough points
+                                  bool success =
+                                      await _itemManager.deductPoints(10,
+                                          reason: 'Astronaut Revival');
+                                  if (success) {
+                                    final pet =
+                                        await widget.isar.getCurrentPet();
+                                    if (pet != null) {
+                                      pet.hp = 30.0;
+                                      pet.isAlive = true;
+                                      await widget.isar.updatePet(pet);
+                                    }
                                     _startReviveAnimation();
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content:
-                                            Text('Insufficient points for revival!'),
+                                        content: Text(
+                                            'Insufficient points for revival!'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
@@ -487,13 +530,15 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                                         height: 50,
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(25),
+                                          borderRadius:
+                                              BorderRadius.circular(25),
                                           border: Border.all(
                                               color: Colors.grey.shade300,
                                               width: 1),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.cyan.withOpacity(0.5),
+                                              color:
+                                                  Colors.cyan.withOpacity(0.5),
                                               blurRadius: 10,
                                               spreadRadius: 1,
                                             ),
@@ -549,12 +594,14 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFFD700).withOpacity(_reviveGlowAnimation.value * 0.0), 
+                          color: const Color(0xFFFFD700)
+                              .withOpacity(_reviveGlowAnimation.value * 0.0),
                           blurRadius: 25,
                           spreadRadius: 8,
                         ),
                         BoxShadow(
-                          color: Colors.amber.withOpacity(_reviveGlowAnimation.value * 0.2),
+                          color: Colors.amber
+                              .withOpacity(_reviveGlowAnimation.value * 0.2),
                           blurRadius: 40,
                           spreadRadius: 12,
                         ),
@@ -606,7 +653,7 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
 
   List<Widget> _buildSparkles() {
     if (!_isRevived) return [];
-    
+
     final sparkles = <Widget>[];
     final sparklePositions = [
       {'x': -50.0, 'y': -30.0, 'delay': 0.0, 'size': 8.0},
@@ -628,14 +675,15 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
             duration: const Duration(milliseconds: 2000),
             tween: Tween<double>(begin: 0.0, end: 1.0),
             builder: (context, double value, child) {
-              final delayedValue = ((value - (pos['delay']! as double)).clamp(0.0, 1.0));
-              final sparkleOpacity = delayedValue < 0.5 
-                  ? delayedValue * 2 
+              final delayedValue =
+                  ((value - (pos['delay']! as double)).clamp(0.0, 1.0));
+              final sparkleOpacity = delayedValue < 0.5
+                  ? delayedValue * 2
                   : (1.0 - delayedValue) * 2;
-              final sparkleScale = delayedValue < 0.5 
-                  ? delayedValue * 2 
+              final sparkleScale = delayedValue < 0.5
+                  ? delayedValue * 2
                   : 2.0 - (delayedValue * 2);
-              
+
               return Transform.scale(
                 scale: sparkleScale,
                 child: Opacity(
@@ -648,7 +696,7 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                       gradient: RadialGradient(
                         colors: [
                           Colors.white,
-                          const Color(0xFFFFD700), 
+                          const Color(0xFFFFD700),
                           Colors.amber.shade300,
                           Colors.transparent,
                         ],
@@ -665,7 +713,7 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                               gradient: RadialGradient(
                                 colors: [
                                   Colors.white,
-                                  const Color(0xFFFFD700), 
+                                  const Color(0xFFFFD700),
                                 ],
                               ),
                             ),
@@ -681,7 +729,7 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                                 colors: [
                                   Colors.transparent,
                                   Colors.white,
-                                  const Color(0xFFFFD700), 
+                                  const Color(0xFFFFD700),
                                   Colors.white,
                                   Colors.transparent,
                                 ],
@@ -700,7 +748,7 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
                                 colors: [
                                   Colors.transparent,
                                   Colors.white,
-                                  const Color(0xFFFFD700), 
+                                  const Color(0xFFFFD700),
                                   Colors.white,
                                   Colors.transparent,
                                 ],
@@ -784,43 +832,44 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStatHeader(
-                    'assets/planet_icon.png', 'Planets Visited:', '2'),
-                const SizedBox(height: 24),
-                _buildActionButton(
-                  Icons.shopping_basket,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            MarketplaceScreen(isar: widget.isar),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildActionButton(
-                  Icons.edit,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EditAstronautScreen(isar: widget.isar),
-                      ),
-                    );
-                  },
-                ),
-              ],
+            child: FutureBuilder<AstronautPet?>(
+              future: _currentPet,
+              builder: (context, snapshot) {
+                final count = snapshot.data?.planetsCount ?? 0;
+                return _buildStatHeader(
+                  'assets/planet_icon.png',
+                  'Planets Visited:',
+                  count.toString(),
+                );
+              },
             ),
+          ),
+          const SizedBox(width: 16),
+          _buildActionButton(
+            Icons.shopping_basket,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MarketplaceScreen(isar: widget.isar),
+                ),
+              ).then((_) => setState(() {}));
+            },
+          ),
+          const SizedBox(width: 12),
+          _buildActionButton(
+            Icons.edit,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditAstronautScreen(isar: widget.isar),
+                ),
+              ).then((_) => setState(() {}));
+            },
           ),
         ],
       ),
@@ -829,36 +878,29 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
 
   Widget _buildStatHeader(String iconPath, String label, String value) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          margin: const EdgeInsets.only(right: 10),
-          child: Image.asset(
-            iconPath,
-            width: 24,
-            height: 24,
+        Image.asset(
+          iconPath,
+          width: 24,
+          height: 24,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 14,
           ),
         ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'BrunoAceSC',
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: 'BrunoAceSC',
+            color: Colors.white,
+            fontSize: 18,
           ),
         ),
       ],
@@ -888,29 +930,30 @@ class _DeathAstronautScreenState extends State<DeathAstronautScreen>
     );
   }
 
-  Widget _buildMissionProgress(String missionName, double progress) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          missionName,
-          style: const TextStyle(
-            fontFamily: 'Arimo',
-            color: Colors.white,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.black,
-            color: Colors.white,
-            minHeight: 6,
-          ),
-        ),
-      ],
+  Widget _buildMissionProgressBar() {
+    return FutureBuilder<AstronautPet?>(
+      future: _currentPet,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Text("please add your first goal",
+              style: TextStyle(color: Colors.white));
+        }
+        final pet = snapshot.data!;
+        final progress = pet.progress;
+
+        // If pet has arrived, show the progress bar
+        return _buildProgressBar(
+          'assets/rocket_icon.png',
+          'Progress: ${(progress * 100).toStringAsFixed(0)}%',
+          progress,
+          Colors.blue,
+          Colors.green,
+          Colors.white,
+        );
+      },
     );
   }
 }

@@ -20,6 +20,8 @@ class AstronautPet {
 
   bool isTraveling = false;
 
+  int userPoints = 0;
+
   AstronautPet();
 
   AstronautPet.create({
@@ -30,5 +32,6 @@ class AstronautPet {
         hp = 100.0,
         progress = 0.0,
         progressPoints = 0,
-        planetsCount = 0;
+        planetsCount = 0,
+        userPoints = 0;
 }

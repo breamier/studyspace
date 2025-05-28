@@ -32,22 +32,16 @@ class MissionManager {
     }
   }
 
-  Future<Mission?> getActiveMissionByType(MissionType type) async {
-    final missions = await isarService.getMissions();
-    try {
-      return missions.firstWhere(
-        (mission) => mission.type == type && !mission.completed,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
   Future<Mission?> completeMissionByType(MissionType type) async {
-    final mission = await getActiveMissionByType(type);
-    if (mission != null) {
-      await isarService.completeMission(mission.id);
+    final missions = await isarService.getMissions();
+    final mission =
+        missions.where((m) => m.type == type && !m.completed).toList();
+    if (mission.isNotEmpty) {
+      final m = mission.first;
+      await isarService.completeMission(m.id);
+      m.completed = true;
+      return m;
     }
-    return mission;
+    return null;
   }
 }

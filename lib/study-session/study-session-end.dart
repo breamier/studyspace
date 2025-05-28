@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
+import 'package:studyspace/models/session.dart';
 import 'package:studyspace/services/astro_hp_service.dart';
 import 'package:studyspace/study-session/study-session-rewards.dart';
 import '../models/goal.dart';
@@ -68,7 +69,7 @@ class _StudySessionEndState extends State<StudySessionEnd>
     }
   }
 
-  Future<void> saveSession() async {
+  Future<Session> saveSession() async {
     // store in session variable the create session object
     final session = await _isarService.createSessionObj(widget.start,
         widget.end, widget.duration, widget.imgLoc, _difficulty, _goal!);
@@ -84,13 +85,15 @@ class _StudySessionEndState extends State<StudySessionEnd>
 
     if (_goal == null || _goal!.upcomingSessionDates.isEmpty) {
       print("Goal or sessions not found.");
-      return;
+      return session;
+      ;
     }
     await Scheduler().completeStudySession(
       goal: _goal!,
       completedDate: widget.end,
       newDifficulty: _difficulty,
     );
+    return session;
   }
 
   Future<Mission?> checkAndCompleteStudy30MinMission() async {
@@ -201,11 +204,13 @@ class _StudySessionEndState extends State<StudySessionEnd>
                   _goal!.difficulty = _difficulty;
                   _isarService.updateGoal(_goal!);
                 });
-                await saveSession(); // need to wait to save session
+
+                final session = await saveSession();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => StudySessionRewards(
+                      session: session,
                       goalId: widget.goalId,
                       study30MinReward:
                           _completedStudy30MinMission?.rewardPoints,

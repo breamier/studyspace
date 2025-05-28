@@ -72,7 +72,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   late AnimationController _floatingController;
   late Animation<double> _floatingAnimation;
   late Animation<double> _rotationAnimation;
-  bool hasArrived = false;
 
   @override
   void initState() {
@@ -125,7 +124,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     _currentPet.then((pet) {
       if (mounted && pet != null) {
         setState(() {
-          _hasArrivedOnNewPlanet = hasArrived && !pet.isTraveling;
+          _hasArrivedOnNewPlanet =
+              pet.isTraveling == false && pet.planetsCount >= 1;
         });
       }
     });
@@ -462,8 +462,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   // missions
   Future<List<Mission>> _loadMissions() async {
-    // Initialize daily missions if needed
-    await widget.isar.initializeDailyMissions();
     // Get today's missions
     return await widget.isar.getMissions();
   }
@@ -656,8 +654,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       ),
                                     ),
                                     TextButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
+                                      onPressed: () async {
+                                        await Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
@@ -665,6 +663,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                                     isar: widget.isar),
                                           ),
                                         );
+                                        _refreshMissions();
+                                        setState(() {});
                                       },
                                       label: Text(
                                         'Visit your\nAstronaut >>',
@@ -689,7 +689,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       builder: (context, petSnapshot) {
                         if (petSnapshot.hasData && petSnapshot.data != null) {
                           final pet = petSnapshot.data!;
-                          if (hasArrived && !pet.isTraveling) {
+                          if (pet.hasArrived && !pet.isTraveling) {
                             return Center(
                               child: Padding(
                                 padding: const EdgeInsets.only(bottom: 16.0),

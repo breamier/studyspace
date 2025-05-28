@@ -44,7 +44,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   void _processUnlockedItem(Map<String, dynamic> unlockedItem) {
     final String itemType = unlockedItem['type'] ?? 'astronaut';
     final String itemName = unlockedItem['name'];
-    
+
     _itemManager.unlockItem(itemName, itemType);
 
     setState(() {
@@ -164,11 +164,20 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             children: [
               Image.asset('assets/shooting_star.png', width: 25, height: 25),
               const SizedBox(width: 6),
-              Text('${_itemManager.userPoints}',
-                  style: const TextStyle(
+              FutureBuilder<int>(
+                future: ItemManager().getUserPoints(),
+                builder: (context, snapshot) {
+                  final points = snapshot.data ?? 0;
+                  return Text(
+                    '$points',
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
-                      fontWeight: FontWeight.w500)),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                },
+              )
             ],
           ),
         ),
@@ -178,17 +187,21 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
 
   Widget _buildBody() {
     final screenHeight = MediaQuery.of(context).size.height;
-  
+
     if (_currentItemIndex >= _currentList.length && _currentList.isNotEmpty) {
       _currentItemIndex = 0;
     }
-    
-    final currentItem = _currentList.isNotEmpty 
+
+    final currentItem = _currentList.isNotEmpty
         ? _currentList[_currentItemIndex]
-        : {'name': 'No Item', 'image': 'assets/placeholder.png', 'current': false};
-    
+        : {
+            'name': 'No Item',
+            'image': 'assets/placeholder.png',
+            'current': false
+          };
+
     final bool isCurrent = currentItem['current'] == true;
-    
+
     return Stack(
       children: [
         Positioned.fill(
@@ -207,31 +220,25 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 child: Stack(
                   children: [
                     Center(
-                      child: _showSelectedImage 
+                      child: _showSelectedImage
                           ? _buildSelectedImageDisplay()
                           : Hero(
                               tag: '${_selectedCategory}-${_currentItemIndex}',
                               child: Image.asset(
                                 currentItem['image'],
-                                height: screenHeight * 0.4, 
+                                height: screenHeight * 0.4,
                               ),
                             ),
                     ),
-
                     if (!_showSelectedImage && _currentList.length > 1)
                       _buildNavigationButtons(),
                   ],
                 ),
               ),
-              
               if (!_showSelectedImage && _currentList.length > 1)
                 _buildDotsIndicator(),
-              
               _buildActionButton(isCurrent),
-
-              if (!_showSelectedImage)
-                _buildCategorySelectors(),
-                
+              if (!_showSelectedImage) _buildCategorySelectors(),
               const SizedBox(height: 5),
             ],
           ),
@@ -243,7 +250,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   Widget _buildSelectedImageDisplay() {
     final currentAstronaut = _itemManager.getCurrentAstronaut();
     final currentSpaceship = _itemManager.getCurrentSpaceship();
-    
+
     return Hero(
       tag: 'selected-image',
       child: Stack(
@@ -254,7 +261,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
             'assets/moon.png',
             height: MediaQuery.of(context).size.height * 0.4,
           ),
-          
+
           // Current astronaut if available
           if (currentAstronaut != null && currentAstronaut['current'] == true)
             Positioned(
@@ -263,7 +270,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 height: MediaQuery.of(context).size.height * 0.25,
               ),
             ),
-          
+
           // Current spaceship if available
           if (currentSpaceship != null && currentSpaceship['current'] == true)
             Positioned(
@@ -276,7 +283,7 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
       ),
     );
   }
-  
+
   Widget _buildNavigationButtons() {
     return Stack(
       children: [
@@ -291,13 +298,13 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: IconButton(
-                icon: const Icon(Icons.chevron_left, color: Colors.white, size: 40),
+                icon: const Icon(Icons.chevron_left,
+                    color: Colors.white, size: 40),
                 onPressed: _switchToPreviousItem,
               ),
             ),
           ),
         ),
-
         Positioned(
           right: 0,
           top: 0,
@@ -309,7 +316,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
                 borderRadius: BorderRadius.circular(25),
               ),
               child: IconButton(
-                icon: const Icon(Icons.chevron_right, color: Colors.white, size: 40),
+                icon: const Icon(Icons.chevron_right,
+                    color: Colors.white, size: 40),
                 onPressed: _switchToNextItem,
               ),
             ),
@@ -340,22 +348,28 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
   }
 
   Widget _buildActionButton(bool isCurrent) {
-    final Color lightGreen = const Color(0xFFA7CF75); 
-    final Color darkGreen = const Color(0xFF7C9061);   
-    
+    final Color lightGreen = const Color(0xFFA7CF75);
+    final Color darkGreen = const Color(0xFF7C9061);
+
     return ElevatedButton(
-      onPressed: _showSelectedImage 
+      onPressed: _showSelectedImage
           ? () => setState(() => _showSelectedImage = false)
-          : isCurrent ? () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('This is your current item!'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            } : _selectCurrentItem,
+          : isCurrent
+              ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('This is your current item!'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+              : _selectCurrentItem,
       style: ElevatedButton.styleFrom(
-        backgroundColor: _showSelectedImage ? Colors.blue : isCurrent ? darkGreen : lightGreen, 
+        backgroundColor: _showSelectedImage
+            ? Colors.blue
+            : isCurrent
+                ? darkGreen
+                : lightGreen,
         foregroundColor: Colors.black,
         minimumSize: const Size(150, 40),
         shape: RoundedRectangleBorder(
@@ -363,7 +377,11 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         ),
       ),
       child: Text(
-        _showSelectedImage ? 'BACK' : isCurrent ? 'CURRENT' : 'SELECT',
+        _showSelectedImage
+            ? 'BACK'
+            : isCurrent
+                ? 'CURRENT'
+                : 'SELECT',
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
@@ -377,24 +395,18 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildCategoryIcon(
-              icon: Icons.person, 
-              label: 'Astronaut',
-              category: 'astronaut'
-            ),
+                icon: Icons.person, label: 'Astronaut', category: 'astronaut'),
             const SizedBox(width: 20),
             _buildCategoryIcon(
-              icon: Icons.rocket, 
-              label: 'Spaceship',
-              category: 'spaceship'
-            ),
+                icon: Icons.rocket, label: 'Spaceship', category: 'spaceship'),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildProgressBar(String iconPath, String label, double progress, 
-                          Color startColor, Color endColor, Color textColor) {
+  Widget _buildProgressBar(String iconPath, String label, double progress,
+      Color startColor, Color endColor, Color textColor) {
     return Row(
       children: [
         Image.asset(iconPath, width: 28, height: 28),
@@ -455,7 +467,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return const Text("No pet found", style: TextStyle(color: Colors.white));
+          return const Text("No pet found",
+              style: TextStyle(color: Colors.white));
         }
 
         final pet = snapshot.data!;
@@ -482,7 +495,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
           return const CircularProgressIndicator();
         }
         if (!snapshot.hasData || snapshot.data == null) {
-          return const Text("No pet found", style: TextStyle(color: Colors.white));
+          return const Text("No pet found",
+              style: TextStyle(color: Colors.white));
         }
         final pet = snapshot.data!;
         final progress = pet.progress;
@@ -556,18 +570,15 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
               },
             ),
           ),
-          
           const SizedBox(width: 16),
           _buildActionIcon(
             Icons.backpack,
             () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      MarketplaceScreen(isar: widget.isar),
+                  builder: (context) => MarketplaceScreen(isar: widget.isar),
                 )),
           ),
-          
           const SizedBox(width: 12),
           _buildActionIcon(
             Icons.edit,
@@ -610,7 +621,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     );
   }
 
-  Widget _buildActionIcon(IconData icon, VoidCallback onPressed, {Color backgroundColor = const Color(0xFF333333)}) {
+  Widget _buildActionIcon(IconData icon, VoidCallback onPressed,
+      {Color backgroundColor = const Color(0xFF333333)}) {
     return Align(
       alignment: Alignment.centerLeft,
       child: GestureDetector(
@@ -655,13 +667,12 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
     );
   }
 
-  Widget _buildCategoryIcon({
-    required IconData icon, 
-    required String label, 
-    required String category
-  }) {
+  Widget _buildCategoryIcon(
+      {required IconData icon,
+      required String label,
+      required String category}) {
     final bool isSelected = _selectedCategory == category;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -673,8 +684,8 @@ class _EditAstronautScreenState extends State<EditAstronautScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 35,  
-            height: 35, 
+            width: 35,
+            height: 35,
             decoration: BoxDecoration(
               color: isSelected ? Colors.purple : Colors.grey.shade800,
               borderRadius: BorderRadius.circular(10),

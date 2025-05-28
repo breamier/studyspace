@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import 'package:isar/isar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/study-session/study_session.dart';
 
 import '../mission_manager.dart';
@@ -55,6 +57,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
   @override
   void initState() {
     super.initState();
+    _loadTutorial();
     _setupCameraController();
 
     _animationController = AnimationController(
@@ -75,6 +78,13 @@ class _StudySessionCameraState extends State<StudySessionCamera>
     ).animate(_animationController);
 
     _fetchGoalName();
+  }
+
+  Future<void> _loadTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      showingTutorial = prefs.getBool('showingTutorial') ?? true;
+    });
   }
 
   Future<void> _fetchGoalName() async {
@@ -432,7 +442,11 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () => setState(() => showingTutorial = false),
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('showingTutorial', false);
+                      setState(() => showingTutorial = false);
+                    },
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white70,
                     ),

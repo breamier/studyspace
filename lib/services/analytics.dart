@@ -144,6 +144,7 @@ class Analytics {
     final now = DateTime.now();
     final schedule = <Map<String, dynamic>>[];
 
+    final Map<String, DateTime> labelToDate = {};
     final Map<String, List<Map<String, dynamic>>> grouped = {};
 
     for (final goal in goals) {
@@ -152,6 +153,7 @@ class Analytics {
 
         final label = getDateLabel(date);
         grouped.putIfAbsent(label, () => []);
+        labelToDate.putIfAbsent(label, () => date);
 
         final totalSessions = goal.upcomingSessionDates.length +
             goal.completedSessionDates.length;
@@ -170,9 +172,19 @@ class Analytics {
         });
       }
     }
-    grouped.forEach((label, lessons) {
+    // grouped.forEach((label, lessons) {
+    //   schedule.add({'label': label, 'lessons': lessons});
+    // });
+
+    // Sort labels by actual date
+    final sortedLabels = labelToDate.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+
+    for (final entry in sortedLabels) {
+      final label = entry.key;
+      final lessons = grouped[label]!;
       schedule.add({'label': label, 'lessons': lessons});
-    });
+    }
 
     return schedule;
   }

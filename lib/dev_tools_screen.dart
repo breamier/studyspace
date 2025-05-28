@@ -13,6 +13,7 @@ import 'package:studyspace/services/scheduler.dart';
 import 'package:studyspace/study-session/study_session.dart';
 import 'package:studyspace/study-session/study_session_camera.dart';
 import 'package:studyspace/screens/death_astronaut_screen.dart';
+import 'package:studyspace/item_manager.dart';
 
 class DevToolsScreen extends StatefulWidget {
   final IsarService isar;
@@ -119,9 +120,27 @@ class _DevToolsScreenState extends State<DevToolsScreen> {
               ElevatedButton(
                 onPressed: () async {
                   await widget.isar.resetAllMissions();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("All missions have been reset!")),
+                  if (!mounted) return;
+                  await showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text("Reset Complete"),
+                      content: const Text("All missions have been reset!"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text("OK"),
+                        ),
+                      ],
+                    ),
+                  );
+                  // After dialog, navigate to Dashboard and force refresh
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DashboardScreen(isar: widget.isar),
+                    ),
+                    (route) => false, // Remove all previous routes
                   );
                 },
                 child: const Text('Reset All Missions'),
@@ -136,6 +155,24 @@ class _DevToolsScreenState extends State<DevToolsScreen> {
                   }
                 },
                 child: Text("Reset Pet Progress"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final pet = await widget.isar.getCurrentPet();
+                  if (pet != null) {
+                    pet.progress = 1.0;
+                    await widget.isar.updatePet(pet);
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Pet progress set to 1.0!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No pet found!')),
+                    );
+                  }
+                },
+                child: const Text('Set Full Progress'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -261,6 +298,19 @@ class _DevToolsScreenState extends State<DevToolsScreen> {
                     );
                   },
                   child: const Text("StudySession")),
+              ElevatedButton(
+                onPressed: () async {
+                  ItemManager().addPoints(100);
+                  int points = await ItemManager().getUserPoints();
+                  print('Current points: $points');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('Added 100 points! Current: $points')),
+                  );
+                  setState(() {});
+                },
+                child: Text('Add 100 Lumix points'),
+              )
             ],
           ),
         ),

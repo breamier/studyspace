@@ -10,6 +10,7 @@ import '../models/astronaut_pet.dart';
 
 import 'astro_missions_service.dart';
 import 'package:studyspace/models/hp_check_log.dart';
+import '../item_manager.dart';
 
 class IsarService extends ChangeNotifier {
   late Future<Isar> db;
@@ -146,6 +147,12 @@ class IsarService extends ChangeNotifier {
   Future<void> clearDb() async {
     final isar = await db;
     await isar.writeTxn(() => isar.clear());
+
+    ItemManager().resetUnlocksAndCurrent();
+
+    ItemManager().itemChangedNotifier.value =
+        !ItemManager().itemChangedNotifier.value;
+    notifyListeners();
   }
 
   Future<Isar> openDB() async {
@@ -219,13 +226,11 @@ class IsarService extends ChangeNotifier {
   Future<void> resetAllMissions() async {
     final isar = await db;
     await isar.writeTxn(() async {
-      final missions = await isar.missions.where().findAll();
-      for (final mission in missions) {
-        mission.completed = false;
-        mission.completedDate = null;
-        await isar.missions.put(mission);
-      }
+      await isar.missions.clear();
+      print('All missions cleared!');
     });
+    await initializeDailyMissions();
+    print('Daily missions re-initialized!');
   }
 
   // Session Methods

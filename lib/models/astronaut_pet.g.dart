@@ -66,6 +66,11 @@ const AstronautPetSchema = CollectionSchema(
       id: 9,
       name: r'skinType',
       type: IsarType.string,
+    ),
+    r'userPoints': PropertySchema(
+      id: 10,
+      name: r'userPoints',
+      type: IsarType.long,
     )
   },
   estimateSize: _astronautPetEstimateSize,
@@ -124,6 +129,7 @@ void _astronautPetSerialize(
   writer.writeLong(offsets[7], object.progressPoints);
   writer.writeString(offsets[8], object.shipType);
   writer.writeString(offsets[9], object.skinType);
+  writer.writeLong(offsets[10], object.userPoints);
 }
 
 AstronautPet _astronautPetDeserialize(
@@ -144,6 +150,7 @@ AstronautPet _astronautPetDeserialize(
   object.progressPoints = reader.readLong(offsets[7]);
   object.shipType = reader.readString(offsets[8]);
   object.skinType = reader.readString(offsets[9]);
+  object.userPoints = reader.readLong(offsets[10]);
   return object;
 }
 
@@ -174,6 +181,8 @@ P _astronautPetDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 9:
       return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1101,6 +1110,62 @@ extension AstronautPetQueryFilter
       ));
     });
   }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition>
+      userPointsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition>
+      userPointsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition>
+      userPointsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userPoints',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterFilterCondition>
+      userPointsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userPoints',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension AstronautPetQueryObject
@@ -1233,6 +1298,19 @@ extension AstronautPetQuerySortBy
   QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> sortBySkinTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'skinType', Sort.desc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> sortByUserPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userPoints', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy>
+      sortByUserPointsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userPoints', Sort.desc);
     });
   }
 }
@@ -1375,6 +1453,19 @@ extension AstronautPetQuerySortThenBy
       return query.addSortBy(r'skinType', Sort.desc);
     });
   }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy> thenByUserPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userPoints', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QAfterSortBy>
+      thenByUserPointsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userPoints', Sort.desc);
+    });
+  }
 }
 
 extension AstronautPetQueryWhereDistinct
@@ -1440,6 +1531,12 @@ extension AstronautPetQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'skinType', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<AstronautPet, AstronautPet, QDistinct> distinctByUserPoints() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userPoints');
     });
   }
 }
@@ -1509,6 +1606,12 @@ extension AstronautPetQueryProperty
   QueryBuilder<AstronautPet, String, QQueryOperations> skinTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'skinType');
+    });
+  }
+
+  QueryBuilder<AstronautPet, int, QQueryOperations> userPointsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userPoints');
     });
   }
 }
