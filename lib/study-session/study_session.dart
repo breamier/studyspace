@@ -35,7 +35,7 @@ class _StateStudySession extends State<StudySession>
   late Future<Goal?> goal;
   Timer? timer;
   Timer? breakTimer;
-  int time = 3599;
+  int time = 0;
   late String goalName;
   bool isActive = true;
   bool _isLoading = true;
