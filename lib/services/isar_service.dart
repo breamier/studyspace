@@ -420,4 +420,14 @@ class IsarService extends ChangeNotifier {
       await isar.hpCheckLogs.put(log);
     });
   }
+
+  Future<void> deleteBlankSubtopic(int id) async {
+    final isar = await db;
+    final goal = await isar.goals.get(id);
+    final updatedSubtopics =
+    goal?.subtopics.where((sub) => sub.name != "\u200c").toList();
+    goal?.subtopics = updatedSubtopics!;
+    await isar.writeTxn(() => isar.goals.put(goal!));
+    notifyListeners();
+  }
 }

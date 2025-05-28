@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:gal/gal.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/screens/dashboard_screen.dart';
 import 'package:studyspace/study-session/study-session-end.dart';
@@ -82,6 +83,15 @@ class _StateStudySession extends State<StudySession>
     breakTimer?.cancel();
     _floatingController.dispose();
 
+    if (mounted) {
+      setState(() {
+        showPopUp = false;
+        showEndSession = false;
+        showCancelSession = false;
+        showBreakDurationPopup = false;
+      });
+    }
+
     super.dispose();
   }
 
@@ -127,7 +137,7 @@ class _StateStudySession extends State<StudySession>
     timer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleTick();
     });
-    breakTimer ??= Timer.periodic(const Duration(seconds:1), (Timer t){
+    breakTimer ??= Timer.periodic(const Duration(seconds: 1), (Timer t) {
       handleBreakTick();
     });
     return Scaffold(
@@ -169,14 +179,19 @@ class _StateStudySession extends State<StudySession>
               onPressed: () {
                 setState(() {
                   showCancelSession = true;
+                  showPopUp = false;
+                  showEndSession=false;
                 });
               },
             ),
           ),
         ),
-        backgroundColor: Colors.transparent, // transparent app bar
-        elevation: 0, // remove shadow
-        shadowColor: Colors.transparent, // no shadow color at all times
+        backgroundColor: Colors.transparent,
+        // transparent app bar
+        elevation: 0,
+        // remove shadow
+        shadowColor: Colors.transparent,
+        // no shadow color at all times
         foregroundColor: Colors.white, // keep icons/text white
       ),
       backgroundColor: const Color(0xFF0A001F), // darker background
@@ -225,11 +240,11 @@ class _StateStudySession extends State<StudySession>
                         showEndSession = true;
                       });
                     },
-                    style:
-                    ButtonStyle(
-                      elevation: WidgetStatePropertyAll(10),
+                    style: ButtonStyle(
+                        elevation: WidgetStatePropertyAll(10),
                         foregroundColor: WidgetStatePropertyAll(Colors.white),
-                        backgroundColor: WidgetStatePropertyAll(Colors.deepPurple),
+                        backgroundColor:
+                            WidgetStatePropertyAll(Colors.deepPurple),
                         padding: WidgetStateProperty.all(EdgeInsets.symmetric(
                             horizontal: MediaQuery.sizeOf(context).width * 0.15,
                             vertical:
@@ -395,10 +410,12 @@ class _StateStudySession extends State<StudySession>
           size: Size(MediaQuery.sizeOf(context).width * 0.90,
               MediaQuery.sizeOf(context).width * 0.90),
         ),
-        Positioned(left: MediaQuery.sizeOf(context).width * 0.05,
+        Positioned(
+          left: MediaQuery.sizeOf(context).width * 0.05,
           right: MediaQuery.sizeOf(context).width * 0.05,
           top: MediaQuery.sizeOf(context).height * 0.05,
-        bottom: MediaQuery.sizeOf(context).height * 0.05,child: timerContainer(),
+          bottom: MediaQuery.sizeOf(context).height * 0.05,
+          child: timerContainer(),
         ),
         Positioned(
           left: MediaQuery.sizeOf(context).width * 0.15,
@@ -416,8 +433,11 @@ class _StateStudySession extends State<StudySession>
             context: context, // Example: 5 minutes, replace as needed
             onToggle: () {
               setState(() {
-                if(!isOnBreak){
-                showBreakDurationPopup = true;
+                if (!isOnBreak) {
+                  showBreakDurationPopup = true;
+                }else{
+                  isActive = true;
+                  isOnBreak = false;
                 }
               });
             },
@@ -426,12 +446,15 @@ class _StateStudySession extends State<StudySession>
       ],
     );
   }
+
   void handleBreakTick() {
     if (isOnBreak) {
       setState(() {
         breakTime--;
       });
-    }}
+    }
+  }
+
   void handleTick() {
     if (isActive) {
       setState(() {
@@ -602,15 +625,16 @@ class _StateStudySession extends State<StudySession>
                       onPressed: () {
                         timer?.cancel();
                         isActive = false;
-                        Navigator.push(
-                            context,
+                        Gal.putImage(widget.imgLoc);
+                        Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                                 builder: (context) => StudySessionEnd(
                                     goalId: widget.goalId,
                                     duration: time,
                                     imgLoc: widget.imgLoc,
                                     start: start,
-                                    end: DateTime.now())));
+                                    end: DateTime.now())),
+                              (route) => false,);
                       },
                       style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
@@ -758,54 +782,56 @@ class _StateStudySession extends State<StudySession>
             },
           ),
           SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.4,
+              width: MediaQuery.sizeOf(context).width * 0.4,
               child: AnimatedBuilder(
-            animation: AnimationController(
-              duration: const Duration(seconds: 3),
-              vsync: this,
-            )..repeat(reverse: true),
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _floatingAnimation.value),
-                child: DefaultTextStyle(
-                  softWrap: true,
-                  textWidthBasis: TextWidthBasis.values[1],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontFamily: "BrunoAceSC",
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 7.0,
+                animation: AnimationController(
+                  duration: const Duration(seconds: 3),
+                  vsync: this,
+                )..repeat(reverse: true),
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, _floatingAnimation.value),
+                    child: DefaultTextStyle(
+                      softWrap: true,
+                      textWidthBasis: TextWidthBasis.values[1],
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontFamily: "BrunoAceSC",
                         color: Colors.white,
-                        offset: Offset(0, 0),
+                        shadows: [
+                          Shadow(
+                            blurRadius: 7.0,
+                            color: Colors.white,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: AnimatedTextKit(
-                    animatedTexts: [
-                      TyperAnimatedText("Keep up the great work!"),
-                      TyperAnimatedText("You're doing amazing!"),
-                      TyperAnimatedText("Stay focused, you're almost there!"),
-                      TyperAnimatedText("Every minute counts, keep going!"),
-                      TyperAnimatedText(
-                          "You're making progress, don't stop now!"),
-                      TyperAnimatedText("Your future self will thank you!"),
-                    ],
-                    isRepeatingAnimation: true,
-                    pause: const Duration(minutes: 10),
-                    repeatForever: true,
-                  ),
-                ),
-              );
-            },
-          ))
+                      child: AnimatedTextKit(
+                        animatedTexts: [
+                          TyperAnimatedText("Keep up the great work!"),
+                          TyperAnimatedText("You're doing amazing!"),
+                          TyperAnimatedText(
+                              "Stay focused, you're almost there!"),
+                          TyperAnimatedText("Every minute counts, keep going!"),
+                          TyperAnimatedText(
+                              "You're making progress, don't stop now!"),
+                          TyperAnimatedText("Your future self will thank you!"),
+                        ],
+                        isRepeatingAnimation: true,
+                        pause: const Duration(minutes: 10),
+                        repeatForever: true,
+                      ),
+                    ),
+                  );
+                },
+              ))
         ]);
   }
 
   Widget breakTimerWidget({
     required BuildContext context,
     required VoidCallback onToggle,
+
   }) {
     int seconds = breakTime % 60;
     int minutes = (breakTime ~/ 60) % 60;
@@ -902,7 +928,8 @@ class _StateStudySession extends State<StudySession>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 2.0, vertical: 2.0),
                     child: Text(
                       strMin,
                       textAlign: TextAlign.center,
