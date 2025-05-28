@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -84,14 +83,13 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
   Widget activityInputField() {
     return TextFormField(
         onChanged: (text) => setState(() {
-          _updateGoal(
-              widget.subtopic.name, text, widget.subtopic.completed);
-          widget.subtopic.name = text;
-          if (_textEditingController.text == "\u200c") {
-            _deleteSubtopic();
-            FocusScope.of(context).unfocus();
-          }
-        }),
+              if (text == "") {
+                _deleteSubtopic();
+              }
+              _updateGoal(
+                  widget.subtopic.name, text, widget.subtopic.completed);
+              widget.subtopic.name = text;
+            }),
         readOnly: widget.deleteMode,
         controller: _textEditingController,
         decoration: InputDecoration(
@@ -99,12 +97,13 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
         ),
         onTapOutside: (event) {
           setState(() {
-            _updateGoal(widget.subtopic.name, _textEditingController.text,
-                widget.subtopic.completed);
-            widget.subtopic.name = _textEditingController.text;
             if (_textEditingController.text == "\u200c") {
               _deleteSubtopic();
             }
+            _updateGoal(widget.subtopic.name, _textEditingController.text,
+                widget.subtopic.completed);
+            widget.subtopic.name = _textEditingController.text;
+
             FocusScope.of(context).unfocus();
           });
         },
