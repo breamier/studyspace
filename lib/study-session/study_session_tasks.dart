@@ -27,10 +27,8 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
 
   void callback(int index) async {
     await _isarService.deleteSubtopicAtIndex(current!, index);
-    _isarService.deleteBlankSubtopic(widget.goalId);
     final updatedGoal = _isarService.getGoalById(widget.goalId);
     final updatedCurrent = await updatedGoal;
-
     setState(() {
       goal = updatedGoal;
       current = updatedCurrent;
