@@ -32,7 +32,7 @@ class CustomBottomNavBar extends StatelessWidget {
         screen = StudyOverview(isar: isar);
         break;
       case 2:
-        screen = const AddStudyGoal();
+        screen = AddStudyGoal(isar: isar);
         break;
       case 3:
         screen = AnalyticsScreen(isar: isar);
