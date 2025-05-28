@@ -535,17 +535,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  DevToolsScreen(isar: widget.isar)),
-                        );
-                      },
-                      child: const Text('Go to Developer Tools'),
-                    ),
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) =>
+                    //               DevToolsScreen(isar: widget.isar)),
+                    //     );
+                    //   },
+                    //   child: const Text('Go to Developer Tools'),
+                    // ),
                     // Current Study Goals
                     if (currentGoals.isNotEmpty) ...[
                       const SizedBox(height: 10),
