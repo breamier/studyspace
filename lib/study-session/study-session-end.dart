@@ -172,7 +172,7 @@ class _StudySessionEndState extends State<StudySessionEnd>
               padding: EdgeInsets.all(30),
               child: SizedBox(
                   height: MediaQuery.sizeOf(context).width * 0.5,
-                  child: Image.file(File(widget.imgLoc))),
+                  child: widget.imgLoc==""? Image.asset("assets/moon.png"):Image.file(File(widget.imgLoc))),
             ),
             Padding(
                 padding: EdgeInsets.symmetric(horizontal: sizeQuery * 0.045),

@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'dart:math';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:gal/gal.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import 'package:isar/isar.dart';
@@ -12,13 +11,14 @@ import 'package:studyspace/models/goal.dart';
 import 'package:studyspace/study-session/study_session.dart';
 
 import '../mission_manager.dart';
-import '../widgets/mission_modal.dart';
-import '../services/isar_service.dart';
 import '../models/mission.dart';
+import '../services/isar_service.dart';
+import '../widgets/mission_modal.dart';
 
 class StudySessionCamera extends StatefulWidget {
   final Id goalId;
   final IsarService isarService;
+
   const StudySessionCamera(
       {super.key, required this.goalId, required this.isarService});
 
@@ -202,7 +202,7 @@ class _StudySessionCameraState extends State<StudySessionCamera>
                           ElevatedButton(
                             onPressed: () async {
                               debugPrint('Continue button pressed');
-                              Gal.putImage(imgFile!.path);
+                              //Gal.putImage(imgFile!.path);
 
                               // check and complete selfie mission
 
@@ -357,7 +357,16 @@ class _StudySessionCameraState extends State<StudySessionCamera>
             Column(
               children: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => StudySession(
+                        goalId: widget.goalId,
+                        imgLoc: "",
+                        isarService: widget.isarService,
+                      ),
+                    ),
+                    (route) => false,
+                  ),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,

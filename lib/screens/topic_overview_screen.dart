@@ -686,12 +686,12 @@ class _TopicOverviewState extends State<TopicOverview> {
                       SizedBox(height: deviceHeight * 0.04),
                       _buildPhotoCard(),
                       SizedBox(height: deviceHeight * 0.03),
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: deviceWidth * 0.04,
-                        ),
-                        child: StudySessionTasks(goalId: _goal!.id),
-                      ),
+                      // Padding(
+                      //   padding: EdgeInsets.symmetric(
+                      //     horizontal: deviceWidth * 0.04,
+                      //   ),
+                      //   child: StudySessionTasks(goalId: _goal!.id),
+                      // ),
                       Padding(
                         padding: EdgeInsets.only(
                           left: deviceWidth * 0.02,
