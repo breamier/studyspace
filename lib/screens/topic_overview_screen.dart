@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:isar/isar.dart';
 import 'package:studyspace/models/goal.dart';
-import 'package:studyspace/screens/study_overview_screen.dart';
 import 'package:studyspace/services/isar_service.dart';
 import 'package:studyspace/services/scheduler.dart';
 import 'package:intl/intl.dart';
@@ -38,7 +37,6 @@ class _TopicOverviewState extends State<TopicOverview> {
   late double deviceHeight;
   late double deviceWidth;
   late bool isSmallScreen;
-
   @override
   void initState() {
     super.initState();
@@ -48,14 +46,8 @@ class _TopicOverviewState extends State<TopicOverview> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    deviceHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
-    deviceWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    deviceHeight = MediaQuery.of(context).size.height;
+    deviceWidth = MediaQuery.of(context).size.width;
     isSmallScreen = deviceWidth < 600;
   }
 
@@ -90,16 +82,11 @@ class _TopicOverviewState extends State<TopicOverview> {
     if (_goal == null) return;
 
     final newSubtopics = _subtopicControllers
-        .where((c) =>
-    c.text
-        .trim()
-        .isNotEmpty)
+        .where((c) => c.text.trim().isNotEmpty)
         .map((controller) {
       final existing = _goal!.subtopics.firstWhere(
-            (s) => s.name == controller.text.trim(),
-        orElse: () =>
-        Subtopic()
-          ..name = controller.text.trim(),
+        (s) => s.name == controller.text.trim(),
+        orElse: () => Subtopic()..name = controller.text.trim(),
       );
       return existing..name = controller.text.trim();
     }).toList();
@@ -128,36 +115,33 @@ class _TopicOverviewState extends State<TopicOverview> {
   Future<void> _showDeleteGoalDialog() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) =>
-          AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 22, 22, 22),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Colors.white, width: 2.0),
-            ),
-            title: const Text(
-              'Delete Goal?',
-              style: TextStyle(color: Colors.white, fontFamily: 'Arimo'),
-            ),
-            content: const Text(
-              'Are you sure you want to delete this goal? This action cannot be undone.',
-              style: TextStyle(color: Colors.white70, fontFamily: 'Arimo'),
-            ),
-            actions: [
-              TextButton(
-                child: const Text(
-                    'Cancel', style: TextStyle(color: Colors.white)),
-                onPressed: () => Navigator.pop(context, false),
-              ),
-              TextButton(
-                  child: const Text('Delete',
-                      style: TextStyle(color: Colors.redAccent)),
-                  onPressed: () =>
-                  {
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 22, 22, 22),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Colors.white, width: 2.0),
+        ),
+        title: const Text(
+          'Delete Goal?',
+          style: TextStyle(color: Colors.white, fontFamily: 'Arimo'),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this goal? This action cannot be undone.',
+          style: TextStyle(color: Colors.white70, fontFamily: 'Arimo'),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          TextButton(
+              child: const Text('Delete',
+                  style: TextStyle(color: Colors.redAccent)),
+              onPressed: () => {
                     Navigator.pop(context, true),
                   }),
-            ],
-          ),
+        ],
+      ),
     );
     if (confirm == true && _goal != null) {
       await _isarService.deleteGoal(_goal!);
@@ -175,7 +159,7 @@ class _TopicOverviewState extends State<TopicOverview> {
 
   void _showDeleteSubtopicDialog() {
     final selectedSubtopics =
-    _goal!.subtopics.where((s) => !s.completed).toList();
+        _goal!.subtopics.where((s) => !s.completed).toList();
 
     showDialog(
       context: context,
@@ -284,7 +268,7 @@ class _TopicOverviewState extends State<TopicOverview> {
       setState(() {
         // remove from goal's subtopics
         _goal!.subtopics.removeWhere(
-                (subtopic) => _selectedSubtopicsToDelete.contains(subtopic));
+            (subtopic) => _selectedSubtopicsToDelete.contains(subtopic));
 
         // remove deleted subtopics controllers
         _subtopicControllers.removeWhere((controller) =>
@@ -331,11 +315,9 @@ class _TopicOverviewState extends State<TopicOverview> {
     final minutes = (totalSeconds % 3600) ~/ 60;
     final seconds = totalSeconds % 60;
     if (hours > 0) {
-      return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(
-          2, '0')}:${seconds.toString().padLeft(2, '0')}";
+      return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
     } else {
-      return "${minutes.toString().padLeft(2, '0')}:${seconds.toString()
-          .padLeft(2, '0')}";
+      return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
     }
   }
 
@@ -426,9 +408,8 @@ class _TopicOverviewState extends State<TopicOverview> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              TopicOverview(
-                                                  goalId: widget.goalId),
+                                          builder: (context) => TopicOverview(
+                                              goalId: widget.goalId),
                                         ),
                                       );
                                     },
@@ -575,19 +556,7 @@ class _TopicOverviewState extends State<TopicOverview> {
             ),
             onPressed: () async {
               await _saveSubtopics();
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                  builder: (context) =>
-                  TopicOverview(
-                      goalId: widget.goalId)));
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          StudyOverview(
-                              isar: _isarService)));
-
+              Navigator.pop(context);
             },
           ),
           actions: [
@@ -617,10 +586,7 @@ class _TopicOverviewState extends State<TopicOverview> {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight:
-                    deviceHeight - MediaQuery
-                        .of(context)
-                        .padding
-                        .top,
+                        deviceHeight - MediaQuery.of(context).padding.top,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -823,78 +789,77 @@ class _TopicOverviewState extends State<TopicOverview> {
                 ),
                 child: images.isEmpty
                     ? Center(
-                  child: Text(
-                    "No photos yet.",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontFamily: 'Arimo',
-                      fontSize: deviceWidth * 0.04,
-                    ),
-                  ),
-                )
+                        child: Text(
+                          "No photos yet.",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontFamily: 'Arimo',
+                            fontSize: deviceWidth * 0.04,
+                          ),
+                        ),
+                      )
                     : GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: deviceWidth > 600 ? 4 : 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemCount: images.length,
-                  itemBuilder: (context, index) {
-                    final imgPath = images[index];
-                    return GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          barrierColor: Colors.black.withOpacity(0.4),
-                          barrierDismissible: true,
-                          builder: (_) =>
-                              Dialog(
-                                backgroundColor: Colors.transparent,
-                                child: Stack(
-                                  children: [
-                                    BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                          sigmaX: 8, sigmaY: 8),
-                                      child: Container(
-                                        color: Colors.transparent,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: deviceWidth > 600 ? 4 : 2,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 1.2,
+                        ),
+                        itemCount: images.length,
+                        itemBuilder: (context, index) {
+                          final imgPath = images[index];
+                          return GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                barrierColor: Colors.black.withOpacity(0.4),
+                                barrierDismissible: true,
+                                builder: (_) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: Stack(
+                                    children: [
+                                      BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 8, sigmaY: 8),
+                                        child: Container(
+                                          color: Colors.transparent,
+                                        ),
                                       ),
-                                    ),
-                                    GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Center(
-                                        child: GestureDetector(
-                                          onTap: () {},
-                                          child: InteractiveViewer(
-                                            child: ClipRRect(
-                                              borderRadius:
-                                              BorderRadius.circular(16),
-                                              child: Image.file(
-                                                File(imgPath),
-                                                fit: BoxFit.contain,
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () =>
+                                            Navigator.of(context).pop(),
+                                        child: Center(
+                                          child: GestureDetector(
+                                            onTap: () {},
+                                            child: InteractiveViewer(
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                child: Image.file(
+                                                  File(imgPath),
+                                                  fit: BoxFit.contain,
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                File(imgPath),
+                                fit: BoxFit.cover,
                               ),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(imgPath),
-                          fit: BoxFit.cover,
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           ),

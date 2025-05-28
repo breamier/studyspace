@@ -83,12 +83,15 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
-        key: Key(widget.subtopic.name),
         onChanged: (text) => setState(() {
-              _updateGoal(
-                  widget.subtopic.name, text, widget.subtopic.completed);
-              widget.subtopic.name = text;
-            }),
+          _updateGoal(
+              widget.subtopic.name, text, widget.subtopic.completed);
+          widget.subtopic.name = text;
+          if (_textEditingController.text == "\u200c") {
+            _deleteSubtopic();
+            FocusScope.of(context).unfocus();
+          }
+        }),
         readOnly: widget.deleteMode,
         controller: _textEditingController,
         decoration: InputDecoration(
