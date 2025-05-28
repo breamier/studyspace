@@ -7,7 +7,10 @@ import 'package:studyspace/item_manager.dart';
 
 import '../services/astro_hp_service.dart';
 import '../models/astronaut_pet.dart';
-import '../services/isar_service.dart';
+
+import '../models/mission.dart';
+import '../mission_manager.dart';
+import '../widgets/mission_modal.dart';
 
 enum TravelState { initial, traveling, arrived }
 

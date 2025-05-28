@@ -47,6 +47,7 @@ enum MissionType {
   study,
   minor,
   selfie,
+  travel,
   purchase,
   deepMindFocus,
   informationOverload,

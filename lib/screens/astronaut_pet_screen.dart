@@ -9,6 +9,10 @@ import '../models/astronaut_pet.dart';
 import 'astronaut_traveling_screen.dart';
 import 'death_astronaut_screen.dart';
 
+import '../widgets/mission_modal.dart';
+import '../models/mission.dart';
+import '../mission_manager.dart';
+
 class AstronautPetScreen extends StatefulWidget {
   final IsarService isar;
   const AstronautPetScreen({Key? key, required this.isar}) : super(key: key);
@@ -43,6 +47,9 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
   PetTravelState _petTravelState = PetTravelState.idle;
   bool _shouldShowSaturn = false;
 
+  // travel mission
+  int? _previousPlanetsCount;
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +58,13 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     _checkSaturnDisplay();
     _itemChangeNotifier = _itemManager.itemChangedNotifier;
     _itemChangeNotifier.addListener(_handleItemChanged);
+
+    // Initialize previous planets count
+    widget.isar.getCurrentPet().then((pet) {
+      if (pet != null) {
+        _previousPlanetsCount = pet.planetsCount;
+      }
+    });
 
     // for item manager
     _itemChangeNotifier.addListener(_onPointsChanged);
@@ -99,7 +113,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
     }
   }
 
-  void _handleItemChanged() {
+  void _handleItemChanged() async {
     if (mounted) {
       setState(() {
         _getCurrentItems();
@@ -470,7 +484,7 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("please add your first goal",
+          return Text("Want an Astronaut?",
               style: TextStyle(color: Colors.white));
         }
 
@@ -514,28 +528,11 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
           return CircularProgressIndicator();
         }
         if (!snapshot.hasData || snapshot.data == null) {
-          return Text("please add your first goal",
+          return Text("Add a Study Goal",
               style: TextStyle(color: Colors.white));
         }
         final pet = snapshot.data!;
         final progress = pet.progress;
-
-        // // If pet is traveling, always go to traveling screen
-        // if (pet.isTraveling) {
-        //   Future.microtask(() {
-        //     if (mounted) {
-        //       Navigator.pushReplacement(
-        //         context,
-        //         MaterialPageRoute(
-        //           builder: (context) =>
-        //               AstronautTravelScreen(isar: widget.isar),
-        //         ),
-        //       );
-        //     }
-        //   });
-
-        //   return SizedBox.shrink();
-        // }
 
         // If progress is full , not travelling,
         if (pet.hp > 1.0 && progress >= 1.0 && !pet.isTraveling) {
@@ -545,6 +542,25 @@ class _AstronautPetScreenState extends State<AstronautPetScreen>
             pet.planetsCount += 1;
 
             await widget.isar.updatePet(pet);
+
+            debugPrint('hi');
+            // Show mission modal if planetCount is now 2
+            if (pet.planetsCount == 2) {
+              final missionManager = MissionManager(widget.isar);
+              final completedMission = await missionManager
+                  .completeMissionByType(MissionType.travel);
+              debugPrint("Completed mission: $completedMission");
+              if (completedMission != null) {
+                await showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => MissionCompleteModal(
+                    mission: completedMission,
+                    onContinue: () => Navigator.of(context).pop(),
+                  ),
+                );
+              }
+            }
 
             if (mounted) {
               Navigator.pushReplacement(

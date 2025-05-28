@@ -226,13 +226,11 @@ class IsarService extends ChangeNotifier {
   Future<void> resetAllMissions() async {
     final isar = await db;
     await isar.writeTxn(() async {
-      final missions = await isar.missions.where().findAll();
-      for (final mission in missions) {
-        mission.completed = false;
-        mission.completedDate = null;
-        await isar.missions.put(mission);
-      }
+      await isar.missions.clear();
+      print('All missions cleared!');
     });
+    await initializeDailyMissions();
+    print('Daily missions re-initialized!');
   }
 
   // Session Methods

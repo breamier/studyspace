@@ -13,7 +13,7 @@ import 'package:studyspace/services/isar_service.dart';
 // import 'screens/astronaut_pet_screen.dart';
 // import 'screens/astronaut_traveling_screen.dart';
 // import 'services/scheduler.dart';
-// import 'services/astro_hp_service.dart';
+//import 'services/astro_hp_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // import './models/goal.dart';

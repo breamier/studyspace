@@ -135,10 +135,13 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
         spaceships.every((item) => item['unlocked'] == true);
   }
 
-  void _onShipPurchased(BuildContext context) async {
+  Future<void> _onShipPurchased(
+      BuildContext context, VoidCallback? onContinueAfterModal) async {
     final isarService = widget.isar;
     final missions = await isarService.getMissions();
     Mission? mission;
+
+    debugPrint('Checking for purchase mission...');
     try {
       mission = missions.firstWhere(
         (m) => m.type == MissionType.purchase && !m.completed,
@@ -148,16 +151,24 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     }
     if (mission != null) {
       await isarService.completeMission(mission.id);
-      showDialog(
+      await showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => MissionCompleteModal(
           mission: mission!,
           onContinue: () {
             Navigator.of(context).pop();
+            if (onContinueAfterModal != null) {
+              onContinueAfterModal();
+            }
           },
         ),
       );
+      return;
+    }
+    // If no mission, just call the callback
+    if (onContinueAfterModal != null) {
+      onContinueAfterModal();
     }
   }
 
@@ -477,7 +488,54 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                 padding: const EdgeInsets.all(24.0),
                 child: ElevatedButton(
                   onPressed: _showResult
-                      ? _navigateToEditScreen
+                      ? () async {
+                          print(
+                              'Selected index: $_selectedIndex, Items: ${_lootBoxItems.length}');
+                          final selectedItem = _selectedIndex != null &&
+                                  _selectedIndex! < _lootBoxItems.length
+                              ? _lootBoxItems[_selectedIndex!]
+                              : null;
+
+                          if (selectedItem == null) return;
+
+                          // Unlock and update state BEFORE any async work
+                          selectedItem['unlocked'] = true;
+                          selectedItem['selected_image'] =
+                              selectedItem['image'];
+                          _itemManager.unlockItem(
+                              selectedItem['name'], selectedItem['type']);
+                          setState(() {
+                            _checkAllItemsUnlocked();
+                          });
+
+                          // If spaceship, show modal before navigating
+                          if (selectedItem['type'] == 'spaceship') {
+                            await _onShipPurchased(context, () {
+                              if (!mounted) return;
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditAstronautScreen(
+                                    isar: widget.isar,
+                                    unlockedItem: selectedItem,
+                                  ),
+                                ),
+                              );
+                            });
+                            return; // Prevents double navigation
+                          }
+
+                          // For non-spaceship, just navigate
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditAstronautScreen(
+                                isar: widget.isar,
+                                unlockedItem: selectedItem,
+                              ),
+                            ),
+                          );
+                        }
                       : (_isShaking ? null : _startBoxShaking),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _showResult
@@ -836,7 +894,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     );
   }
 
-  void _navigateToEditScreen() {
+  void _navigateToEditScreen() async {
     if (_selectedIndex == null || _selectedIndex! >= _lootBoxItems.length)
       return;
 
@@ -847,10 +905,6 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
     selectedItem['selected_image'] = selectedItem['image'];
 
     _itemManager.unlockItem(selectedItem['name'], selectedItem['type']);
-
-    if (selectedItem['type'] == 'spaceship') {
-      _onShipPurchased(context);
-    }
 
     setState(() {
       _checkAllItemsUnlocked();
@@ -962,7 +1016,7 @@ class _SpaceExpressMarketplaceState extends State<MarketplaceScreen>
                 Image.asset('assets/shooting_star.png', width: 18, height: 18),
                 const SizedBox(width: 4),
                 const Text(
-                  "10",
+                  "100",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,

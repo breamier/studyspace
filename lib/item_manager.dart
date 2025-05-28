@@ -10,8 +10,6 @@ class ItemManager {
 
   final IsarService _isarService = IsarService();
 
-  //int get userPoints => _userPoints;
-
   Future<int> getUserPoints() async {
     final pet = await _isarService.getCurrentPet();
     return pet?.userPoints ?? 0;
