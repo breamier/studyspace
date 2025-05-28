@@ -68,7 +68,7 @@ const AstronautPetSchema = CollectionSchema(
       type: IsarType.string,
     ),
     r'userPoints': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'userPoints',
       type: IsarType.long,
     )
@@ -129,6 +129,7 @@ void _astronautPetSerialize(
   writer.writeLong(offsets[7], object.progressPoints);
   writer.writeString(offsets[8], object.shipType);
   writer.writeString(offsets[9], object.skinType);
+  writer.writeLong(offsets[10], object.userPoints);
 }
 
 AstronautPet _astronautPetDeserialize(
@@ -149,6 +150,7 @@ AstronautPet _astronautPetDeserialize(
   object.progressPoints = reader.readLong(offsets[7]);
   object.shipType = reader.readString(offsets[8]);
   object.skinType = reader.readString(offsets[9]);
+  object.userPoints = reader.readLong(offsets[10]);
   return object;
 }
 
@@ -179,6 +181,8 @@ P _astronautPetDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 9:
       return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
