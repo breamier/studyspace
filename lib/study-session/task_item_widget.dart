@@ -83,6 +83,11 @@ class _StateTaskItemWidget extends State<TaskItemWidget> {
 
   Widget activityInputField() {
     return TextFormField(
+      onTap: (){
+        setState(() {
+    _isarService.deleteBlankSubtopic(widget.goalId);
+        });
+      },
         onChanged: (text) => setState(() {
               _updateGoal(
                   widget.subtopic.name, text, widget.subtopic.completed);

@@ -22,6 +22,8 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
   late Goal? current;
   bool _isLoading = true;
   bool _deleteMode = false;
+  bool _addMode = false;
+  final TextEditingController textController = TextEditingController();
 
   void callback(int index) async {
     await _isarService.deleteSubtopicAtIndex(current!, index);
@@ -78,34 +80,72 @@ class _StateStudySessionTasks extends State<StudySessionTasks> {
                 return const Center();
               }
               return Column(
-                children:
-                  [
-                    if(subtopics.isEmpty && _deleteMode)
-                      const Center(
-                        child: Text("No subtopics to delete"),
-                      ),
-                    for(int i = 0; i < subtopics.length; i++)
-
-                      _deleteMode? TaskItemWidget(subtopic: subtopics[i], goalId: widget.goalId,deleteMode:true, notifyParent:callback,index:i): TaskItemWidget(subtopic: subtopics![i], goalId: widget.goalId,deleteMode:false,notifyParent:callback,index:i)
-
-                  ]
-                ,
+                children: [
+                  if (subtopics.isEmpty && _deleteMode)
+                    const Center(
+                      child: Text("No subtopics to delete"),
+                    ),
+                  for (int i = 0; i < subtopics.length; i++)
+                    _deleteMode
+                        ? TaskItemWidget(
+                            subtopic: subtopics[i],
+                            goalId: widget.goalId,
+                            deleteMode: true,
+                            notifyParent: callback,
+                            index: i)
+                        : TaskItemWidget(
+                            subtopic: subtopics![i],
+                            goalId: widget.goalId,
+                            deleteMode: false,
+                            notifyParent: callback,
+                            index: i)
+                ],
               );
             }),
-
-        !_deleteMode? TextFormField(
-          readOnly: true,
-          onTap: () => setState(() {
-            current!.subtopics =
-                current!.subtopics + [Subtopic()..name = "\u200c"];
-            _isarService.updateGoal(current!);
-          }),
-          decoration: InputDecoration(
-            hintText: "Add a subtopic/lesson",
-            prefixIcon: const Icon(Icons.add_box),
-            border: InputBorder.none,
-          ),
-        ): Container(),
+        !_deleteMode
+            ? !_addMode
+                ? TextFormField(
+                    readOnly: true,
+                    onTap: () => setState(() {
+                      _addMode = true;
+                      // current!.subtopics =
+                      //     current!.subtopics + [Subtopic()..name = "\u200c"];
+                      // _isarService.updateGoal(current!);
+                    }),
+                    decoration: InputDecoration(
+                      hintText: "Add a subtopic/lesson",
+                      prefixIcon: const Icon(Icons.add_box),
+                      border: InputBorder.none,
+                    ),
+                  )
+                : TextFormField(
+                    controller: textController,
+                    readOnly: false,
+                    onTapOutside: (event) {
+                      setState(() {
+                        _addMode = false;
+                        textController.clear();
+                        FocusScope.of(context).unfocus();
+                      });
+                    },
+                    onFieldSubmitted: (text) => setState(() {
+                      if (text == "") {
+                        _addMode = false;
+                      } else {
+                        current!.subtopics =
+                            current!.subtopics + [Subtopic()..name = text];
+                        _isarService.updateGoal(current!);
+                        textController.clear();
+                        _addMode = false;
+                      }
+                    }),
+                    decoration: InputDecoration(
+                      hintText: "Add a subtopic/lesson",
+                      prefixIcon: const Icon(Icons.add_box),
+                      border: InputBorder.none,
+                    ),
+                  )
+            : Container(),
       ],
     );
   }
